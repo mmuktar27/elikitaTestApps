@@ -77,16 +77,15 @@ import {
   User, 
   UserCog, 
   UserPlus, 
-  Users, Printer,
+  Users, Printer,ChevronUp ,TrendingUp ,
   X, 
-  Zap 
 } from 'lucide-react';
 import { 
   Checkbox
 } from "@/components/ui/checkbox";
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 // UI Components
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
@@ -96,40 +95,43 @@ import {
 import { 
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
 } from '@/components/ui/select';
-import { 
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, 
-  DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger 
-} from '@/components/ui/dropdown-menu';
+
 import { 
   Avatar, AvatarFallback, AvatarImage 
 } from '@/components/ui/avatar';
-import { 
-  Collapsible, CollapsibleContent, CollapsibleTrigger 
-} from '@/components/ui/collapsible';
+
 import { 
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription 
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { 
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle 
-} from '@/components/ui/alert-dialog';
+
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { 
   Alert, AlertDescription, AlertTitle 
 } from '@/components/ui/alert';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Switch } from '@/components/ui/switch';
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
 
   SmartConsultation
 } from "../../components/shared";
 // Charts
-
-
+import Image from 'next/image';
+import eye from './eye.png';
+import leg from './leg.png';
+import pallor from './pallor.png';
+import curbing from './curbbin.png';
+import cybosis from './cybosis.png';
+import main from './main.png';
 // Third-party Modal
 import Modal from 'react-modal';
 
@@ -161,9 +163,10 @@ const PatientDetailsView = ({ patient, onClose , SelectedPatient }) => {
    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
    const [itemToDelete, setItemToDelete] = useState(null);
    const [completedTasks, setCompletedTasks] = useState([]);
- 
+ const [labtestFormData, setlabtestFormData]=useState([]);
   const [isLoading, setIsLoading] = useState(false);
     const [isAddOpen, setIsAddOpen] = useState(false);
+    const [isAddlabtestOpen, setIsAddlabtestOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
        const [isAddmOpen, setIsAddmOpen] = useState(false);
       const [isAddDOpen, setIsAddDOpen] = useState(false);
@@ -259,6 +262,12 @@ const PatientDetailsView = ({ patient, onClose , SelectedPatient }) => {
       // Handle any logic when the dialog opens (e.g., reset form, etc.)
     }
     setIsAddOpen(isOpen);
+  };
+  const handleDialogChangelabtest = (isOpen, actionType) => {
+    if (actionType === 'add' && isOpen) {
+      // Handle any logic when the dialog opens (e.g., reset form, etc.)
+    }
+    setIsAddlabtestOpen(isOpen);
   };
   const handleDialogDChange = (isOpen, actionType) => {
     if (actionType === 'add' && isOpen) {
@@ -369,12 +378,50 @@ const PatientDetailsView = ({ patient, onClose , SelectedPatient }) => {
   };
 
 
-  const MedicalConsultationForm = () => {
+  const NewDiagnosisForm = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [formData, setFormData] = useState({});
-    const [selectedComplaints, setSelectedComplaints] = useState([]);
+    const [selectedComplaints, setSelectedComplaints] = useState([]); 
+    const [selectedSymptoms, setSelectedSymptoms] = useState([]);
     const [filteredComplaints, setFilteredComplaints] = useState({});
-    
+    const [expandedVisit, setExpandedVisit] = useState(null);
+    const [expandedDiagnosis, setExpandedDiagnosis] = React.useState(null);
+    const [formDatadiagnosis, setFormDatadiagnosis] = useState({
+      diagnosisName: '',
+      icdCode: '',
+      severity: '',
+      category: '',
+      otherCategory: '',
+      priority: '',
+      chronicityStatus: '',
+      progressionStage: '',
+      symptoms: '',
+      vitalSigns: '',
+      labResults: '',
+      differentialDiagnosis: '',
+      treatment: '',
+      precautions: '',
+      contraindications: '',
+      expectedOutcomes: '',
+      followUpProtocol: '',
+      evidenceBase: ''
+    });
+  
+    const [formDataprog, setFormDataprog] = useState({
+      diagnosisId: '',
+      expectedOutcome: '',
+      otherOutcome: '',
+      timeframe: '',
+      survivalRate: '',
+      riskLevel: '',
+      recoveryPotential: '',
+      complications: '',
+      longTermEffects: '',
+      lifestyleModifications: '',
+      monitoringRequirements: '',
+      followUpSchedule: '',
+      additionalNotes: ''
+    });
     const [sicknessSections, setSicknessSection] =useState({
     
       generalSymptoms: {
@@ -388,12 +435,1952 @@ const PatientDetailsView = ({ patient, onClose , SelectedPatient }) => {
               { name: "feverType", label: "Type", type: "select", options: ["All day", "Morning", "Evening", "Night", "Others"] },
               { name: "feverIntensity", label: "Intensity", type: "select", options: ["High", "Low", "High and Low", "None", "Others"] },
               { name: "shivers", label: "Shivers?", type: "radio", options: ["Yes", "No"] },
-              { name: "associatedSymptoms", label: "Associated Symptoms?", type: "radio", options: ["Yes", "No"] },
-              { name: "associatedSymptomsDetail", label: "If Yes, specify", type: "text", conditional: true },
+              { name: "associatedSymptoms", label: "Associated Symptoms?", type: "radio", options: ["Yes", "No"], requiresSpecify:true },
+
               { name: "cough", label: "Cough?", type: "radio", options: ["Yes", "No"] },
               { name: "coughWithBleeding", label: "Cough with bleeding?", type: "radio", options: ["Yes", "No"] },
-              { name: "pain", label: "Any Pain?", type: "radio", options: ["Yes", "No"] },
-              { name: "painDetail", label: "If Yes, specify", type: "text", conditional: true },
+              { name: "pain", label: "Any Pain?", type: "radio", options: ["Yes", "No"], requiresSpecify: true },
+
+              { name: "generalWeakness", label: "General Weakness?", type: "radio", options: ["Yes", "No"] },
+              { name: "lossOfWeight", label: "Loss of weight?", type: "radio", options: ["Yes", "No"] },
+              { name: "burningInUrine", label: "Burning in urine?", type: "radio", options: ["Yes", "No"] },
+              { name: "causes", label: "What causes it?", type: "text" },
+              { name: "reliefs", label: "What relieves it?", type: "text" },
+              { name: "bodyTemperature", label: "Body temperature", type: "autofilled" },
+              { name: "chillsSweating", label: "Chills or sweating", type: "radio", options: ["Yes", "No"] },
+              { name: "fatigueWeakness", label: "Fatigue or weakness", type: "radio", options: ["Yes", "No"] },
+              { name: "bodyAches", label: "Body aches", type: "radio", options: ["Yes", "No"] }
+            ]
+          },
+          generalWeakness: {
+            title: "General Weakness/Fatigue",
+            fields: [
+              { name: "weaknessDuration", label: "Duration (Days)", type: "text" },
+              { name: "appetite", label: "Appetite", type: "select", options: ["Normal", "Decreased", "Others"] },
+              { name: "weightChange", label: "Change in Weight", type: "select", options: ["Increased", "Decreased", "No Change", "Others"] },
+              { name: "abdominalPain", label: "Abdominal Pain?", type: "radio", options: ["Yes", "No"] },
+              { name: "chestPain", label: "Chest Pain?", type: "radio", options: ["Yes", "No"] },
+              { name: "fever", label: "Fever?", type: "radio", options: ["Yes", "No"] },
+              { name: "cough", label: "Cough?", type: "radio", options: ["Yes", "No"] },
+              { name: "diarrhea", label: "Diarrhea?", type: "radio", options: ["Yes", "No"] },
+              { name: "constipation", label: "Constipation?", type: "radio", options: ["Yes", "No"] }
+            ]
+          },
+          specificWeakness: {
+            title: "Specific Weakness",
+            fields: [
+              { name: "specificWeaknessDuration", label: "Duration (Days)", type: "text" },
+              { name: "weaknessLocation", label: "Location of Weakness", type: "text" },
+              { name: "historyOfInjury", label: "History of Injury (H/O injury)?", type: "select", options: ["Yes", "No", "Others"] },
+              { name: "startCause", label: "How did it start?", type: "text" },
+              { name: "progress", label: "Progress", type: "select", options: ["Same as Before", "Improving", "Worsening", "Others"] }
+            ]
+          },
+          dizziness: {
+            title: "Dizziness",
+            fields: [
+              { name: "dizzinessDuration", label: "Duration (Days)", type: "text" },
+              { name: "dizzinessNature", label: "Nature", type: "select", options: ["Everyday", "Some Days", "Others"] },
+              { name: "dizzinessType", label: "Type", type: "select", options: ["Whole Day", "Morning", "Evening", "Others"] },
+              { name: "dizzinessCause", label: "What causes it?", type: "text" },
+              { name: "dizzinessRelief", label: "What relieves it?", type: "text" },
+              { name: "relationWithPosition", label: "Relation with Position", type: "select", options: ["Lying Down", "Standing Up", "Moving Neck", "Opening Eyes", "None", "Others"] },
+              { name: "historyOfFainting", label: "History of Fainting?", type: "select", options: ["Yes", "No", "Others"] },
+              { name: "historyOfFall", label: "History of Fall?", type: "select", options: ["Yes", "No", "Others"] },
+              { name: "associatedSymptoms", label: "Associated Symptoms", type: "multi-select", options: ["Vomiting", "Chest Pain", "Breathlessness", "Pain in Ear", "None", "Others"] },
+              { name: "vision", label: "Vision", type: "select", options: ["All Right", "Diminished", "Others"] },
+              { name: "hearing", label: "Hearing", type: "select", options: ["Normal", "Less", "Others"] }
+            ]
+          },
+          fainting: {
+            title: "Fainting",
+            fields: [
+              { name: "faintingEpisodes", label: "Number of Episodes", type: "text" },
+              { name: "intervalBetweenEpisodes", label: "Interval Between Episodes", type: "text" },
+              { name: "consciousnessLost", label: "Is Consciousness Lost?", type: "select", options: ["Yes", "No", "Others"] },
+              { name: "associatedFits", label: "Any Associated Fits?", type: "select", options: ["Yes", "No", "Others"] },
+              { name: "fall", label: "Fall?", type: "select", options: ["Yes", "No", "Others"] },
+              { name: "dizziness", label: "Dizziness?", type: "select", options: ["Yes", "No", "Others"] },
+              { name: "faintingCause", label: "What Brings It On?", type: "text" },
+              { name: "faintingRelief", label: "How Is It Relieved?", type: "text" }
+            ]
+          },
+          headache: {
+            title: "Headache",
+            fields: [
+              { name: "painLocation", label: "Pain Location", type: "select", options: ["Forehead", "Temples", "Behind the Eyes", "Top of the Head", "Back of the Head", "One Side of the Head", "Neck", "Other (Specify)"] },
+              { name: "painIntensity", label: "Intensity", type: "select", options: ["Mild", "Moderate", "Severe", "Others"] },
+              { name: "durationOfHeadache", label: "Duration of Headache", type: "select", options: ["Less than 1 Hour", "1-3 Hours", "3-6 Hours", "6-12 Hours", "More than 12 Hours", "Intermittent", "Continuous", "Other (Specify)"] },
+              { name: "associatedSymptoms", label: "Associated Symptoms", type: "multi-select", options: ["Nausea", "Sensitivity to Light", "Sensitivity to Sound", "Others"] }
+            ]
+          }
+        }
+      },
+            gastrointestinalIssues: {
+          title: "Gastrointestinal Issues",
+          subsections: {
+            acidityIndigestion: {
+              title: "Acidity/Indigestion",
+              fields: [
+                { name: "duration", label: "Duration (Days)", type: "text" },
+                { name: "abdominalPain", label: "Any Abdominal Pain?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "vomiting", label: "Any Vomiting?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "nausea", label: "Nausea?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "bowelHabitChange", label: "Change in Bowel Habit?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "appetite", label: "Appetite", type: "select", options: ["Normal", "Less", "Others"] },
+                { name: "constipation", label: "Constipation?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "diarrhea", label: "Diarrhea?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "cause", label: "What causes it?", type: "text" },
+                { name: "worsens", label: "What worsens it?", type: "text" },
+                { name: "jaundiceHistory", label: "History of Jaundice?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "alcohol", label: "Alcohol Ingestion?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "smoking", label: "History of Smoking?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "weightChange", label: "Change in Weight?", type: "select", options: ["Increased", "Decreased", "Did Not Change", "Others"] }
+              ]
+            },
+            diarrhea: {
+              title: "Diarrhea",
+              fields: [
+                { name: "duration", label: "Duration (Days)", type: "text" },
+                { name: "stoolType", label: "Stool Type", type: "select", options: ["Watery", "Soft", "Ill-formed", "Others"] },
+                { name: "nature", label: "Nature", type: "select", options: ["Everyday", "Some Days", "Others"] },
+                { name: "frequency", label: "Frequency", type: "text" },
+                { name: "blood", label: "With Blood?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "associatedSymptoms", label: "Any Associated Symptoms?", type: "multi-select", options: ["Vomiting", "Abdominal Pain", "Fever", "None", "Others"] },
+                { name: "relationWithFood", label: "Any Relation with Food?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "currentMedications", label: "Any Current Medications?", type: "select", options: ["Yes", "No", "Others"] }
+              ]
+            },
+            vomiting: {
+              title: "Vomiting",
+              fields: [
+                { name: "duration", label: "Duration (Days)", type: "text" },
+                { name: "nature", label: "Nature", type: "select", options: ["Everyday", "Some Days", "Others"] },
+                { name: "frequency", label: "Frequency", type: "text" },
+                { name: "appetite", label: "Appetite", type: "select", options: ["Normal", "Less", "Others"] },
+                { name: "cause", label: "What causes it?", type: "text" },
+                { name: "relief", label: "What relieves it?", type: "text" },
+                { name: "blood", label: "With Blood?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "associatedSymptoms", label: "Associated Symptoms", type: "multi-select", options: ["Abdominal Pain", "Headache", "Diarrhea", "Constipation", "None", "Others"] },
+                { name: "nausea", label: "Nausea?", type: "select", options: ["Yes", "No", "Others"] }
+              ]
+            },
+            abdominalPain: {
+              title: "Abdominal Pain",
+              fields: [
+                { name: "duration", label: "Duration (Days)", type: "text" },
+                { name: "startLocation", label: "Where did it start?", type: "select", options: ["Upper (R)", "Upper (C)", "Upper (L)", "Middle (R)", "Middle (C)", "Middle (L)", "Lower (R)", "Lower (C)", "Lower (L)", "All Over", "Others"] },
+                { name: "currentLocation", label: "Where is it now?", type: "select", options: ["Upper (R)", "Upper (C)", "Upper (L)", "Middle (R)", "Middle (C)", "Middle (L)", "Lower (R)", "Lower (C)", "Lower (L)", "All Over", "Others"] },
+                { name: "painStart", label: "How did the pain start?", type: "select", options: ["Sudden", "Gradual", "Others"] },
+                { name: "intensity", label: "Intensity", type: "select", options: ["Mild", "Moderate", "Severe", "Varies", "Others"] },
+                { name: "nature", label: "Nature", type: "select", options: ["Continuous", "Comes and Goes", "Sometimes Worse", "Others"] },
+                { name: "triggers", label: "What brings it on?", type: "select", options: ["Food", "Empty Stomach", "Period", "None", "Others"] },
+                { name: "relief", label: "What relieves it?", type: "select", options: ["Food", "Vomiting", "None", "Others"] },
+                { name: "associatedSymptoms", label: "Associated Symptoms", type: "multi-select", options: ["Constipation", "Diarrhea", "Vomiting", "Loss of Appetite", "None", "Others"] }
+              ]
+            },
+            bleedingWithStool: {
+              title: "Bleeding with Stool",
+              fields: [
+                { name: "duration", label: "Duration (Days)", type: "text" },
+                { name: "stoolColor", label: "Color of Stool", type: "select", options: ["Bright Red", "Dark Red", "Others"] },
+                { name: "amount", label: "Amount of Stool", type: "select", options: ["Lot", "Drops", "Others"] },
+                { name: "painDuringPassing", label: "Pain During Passing Stool?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "bowelHabitChange", label: "Change in Bowel Habit?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "constipation", label: "Constipation?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "diarrhea", label: "Diarrhea?", type: "select", options: ["Yes", "No", "Others"] }
+              ]
+            },
+            ulcer: {
+              title: "Ulcer",
+              fields: [
+                { name: "duration", label: "Duration (Days)", type: "text" },
+                { name: "location", label: "Where?", type: "text" },
+                { name: "startCause", label: "How did it start?", type: "select", options: ["Injury", "On its Own", "Others"] },
+                { name: "pain", label: "Any Pain?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "surface", label: "Surface", type: "select", options: ["Clean", "Dirty", "Pink", "Black", "Green", "Mixed", "Others"] },
+                { name: "edges", label: "Edges", type: "select", options: ["Raised", "Flat", "Others"] },
+                { name: "size", label: "Size", type: "text" }
+              ]
+            }
+          }
+        },
+          respiratoryIssues: {
+          title: "Respiratory Issues",
+          subsections: {
+            coughThroatProblem: {
+              title: "Cough/Throat Problem",
+              fields: [
+                { name: "duration", label: "Duration (Days)", type: "text" },
+                { name: "frequency", label: "How Often?", type: "select", options: ["All Day", "In the Morning", "At Night", "Sometimes", "Others"] },
+                { name: "sputum", label: "Is there any Sputum?", type: "radio", options: ["Yes", "No"] },
+                { name: "sputumColor", label: "Color of the Sputum", type: "select", options: ["Yellow", "Green", "Others"] },
+                { name: "sputumAmount", label: "Amount of Sputum", type: "select", options: ["Lot", "Medium", "Small", "Others"] },
+                { name: "fever", label: "Is there any Fever?", type: "radio", options: ["Yes", "No", "Others"] },
+                { name: "difficultySwallowing", label: "Is there any Difficulty in Swallowing?", type: "radio", options: ["Yes", "No", "Others"] },
+                { name: "throatPain", label: "Is there any Pain in the Throat?", type: "radio", options: ["Yes", "No", "Others"] },
+                { name: "breathingDifficulty", label: "Is there any Difficulty in Breathing?", type: "radio", options: ["Yes", "No", "Others"] }
+              ]
+            },
+            shortnessOfBreath: {
+              title: "Difficulty in Breathing/Shortness of Breath",
+              fields: [
+                { name: "duration", label: "Duration (Days)", type: "text" },
+                { name: "progression", label: "How has it progressed?", type: "select", options: ["Same as Before", "Worsening", "Improving", "Varies with Reason", "Others"] },
+                { name: "triggers", label: "What brings it on?", type: "select", options: ["Exertion", "Climbing Stairs", "None", "Others"] },
+                { name: "relief", label: "What relieves it?", type: "select", options: ["Rest", "Sitting Up", "None", "Others"] },
+                { name: "wakesAtNight", label: "Does it wake you up at night?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "chestPain", label: "Any Chest Pain?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "cough", label: "Any Cough?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "associatedSymptoms", label: "Associated Symptoms", type: "multi-select", options: ["General Weakness", "Fever", "Others"] }
+              ]
+            },
+            soreThroat: {
+              title: "Sore Throat",
+              fields: [
+                { name: "duration", label: "Duration (Days)", type: "text" },
+                { name: "severity", label: "Severity", type: "select", options: ["Mild", "Moderate", "Severe", "Others"] },
+                { name: "painLevel", label: "Pain Level", type: "select", options: ["Mild", "Moderate", "Severe", "Others"] },
+                { name: "painLocation", label: "Pain Location", type: "select", options: ["Left Side", "Right Side", "Both Sides", "Back of Throat", "Others"] },
+                { name: "difficultySwallowing", label: "Difficulty Swallowing?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "voiceChanges", label: "Voice Changes?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "associatedSymptoms", label: "Associated Symptoms", type: "multi-select", options: ["Fever", "Cough", "Runny Nose", "Ear Pain", "Swollen Glands", "Others"] },
+                { name: "recentIllness", label: "Recent Illness or Exposure to Illness?", type: "select", options: ["Yes", "No", "Others"] }
+              ]
+            }
+          }
+        },
+        
+         urinaryAndReproductiveHealth: {
+          title: "Urinary and Reproductive Health",
+          subsections: {
+            yellowUrine: {
+              title: "Yellow Urine",
+              fields: [
+                { name: "duration", label: "Duration (Days)", type: "number" },
+                { name: "abdominalPain", label: "Abdominal Pain?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "fever", label: "Fever?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "stoolColor", label: "Color of Stool?", type: "select", options: ["Normal", "Others"] },
+                { name: "burningWithUrine", label: "Burning with Urine?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "generalWeakness", label: "General Weakness?", type: "select", options: ["Yes", "No", "Others"] }
+              ]
+            },
+            urinaryIssues: {
+              title: "Urinary Issues",
+              fields: [
+                { name: "symptomsDuration", label: "How long have you felt the symptoms?", type: "number" },
+                { name: "frequencyPerDay", label: "Number of times/day?", type: "number" },
+                { name: "frequencyNature", label: "Nature of frequency?", type: "select", options: ["All day", "More at night", "Others"] },
+                { name: "burningNature", label: "Nature of burning?", type: "select", options: ["Only at the beginning", "All through passing urine", "Others"] },
+                { name: "burningColor", label: "Color of burning?", type: "select", options: ["Normal", "Dark Yellow", "Others"] },
+                { name: "fever", label: "Is there any fever?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "bloodInUrine", label: "Any blood in urine?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "urineHolding", label: "Can you hold urine?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "urineStream", label: "How is the stream?", type: "select", options: ["As before", "Weak", "Others"] }
+              ]
+            },
+            menstrualIssues: {
+              title: "Menstrual Issues",
+              fields: [
+                { name: "hadPeriod", label: "Did you have period ever?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "firstPeriod", label: "When was your first period?", type: "date" },
+                { name: "periodFrequency", label: "How often do your periods take place?", type: "select", options: ["Regular", "Irregular", "Others"] },
+                { name: "menstrualFlow", label: "How much is your menstrual flow?", type: "select", options: ["Light", "Moderate", "Heavy", "Don't know", "Others"] },
+                { name: "daysWithFlow", label: "Number of days with active menstrual flow", type: "number" },
+                { name: "painDuringPeriod", label: "Do you experience lower abdominal pain or cramps?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "otherSymptoms", label: "Any other symptoms during menstruation or 2 days before it?", type: "select", options: ["Mood swing", "Tiredness", "Trouble sleeping", "Upset stomach", "Headache", "Acne", "None", "Others"] },
+                { name: "symptomsDisappear", label: "Do these symptoms disappear after menstruation?", type: "select", options: ["Yes", "No", "Others"] }
+              ]
+            },
+            sexualHealthIssues: {
+              title: "Sexual Health Issues",
+              fields: [
+                { name: "married", label: "Married?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "lmp", label: "Date of LMP?", type: "date" },
+                { name: "periodDuration", label: "Duration of period", type: "number" },
+                { name: "durationRegular", label: "Duration Regular?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "intervalBetweenPeriods", label: "Interval between periods", type: "number" },
+                { name: "intervalRegular", label: "Interval Regular?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "flow", label: "Flow", type: "select", options: ["Normal", "Heavy", "Low", "Varies", "Others"] },
+                { name: "numberOfChildren", label: "Number of children", type: "number" },
+                { name: "numberOfPregnancies", label: "Number of pregnancies", type: "number" },
+                { name: "firstChildbirthAge", label: "Age at first childbirth", type: "number" },
+                { name: "lastChildbirthAge", label: "Age at last childbirth", type: "number" },
+                { name: "contraceptionPractice", label: "Contraception practice?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "discharge", label: "Any discharge?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "bleedingBetweenPeriods", label: "Bleeding between periods?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "pain", label: "Pain?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "itching", label: "Itching?", type: "select", options: ["Yes", "No", "Others"] }
+              ]
+            },
+            prenatalIssues: {
+              title: "Prenatal Issues",
+              fields: [
+                { name: "married", label: "Married?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "lmp", label: "Date of LMP?", type: "date" },
+                { name: "duration", label: "Duration of period (days)", type: "number" },
+                { name: "durationRegular", label: "Duration Regular?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "interval", label: "Interval between periods (days)", type: "number" },
+                { name: "intervalRegular", label: "Interval Regular?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "flow", label: "Flow", type: "select", options: ["Normal", "Heavy", "Low", "Varies", "Others"] },
+                { name: "painDuringIntercourse", label: "Pain during intercourse?", type: "select", options: ["Yes", "No", "Others"] }
+              ]
+            },
+            pregnancy: {
+              title: "Pregnancy",
+              fields: [
+                { name: "sexuallyActive", label: "Are you sexually active?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "lastIntercourse", label: "When was the last sexual intercourse(s) that may have caused the pregnancy?", type: "date" },
+                { name: "lastMenstrualPeriod", label: "When was your last menstrual period?", type: "date" },
+                { name: "menstrualCyclesRegular", label: "Are your menstrual cycles generally regular?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "previousPregnancy", label: "Have you been pregnant before?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "pregnancyOutcome", label: "If YES to the above, what was the pregnancy outcome?", type: "select", options: ["Childbirth", "Abortion/Medical", "Others"] },
+                { name: "forcedSexualEvent", label: "Was there any forced sexual event?", type: "select", options: ["Yes", "No", "Others"] }
+              ]
+            },
+            familyPlanning: {
+              title: "Family Planning/Contraceptives",
+              fields: [
+                { name: "contraceptiveMethod", label: "Have you ever used a contraceptive method?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "methodUsed", label: "If YES, which method have you used?", type: "select", options: ["Pill", "Injection", "IUD (Mirena)", "IUD CU", "Implant", "Male Condom", "Female Condom", "Natural Awareness Method", "Tube Litigation", "Vasectomy (Male surgery)", "Others"] },
+                { name: "adoptMethod", label: "If NO, would you like to adopt a method?", type: "select", options: ["Yes", "No", "Others"] },
+                { name: "planningChildren", label: "Are you planning to have any more children?", type: "select", options: ["Yes", "No", "Others"] }
+              ]
+            }
+          }
+        },
+        
+      skinAndExternalConditions: {
+        title: "Skin and External Conditions",
+        subsections: {
+          boils: {
+            title: "Boils",
+            fields: [
+              { name: "boilLocation", label: "Where are the boils located, and have you had similar issues in the past?", type: "text" },
+              { name: "boilDuration", label: "Duration (Days)", type: "number" },
+              { name: "boilWhere", label: "Where?", type: "text" },
+              { name: "boilStart", label: "How did it start?", type: "select", options: ["Injury", "On its own", "Others"] },
+              { name: "boilPain", label: "Any Pain?", type: "select", options: ["Yes", "No", "Others"] },
+              { name: "boilSkinColor", label: "Color of Skin Over the Boil", type: "select", options: ["Normal", "Red", "Others"] }
+            ]
+          },
+          skinRash: {
+            title: "Skin Rash",
+            fields: [
+              { name: "rashDuration", label: "Duration (Days)", type: "number" },
+              { name: "rashLocation", label: "Where?", type: "text" },
+              { name: "rashSize", label: "Size", type: "text" },
+              { name: "rashCount", label: "How many?", type: "select", options: ["Single", "Multiple", "Many", "Others"] },
+              { name: "rashSurface", label: "Surface", type: "select", options: ["Smooth", "Rough", "Others"] },
+              { name: "rashColor", label: "Color", type: "select", options: ["Red", "Pink", "Brown", "White", "Yellow", "Others"] }
+            ]
+          },
+          injury: {
+            title: "Injury",
+            fields: [
+              { name: "injuryDuration", label: "Duration (Days)", type: "number" },
+              { name: "injuryLocation", label: "Where is it?", type: "text" },
+              { name: "injuryCause", label: "How sustained?", type: "select", options: ["Fall (at home)", "Fall (on road)", "Fall (from height)", "Hit by car", "Hit by bike", "Hit by cycle", "Crushed in machine", "Cut", "Violence", "Others"] },
+              { name: "injuryProblem", label: "Problem", type: "select", options: ["Can't walk", "Can't move", "Pain", "Others"] },
+              { name: "injuryBleeding", label: "Any bleeding?", type: "select", options: ["Yes", "No", "Others"] }
+            ]
+          }
+        }
+      },
+      cardiovascularIssues: {
+        title: "Cardiovascular Issues",
+        subsections: {
+          palpitations: {
+            title: "Palpitations",
+            fields: [
+              { name: "palpitationDuration", label: "Duration (Days)", type: "number" },
+              { name: "palpitationType", label: "Type", type: "select", options: ["Intermittent", "Always", "Others"] },
+              { name: "palpitationDurationDetail", label: "How long does it last?", type: "text" },
+              { name: "palpitationAssociatedSymptoms", label: "Associated symptoms", type: "select", options: ["Dizziness", "Shortness of breath", "Chest pain", "Fatigue", "Others"] },
+              { name: "palpitationFainting", label: "Fainting?", type: "select", options: ["Yes", "No", "Others"] },
+              { name: "palpitationFall", label: "Fall?", type: "select", options: ["Yes", "No", "Others"] },
+              { name: "palpitationDizziness", label: "Dizziness?", type: "select", options: ["Yes", "No", "Others"] },
+              { name: "palpitationTriggers", label: "What brings it on?", type: "text" },
+              { name: "palpitationRelief", label: "How is it relieved?", type: "text" }
+            ]
+          }
+        }
+      },
+      otherSymptoms: {
+        title: "Other",
+        subsections: {
+          symptoms: {
+            title: "Other Symptoms",
+            fields: [
+              { name: "otherSpecify", label: "Other (Specify)", type: "text" },
+              { name: "otherDuration", label: "Duration (Days)", type: "number" },
+              { name: "otherLocation", label: "Location of symptoms", type: "text" },
+              { name: "otherType", label: "Type of symptoms", type: "text" },
+              { name: "otherSeverity", label: "Severity of symptoms", type: "select", options: ["Mild", "Moderate", "Severe", "Others"] },
+              { name: "otherFrequency", label: "Frequency of symptoms", type: "select", options: ["Intermittent", "Constant", "Others"] },
+              { name: "otherAssociatedSymptoms", label: "Associated symptoms", type: "text" },
+              { name: "otherTriggers", label: "Triggers", type: "text" },
+              { name: "otherAlleviatingFactors", label: "Alleviating factors", type: "text" }
+            ]
+          }
+        }
+      }
+      
+        })
+        useEffect(() => {
+          const newFilteredComplaints = {};
+          
+          selectedComplaints.forEach(complaint => {
+            // Find the section key (e.g., 'generalSymptoms')
+            const sectionKey = Object.keys(sicknessSections).find(
+              key => sicknessSections[key].title === complaint.section
+            );
+            
+            if (!sectionKey) return;
+            
+            // Find the subsection key (e.g., 'fever')
+            const subsectionKey = Object.keys(sicknessSections[sectionKey].subsections).find(
+              key => sicknessSections[sectionKey].subsections[key].title === complaint.subsection
+            );
+            
+            if (!subsectionKey) return;
+            
+            // Initialize section if it doesn't exist
+            if (!newFilteredComplaints[sectionKey]) {
+              newFilteredComplaints[sectionKey] = {
+                title: sicknessSections[sectionKey].title,
+                subsections: {}
+              };
+            }
+            
+            // Add the subsection with all its fields
+            newFilteredComplaints[sectionKey].subsections[subsectionKey] = {
+              ...sicknessSections[sectionKey].subsections[subsectionKey]
+            };
+          });
+          
+          setFilteredComplaints(newFilteredComplaints);
+        }, [selectedComplaints, sicknessSections]);
+
+
+  const [activeSection, setActiveSection] = useState(null);
+    const handleChange = (e) => {
+      const { name, value } = e.target;
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    };
+   
+  
+const MultiSectionSymptomsForm = (selectedSymptoms) => {
+
+
+  const handleInputChange = (mainSection, subsection, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [mainSection]: {
+        ...prev[mainSection],
+        [subsection]: {
+          ...prev[mainSection]?.[subsection],
+          [field]: value
+        }
+      }
+    }));
+  };
+
+  const renderField = (field, mainSection, subsectionKey) => {
+    const value = formData[mainSection]?.[subsectionKey]?.[field.name] || "";
+
+    const baseInputStyles = "w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white";
+
+    switch (field.type) {
+      case "text":
+      case "number":
+        return (
+          <input
+            type={field.type}
+            className={baseInputStyles}
+            value={value}
+            onChange={(e) => handleInputChange(mainSection, subsectionKey, field.name, e.target.value)}
+            min={field.type === "number" ? "0" : undefined}
+          />
+        );
+        case "radio":
+  return (
+    <div className={baseInputStyles}>
+      {field.options.map((option, index) => (
+        <label
+          key={index}
+          className={`flex items-center space-x-2 ${
+            value === option ? "text-teal-800 font-bold" : "text-gray-700"
+          }`}
+        >
+          <input
+            type="radio"
+            name={field.name}
+            value={option}
+            checked={value === option}
+            onChange={(e) => {
+              handleInputChange(mainSection, subsectionKey, field.name, e.target.value);
+              if (field.requiresSpecify && option === "Yes") {
+                handleInputChange(mainSection, subsectionKey, `${field.name}_specify`, ""); // Initialize specify field
+              } else if (field.requiresSpecify) {
+                handleInputChange(mainSection, subsectionKey, `${field.name}_specify`, null); // Clear specify field
+              }
+            }}
+            className="hidden" // Hide the default radio button
+          />
+          <div
+            className={`w-4 h-4 rounded-full border-2 ${
+              value === option ? "border-teal-800 bg-teal-800" : "border-gray-400"
+            }`}
+          ></div>
+          <span>{option}</span>
+        </label>
+      ))}
+
+      {/* Conditionally render the "If Yes, specify" field */}
+      {field.requiresSpecify && value === "Yes" && (
+        <div className="mt-2">
+          <label className="block text-sm text-gray-700">If Yes, specify</label>
+          <input
+            type="text"
+          
+            onChange={(e) =>
+              handleInputChange(mainSection, subsectionKey, `${field.name}_specify`, e.target.value)
+            }
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-800 focus:ring-teal-800"
+          />
+        </div>
+      )}
+    </div>
+  );
+
+        
+  case "select":
+    return (
+      <div className={baseInputStyles}>
+        <select
+          className={baseInputStyles}
+          value={value}
+          onChange={(e) => handleInputChange(mainSection, subsectionKey, field.name, e.target.value)}
+        >
+          <option value="">Select...</option>
+          {field.options.map(option => (
+            <option key={option} value={option}>{option}</option>
+          ))}
+        </select>
+  
+        {/* Conditionally render the "If Others, specify" field when 'Others' is selected */}
+        {value === "Others" && (
+          <div className="mt-2">
+            <label>If Others, specify</label>
+            <input
+              type="text"
+              onChange={(e) => handleInputChange(mainSection, subsectionKey, `${field.name}_specify`, e.target.value)}
+              className="mt-1 p-2 border border-gray-300 rounded"
+            />
+          </div>
+        )}
+      </div>
+    );
+  
+    case "multiselect":
+  const selectedValues = Array.isArray(value) ? value : [];
+  return (
+    <div className="space-y-2">
+      {field.options.map(option => (
+        <label key={option} className="flex items-center">
+          <input
+            type="checkbox"
+            className="form-checkbox text-[#75C05B] rounded border-[#007664] focus:ring-[#53FDFD]"
+            checked={selectedValues.includes(option)}
+            onChange={(e) => {
+              const newValues = e.target.checked
+                ? [...selectedValues, option]
+                : selectedValues.filter(v => v !== option);
+              handleInputChange(mainSection, subsectionKey, field.name, newValues);
+            }}
+          />
+          <span className="ml-2 text-[#007664]">{option}</span>
+        </label>
+      ))}
+
+      {/* Show the "Specify" text box if "Others" is selected */}
+      {selectedValues.includes("Others") && (
+        <div className="mt-2">
+          <label className="text-[#007664] block mb-1">If Others, specify:</label>
+          <input
+            type="text"
+            value={field.specifyValue || ""} // Use a state or value for "Others" input
+            onChange={(e) =>
+              handleInputChange(
+                mainSection,
+                subsectionKey,
+                `${field.name}_specify`,
+                e.target.value
+              )
+            }
+            className="w-full p-2 border-2 border-[#75C05B] rounded text-[#007664] focus:ring-[#007664] focus:ring-offset-2"
+            placeholder="Please specify..."
+          />
+        </div>
+      )}
+    </div>
+  );
+
+
+      default:
+        return null;
+    }
+  };
+
+  const renderSubsection = (mainSection, subsectionKey, subsection) => (
+    <div 
+      className="bg-white rounded-lg border border-[#75C05B] hover:border-[#007664] transition-all duration-200"
+      onMouseEnter={() => setActiveSection(subsectionKey)}
+      onMouseLeave={() => setActiveSection(null)}
+    >
+      <div className="p-4 space-y-4">
+        {subsection.fields.map(field => (
+          <div key={field.name} className="space-y-2">
+            <label className="block text-sm font-medium text-[#007664]">
+              {field.label}
+            </label>
+            {renderField(field, mainSection, subsectionKey)}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  ;
+ 
+    const filtered = Object.keys(sicknessSections || {}).reduce((acc, sectionKey) => {
+      const section = sicknessSections[sectionKey];
+      
+      if (!section.subsections || typeof section.subsections !== 'object') {
+        return acc;
+      }
+  
+      const filteredSubsections = Object.keys(section.subsections).reduce((subAcc, subsectionKey) => {
+        const subsection = section.subsections[subsectionKey];
+        
+        const isSelected =selectedComplaints.section === section.title && selectedComplaints.subsection === subsection.title
+    
+        console.log(isSelected)
+        if (isSelected) {
+          subAcc[subsectionKey] = subsection;
+        }
+        return subAcc;
+      }, {});
+  
+      if (Object.keys(filteredSubsections).length > 0) {
+        acc[sectionKey] = {
+          title: section.title,
+          subsections: filteredSubsections,
+        };
+      }
+      
+      return acc;
+    }, {});
+    console.log(filteredComplaints)
+   //setFilteredComplaints(filtered);
+// Add dependencies that should trigger a re-filter
+//
+const renderDiagnosisSection = () => (
+  <div className="rounded-xl overflow-hidden bg-white border border-[#75C05B] mt-8">
+    <div className="bg-[#007664] px-6 py-4">
+      <h2 className="text-xl font-bold text-[#53FDFD]">Diagnosis</h2>
+    </div>
+    <div className="p-6">
+      <div className="space-y-4">
+        {/* Primary Diagnosis (FHIR: Condition.code) */}
+        <div>
+          <label className="block text-sm font-medium text-[#007664] mb-2">
+            Primary Diagnosis
+          </label>
+          <textarea
+            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+            rows={3}
+   
+            onChange={(e) => handleInputChange("diagnosis", "primary", "diagnosis", e.target.value)}
+          />
+        </div>
+
+        {/* Secondary Diagnoses (FHIR: Condition.code) */}
+        <div>
+          <label className="block text-sm font-medium text-[#007664] mb-2">
+            Secondary Diagnoses
+          </label>
+          <textarea
+            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+            rows={3}
+           
+            onChange={(e) => handleInputChange("diagnosis", "secondary", "diagnosis", e.target.value)}
+          />
+        </div>
+
+        {/* Differential Diagnoses (FHIR: Condition.code) */}
+        <div>
+          <label className="block text-sm font-medium text-[#007664] mb-2">
+            Differential Diagnoses
+          </label>
+          <textarea
+            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+            rows={3}
+           
+            onChange={(e) => handleInputChange("diagnosis", "differential", "diagnosis", e.target.value)}
+          />
+        </div>
+
+        {/* Diagnosis Date (FHIR: Condition.onsetDateTime) */}
+        <div>
+          <label className="block text-sm font-medium text-[#007664] mb-2">
+            Diagnosis Date
+          </label>
+          <input
+            type="date"
+            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+    
+            onChange={(e) => handleInputChange("diagnosis", "diagnosisDate", "date", e.target.value)}
+          />
+        </div>
+
+        {/* Diagnosis Status (FHIR: Condition.status) */}
+        <div>
+          <label className="block text-sm font-medium text-[#007664] mb-2">
+            Diagnosis Status
+          </label>
+          <select
+            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+           
+            onChange={(e) => handleInputChange("diagnosis", "status", "status", e.target.value)}
+          >
+            <option value="">Select status...</option>
+            <option value="active">Active</option>
+            <option value="resolved">Resolved</option>
+            <option value="remission">Remission</option>
+            <option value="inactive">Inactive</option>
+            <option value="unknown">Unknown</option>
+          </select>
+        </div>
+
+        {/* Diagnosis Verification Status (FHIR: Condition.verificationStatus) */}
+        <div>
+          <label className="block text-sm font-medium text-[#007664] mb-2">
+            Verification Status
+          </label>
+          <select
+            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+      
+            onChange={(e) => handleInputChange("diagnosis", "verificationStatus", "verificationStatus", e.target.value)}
+          >
+            <option value="">Select verification status...</option>
+            <option value="unconfirmed">Unconfirmed</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="differential">Differential</option>
+            <option value="refuted">Refuted</option>
+            <option value="entered-in-error">Entered in Error</option>
+          </select>
+        </div>
+
+        {/* Diagnosis Category (FHIR: Condition.category) */}
+        <div>
+          <label className="block text-sm font-medium text-[#007664] mb-2">
+            Diagnosis Category
+          </label>
+          <select
+            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+          
+            onChange={(e) => handleInputChange("diagnosis", "category", "category", e.target.value)}
+          >
+            <option value="">Select category...</option>
+            <option value="diagnosis">Diagnosis</option>
+            <option value="problem-list-item">Problem List Item</option>
+            <option value="health-concern">Health Concern</option>
+          </select>
+        </div>
+
+        {/* Diagnosis Severity (FHIR: Condition.severity) */}
+        <div>
+          <label className="block text-sm font-medium text-[#007664] mb-2">
+            Diagnosis Severity
+          </label>
+          <select
+            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+         
+            onChange={(e) => handleInputChange("diagnosis", "severity", "severity", e.target.value)}
+          >
+            <option value="">Select severity...</option>
+            <option value="mild">Mild</option>
+            <option value="moderate">Moderate</option>
+            <option value="severe">Severe</option>
+            <option value="fatal">Fatal</option>
+          </select>
+        </div>
+
+        
+      </div>
+    </div>
+  </div>
+);
+
+
+const renderPrognosisSection = () => (
+  <div className="rounded-xl overflow-hidden bg-white border border-[#75C05B] mt-8">
+    <div className="bg-[#007664] px-6 py-4">
+      <h2 className="text-xl font-bold text-[#53FDFD]">Prognosis</h2>
+    </div>
+    <div className="p-6">
+      <div className="space-y-4">
+        {/* Expected Outcome */}
+        <div>
+          <label className="block text-sm font-medium text-[#007664] mb-2">
+            Expected Outcome
+          </label>
+          <select
+            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+            value={formData.prognosis?.outcome || ""}
+            onChange={(e) => handleInputChange("prognosis", "outcome", "outcome", e.target.value)}
+          >
+            <option value="">Select outcome...</option>
+            <option value="excellent">Excellent</option>
+            <option value="good">Good</option>
+            <option value="fair">Fair</option>
+            <option value="poor">Poor</option>
+            <option value="guarded">Guarded</option>
+          </select>
+        </div>
+
+        {/* Estimated Recovery Time */}
+        <div>
+          <label className="block text-sm font-medium text-[#007664] mb-2">
+            Estimated Recovery Time
+          </label>
+          <div className="flex space-x-4">
+            <input
+              type="number"
+              className="w-24 p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+              min="0"
+              value={formData.prognosis?.recoveryTime?.duration || ""}
+              onChange={(e) => handleInputChange("prognosis", "recoveryTime", "duration", e.target.value)}
+            />
+            <select
+              className="w-40 p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+              value={formData.prognosis?.recoveryTime?.unit || ""}
+              onChange={(e) => handleInputChange("prognosis", "recoveryTime", "unit", e.target.value)}
+            >
+              <option value="">Select unit</option>
+              <option value="days">Days</option>
+              <option value="weeks">Weeks</option>
+              <option value="months">Months</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Treatment Plan */}
+        <div>
+          <label className="block text-sm font-medium text-[#007664] mb-2">
+            Treatment Plan
+          </label>
+          <textarea
+            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+            rows={4}
+            value={formData.prognosis?.treatmentPlan || ""}
+            onChange={(e) => handleInputChange("prognosis", "treatmentPlan", "plan", e.target.value)}
+          />
+        </div>
+
+        {/* Follow-up Requirements */}
+        <div>
+          <label className="block text-sm font-medium text-[#007664] mb-2">
+            Follow-up Requirements
+          </label>
+          <textarea
+            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+            rows={3}
+            value={formData.prognosis?.followUp || ""}
+            onChange={(e) => handleInputChange("prognosis", "followUp", "requirements", e.target.value)}
+          />
+        </div>
+
+        {/* Prognosis Description (FHIR field: CarePlan.description) */}
+        <div>
+          <label className="block text-sm font-medium text-[#007664] mb-2">
+            Prognosis Description
+          </label>
+          <textarea
+            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+            rows={4}
+            value={formData.prognosis?.description || ""}
+            onChange={(e) => handleInputChange("prognosis", "description", "description", e.target.value)}
+          />
+        </div>
+
+        {/* Prognosis Date (FHIR field: CarePlan.activity.detail.scheduled) */}
+        <div>
+          <label className="block text-sm font-medium text-[#007664] mb-2">
+            Prognosis Date
+          </label>
+          <input
+            type="date"
+            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+            value={formData.prognosis?.prognosisDate || ""}
+            onChange={(e) => handleInputChange("prognosis", "prognosisDate", "date", e.target.value)}
+          />
+        </div>
+
+        {/* Risk or Complications (FHIR field: Condition or CarePlan.activity.detail.risk) */}
+        <div>
+          <label className="block text-sm font-medium text-[#007664] mb-2">
+            Risk or Complications
+          </label>
+          <textarea
+            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+            rows={3}
+            value={formData.prognosis?.risks || ""}
+            onChange={(e) => handleInputChange("prognosis", "risks", "risk", e.target.value)}
+          />
+        </div>
+
+        {/* Care Team Involved (FHIR field: CarePlan.careTeam) */}
+        <div>
+          <label className="block text-sm font-medium text-[#007664] mb-2">
+            Care Team Involved
+          </label>
+          <input
+            type="text"
+            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+            value={formData.prognosis?.careTeam || ""}
+            onChange={(e) => handleInputChange("prognosis", "careTeam", "team", e.target.value)}
+          />
+        </div>
+
+        {/* Prognostic Score or Assessment (FHIR field: Observation.valueQuantity) */}
+        <div>
+          <label className="block text-sm font-medium text-[#007664] mb-2">
+            Prognostic Score (if applicable)
+          </label>
+          <input
+            type="number"
+            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+            value={formData.prognosis?.prognosticScore || ""}
+            onChange={(e) => handleInputChange("prognosis", "prognosticScore", "score", e.target.value)}
+          />
+        </div>
+
+        {/* Prognosis Source (FHIR field: CarePlan.derivedFrom or Observation.source) */}
+        <div>
+          <label className="block text-sm font-medium text-[#007664] mb-2">
+            Prognosis Source (e.g., physician's notes)
+          </label>
+          <input
+            type="text"
+            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+            value={formData.prognosis?.prognosisSource || ""}
+            onChange={(e) => handleInputChange("prognosis", "prognosisSource", "source", e.target.value)}
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+
+
+return (
+  <div className="max-w-7xl mx-auto p-6 bg-[#F7F7F7] min-h-screen">
+    <div className="mb-8">
+      <h1 className="text-3xl font-bold text-[#007664] mb-2">Medical Assessment Form</h1>
+      <p className="text-[#B24531]">Please complete all relevant sections</p>
+    </div>
+
+    <div className="space-y-8">
+      {Object.entries(filteredComplaints).map(([mainSectionKey, mainSection]) => (
+        <div key={mainSectionKey} className="rounded-xl overflow-hidden bg-white border border-[#75C05B]">
+          {/* ... existing symptoms section rendering ... */}
+        </div>
+      ))}
+    </div>
+
+    {renderDiagnosisSection()}
+    {renderPrognosisSection()}
+
+    <div className="sticky bottom-0 bg-[#F7F7F7] pt-4 mt-8 border-t border-[#75C05B] pb-4">
+      {/* ... existing bottom section ... */}
+    </div>
+  </div>
+);
+}
+const renderDiagnosisHistory = () => {
+
+
+  // Updated sample data structure focused on diagnosis and prognosis
+  const diagnoses = [
+    {
+      id: 1,
+      date: '2024-12-28',
+      condition: 'Type 2 Diabetes',
+      diagnosisDetails: 'Initial diagnosis based on HbA1c of 7.2% and fasting glucose levels',
+      prognosis: 'Good prognosis with lifestyle modifications and medication adherence',
+      severity: 'Moderate',
+      treatmentPlan: 'Metformin 500mg twice daily, dietary changes, regular exercise',
+      expectedOutcome: 'Blood sugar stabilization within 3-6 months',
+      followUpNeeded: true,
+      riskFactors: ['Family history', 'Sedentary lifestyle', 'Obesity']
+    },
+    {
+      id: 2,
+      date: '2024-12-15',
+      condition: 'Hypertension',
+      diagnosisDetails: 'Consistent elevated BP readings over 140/90 mmHg',
+      prognosis: 'Favorable with medication and lifestyle changes',
+      severity: 'Mild to Moderate',
+      treatmentPlan: 'Lisinopril 10mg daily, reduced sodium intake',
+      expectedOutcome: 'BP control within 2-3 months',
+      followUpNeeded: true,
+      riskFactors: ['Age', 'Family history', 'High sodium diet']
+    },
+    {
+      id: 3,
+      date: '2024-11-30',
+      condition: 'Osteoarthritis',
+      diagnosisDetails: 'Bilateral knee involvement confirmed by X-ray',
+      prognosis: 'Chronic condition requiring ongoing management',
+      severity: 'Mild',
+      treatmentPlan: 'Physical therapy, NSAIDs as needed',
+      expectedOutcome: 'Pain management and maintained mobility',
+      followUpNeeded: true,
+      riskFactors: ['Age', 'Previous joint injury', 'Obesity']
+    }
+  ];
+
+  const toggleDiagnosis = (id) => {
+    setExpandedDiagnosis(expandedDiagnosis === id ? null : id);
+  };
+
+  const getSeverityColor = (severity) => {
+    switch (severity.toLowerCase()) {
+      case 'mild':
+        return 'text-green-600';
+      case 'moderate':
+        return 'text-yellow-600';
+      case 'severe':
+        return 'text-red-600';
+      default:
+        return 'text-gray-600';
+    }
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto p-6 space-y-8  " style={{ width: '65vw' }}>
+      <Card className="grid grid-cols-1 md:grid-cols-1 gap-4 bg-white shadow-lg">
+        <CardHeader className="bg-teal-700 text-white rounded-t-lg">
+          <CardTitle className="text-2xl">Diagnosis & Prognosis History</CardTitle>
+          <CardDescription className="text-gray-200">
+            Comprehensive medical condition tracking and outcomes
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="space-y-4">
+            {diagnoses.map((diagnosis) => (
+              <div 
+                key={diagnosis.id}
+                className="border rounded-lg overflow-hidden shadow-sm"
+              >
+                <button
+                  onClick={() => toggleDiagnosis(diagnosis.id)}
+                  className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center space-x-4">
+                    <Activity className="text-teal-800" size={20} />
+                    <div className="text-left">
+                      <div className="font-medium text-teal-800">
+                        {diagnosis.condition}
+                      </div>
+                      <div className={`text-sm ${getSeverityColor(diagnosis.severity)}`}>
+                        {diagnosis.severity} Severity
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <span className="text-sm text-gray-500">
+                      {new Date(diagnosis.date).toLocaleDateString()}
+                    </span>
+                    {expandedDiagnosis === diagnosis.id ? 
+                      <ChevronUp className="text-teal-800" size={20} /> : 
+                      <ChevronDown className="text-teal-800" size={20} />
+                    }
+                  </div>
+                </button>
+                
+                {expandedDiagnosis === diagnosis.id && (
+                  <div className="p-4 bg-gray-50 border-t">
+                    <div className="grid gap-4">
+                      <div className="space-y-2">
+                        <h4 className="font-medium text-teal-800">Diagnosis Details</h4>
+                        <p className="text-sm text-gray-700 p-2 bg-white rounded">
+                          {diagnosis.diagnosisDetails}
+                        </p>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <h4 className="font-medium text-teal-800">Prognosis</h4>
+                        <p className="text-sm text-gray-700 p-2 bg-white rounded">
+                          {diagnosis.prognosis}
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <h4 className="font-medium text-teal-800">Treatment Plan</h4>
+                        <p className="text-sm text-gray-700 p-2 bg-white rounded">
+                          {diagnosis.treatmentPlan}
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <h4 className="font-medium text-teal-800">Expected Outcome</h4>
+                        <div className="flex items-center space-x-2 p-2 bg-white rounded">
+                          <TrendingUp className="text-teal-500" size={16} />
+                          <span className="text-sm text-gray-700">
+                            {diagnosis.expectedOutcome}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <h4 className="font-medium text-teal-800">Risk Factors</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {diagnosis.riskFactors.map((factor, index) => (
+                            <div 
+                              key={index}
+                              className="flex items-center space-x-1 text-sm bg-white rounded px-3 py-1"
+                            >
+                              <AlertCircle size={14} className="text-yellow-500" />
+                              <span className="text-gray-700">{factor}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+    const renderPreChecks = () => {
+      const preCheckItems = [
+        'I washed my hands',
+        'I greeted the patient by name',
+        'I verified patient identity',
+        'I have asked the patient to sit/lie down comfortably, as necessary',
+        'I observed the patient\'s gait',
+        'I asked the patient if there was any pain anywhere',
+        'There is a female chaperon in the room (for female patient)',
+        'I have checked patients diagnosis history',
+      ];
+  
+
+  
+      return (
+        <div className="max-w-4xl mx-auto p-6 space-y-8 bg-white rounded-xl shadow-sm">
+          <div className="border-b pb-4">
+            <h2 className="text-2xl font-bold text-gray-800">Pre-Checks</h2>
+            <p className="text-gray-500 mt-1">Complete all required checks before proceeding</p>
+          </div>
+  
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {preCheckItems.map((check) => (
+                <div key={check} className="flex items-center group">
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      id={check}
+                      name={check}
+                      className="peer h-5 w-5 rounded border-2 border-gray-300 text-teal-500 focus:ring-teal-500 focus:ring-offset-2 transition-colors duration-200 cursor-pointer appearance-none checked:bg-teal-500 checked:border-transparent"
+                      onChange={handleChange}
+                    />
+                    <Check className="absolute top-1 left-1 h-3 w-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity duration-200" />
+                  </div>
+                  <label htmlFor={check} className="ml-3 text-gray-700 group-hover:text-gray-900 cursor-pointer">
+                    {check}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+  </div>
+       
+  
+              
+  
+      );
+    }
+    const RenderDiagnosticAssessment = ({ selectedSymptoms, setSelectedSymptoms }) => {
+      const diagnosticSections = [
+        {
+          title: 'Constitutional Symptoms',
+          icon: '🌡️',
+          items: [
+            'Fever',
+            'Fatigue/Malaise',
+            'Weight Loss/Gain',
+            'Night Sweats',
+            'Changes in Appetite',
+            'Sleep Disturbances'
+          ]
+        },
+        {
+          title: 'Cardiopulmonary',
+          icon: '❤️',
+          items: [
+            'Chest Pain/Pressure',
+            'Dyspnea',
+            'Orthopnea',
+            'Palpitations',
+            'Cough',
+            'Hemoptysis',
+            'Wheezing'
+          ]
+        },
+        {
+          title: 'Neurological',
+          icon: '🧠',
+          items: [
+            'Headache',
+            'Dizziness/Vertigo',
+            'Syncope',
+            'Focal Weakness',
+            'Sensory Changes',
+            'Vision Changes',
+            'Speech Changes',
+            'Gait Disturbance'
+          ]
+        },
+        {
+          title: 'Gastrointestinal',
+          icon: '🔄',
+          items: [
+            'Abdominal Pain',
+            'Nausea/Vomiting',
+            'Diarrhea/Constipation',
+            'GI Bleeding',
+            'Dysphagia',
+            'Jaundice',
+            'Changes in Bowel Habits'
+          ]
+        },
+        {
+          title: 'Genitourinary',
+          icon: '⚕️',
+          items: [
+            'Dysuria',
+            'Frequency/Urgency',
+            'Hematuria',
+            'Incontinence',
+            'Flank Pain',
+            'Menstrual Irregularities',
+            'Pregnancy Symptoms'
+          ]
+        },
+        {
+          title: 'Musculoskeletal',
+          icon: '🦴',
+          items: [
+            'Joint Pain/Swelling',
+            'Muscle Pain/Weakness',
+            'Back Pain',
+            'Limited Range of Motion',
+            'Morning Stiffness',
+            'Trauma-related Symptoms'
+          ]
+        },
+        {
+          title: 'Skin/Integumentary',
+          icon: '🧴',
+          items: [
+            'Rash',
+            'Pruritus',
+            'Skin Lesions',
+            'Changes in Pigmentation',
+            'Wound/Ulcer',
+            'Skin Infections'
+          ]
+        },
+        {
+          title: 'Psychiatric',
+          icon: '🧠',
+          items: [
+            'Mood Changes',
+            'Anxiety',
+            'Depression',
+            'Sleep Disturbances',
+            'Memory Issues',
+            'Suicidal Ideation'
+          ]
+        },
+        {
+          title: 'Additional Symptoms',
+          icon: '📝',
+          items: ['']
+        }
+      ];
+    
+      const handleSymptomChange = (sectionTitle, item, isChecked) => {
+        const updatedSymptoms = isChecked
+          ? [
+              ...selectedSymptoms,
+              {
+                category: sectionTitle,
+                symptom: item,
+                onset: null,
+                severity: null,
+                details: ''
+              }
+            ]
+          : selectedSymptoms.filter(
+              (symptom) => !(symptom.category === sectionTitle && symptom.symptom === item)
+            );
+    
+        setSelectedSymptoms(updatedSymptoms);
+      };
+    
+      const handleSymptomDetailsChange = (sectionTitle, item, field, value) => {
+        const updatedSymptoms = selectedSymptoms.map(symptom => {
+          if (symptom.category === sectionTitle && symptom.symptom === item) {
+            return { ...symptom, [field]: value };
+          }
+          return symptom;
+        });
+    
+        setSelectedSymptoms(updatedSymptoms);
+      };
+    
+      const isSymptomSelected = (sectionTitle, item) => {
+        return selectedSymptoms.some(
+          symptom => symptom.category === sectionTitle && symptom.symptom === item
+        );
+      };
+    
+      return (
+<div className="p-6 space-y-8 bg-gray-50 rounded-xl shadow-sm" style={{ width: '65vw' }}>          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start space-x-3">
+            <AlertCircle className="h-5 w-5 text-teal-700 mt-0.5 flex-shrink-0" />
+            <div className="space-y-2">
+              <p className="text-sm text-teal-700">
+                Please document all relevant symptoms for accurate diagnosis and prognosis assessment.
+              </p>
+              <p className="text-xs text-teal-600">
+                Include onset, duration, severity, and any associated factors for each symptom.
+              </p>
+            </div>
+          </div>
+    
+          <div className="border-b border-gray-200 pb-4">
+            <h2 className="text-2xl font-bold text-gray-900">Diagnostic Assessment</h2>
+            <p className="text-gray-600 mt-1">Select all applicable symptoms and provide relevant details</p>
+          </div>
+    
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {diagnosticSections.map(section => (
+              <div
+                key={section.title}
+                className="space-y-4 bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow duration-200"
+              >
+                <div className="flex items-center space-x-2">
+                  <span className="text-xl">{section.icon}</span>
+                  <h3 className="text-lg font-semibold text-gray-900">{section.title}</h3>
+                </div>
+    
+                <div className="space-y-3">
+                  {section.items.map(item => (
+                    <div key={item} className="flex items-center group">
+                      {section.title === "Additional Symptoms" ? (
+                        <textarea
+                          className="w-full p-2 border-2 border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-24"
+                          placeholder="Enter additional symptoms and their characteristics..."
+                          value={selectedSymptoms.find(s => s.category === section.title)?.details || ''}
+                          onChange={(e) => handleSymptomDetailsChange(section.title, 'additional', 'details', e.target.value)}
+                        />
+                      ) : (
+                        <>
+                          <input
+                            type="checkbox"
+                            id={`${section.title}-${item}`}
+                            checked={isSymptomSelected(section.title, item)}
+                            onChange={(e) => handleSymptomChange(section.title, item, e.target.checked)}
+                            className="h-5 w-5 rounded border-2 border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <label
+                            htmlFor={`${section.title}-${item}`}
+                            className="ml-3 text-gray-700 group-hover:text-gray-900 cursor-pointer text-sm"
+                          >
+                            {item}
+                          </label>
+    
+                          {isSymptomSelected(section.title, item) && (
+                            <div className="mt-2 space-y-2">
+                              <div>
+                                <label className="text-sm font-medium text-gray-700">Onset</label>
+                                <input
+                                  type="date"
+                                  value={selectedSymptoms.find(s => s.category === section.title && s.symptom === item)?.onset || ''}
+                                  onChange={(e) => handleSymptomDetailsChange(section.title, item, 'onset', e.target.value)}
+                                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium text-gray-700">Severity</label>
+                                <select
+                                  value={selectedSymptoms.find(s => s.category === section.title && s.symptom === item)?.severity || ''}
+                                  onChange={(e) => handleSymptomDetailsChange(section.title, item, 'severity', e.target.value)}
+                                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+                                >
+                                  <option value="">Select Severity</option>
+                                  <option value="mild">Mild</option>
+                                  <option value="moderate">Moderate</option>
+                                  <option value="severe">Severe</option>
+                                </select>
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    };
+    
+  
+const renderDiagnosisForm = () => {
+  
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormDatadiagnosis(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSelectChange = (name, value) => {
+    setFormDatadiagnosis(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  return (
+    <div className="container mx-auto p-4 max-w-3xl" style={{ width: '65vw' }}>
+      <Card>
+        <CardHeader className="text-2xl font-bold text-center bg-teal-700 text-white rounded-t-lg" > 
+          <CardTitle className="text-2xl font-bold text-center " >Diagnosis</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form className="space-y-6">
+            {/* Previous fields remain the same */}
+            <div className="grid grid-cols-2 gap-4">
+           
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Severity Level</Label>
+                <Select onValueChange={(value) => handleSelectChange('severity', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select severity" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="mild">Mild</SelectItem>
+                    <SelectItem value="moderate">Moderate</SelectItem>
+                    <SelectItem value="severe">Severe</SelectItem>
+                    <SelectItem value="critical">Critical</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Diagnosis Category</Label>
+                <div className="space-y-2">
+                  <Select onValueChange={(value) => handleSelectChange('category', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cardiovascular">Cardiovascular</SelectItem>
+                      <SelectItem value="respiratory">Respiratory</SelectItem>
+                      <SelectItem value="neurological">Neurological</SelectItem>
+                      <SelectItem value="gastrointestinal">Gastrointestinal</SelectItem>
+                      <SelectItem value="musculoskeletal">Musculoskeletal</SelectItem>
+                      <SelectItem value="endocrine">Endocrine</SelectItem>
+                      <SelectItem value="psychiatric">Psychiatric</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  {formDatadiagnosis.category === 'other' && (
+                    <Input
+                      name="otherCategory"
+                      value={formData.otherCategory}
+                      onChange={handleInputChange}
+                      placeholder="Please specify category"
+                      className="mt-2"
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Priority Level</Label>
+                <Select onValueChange={(value) => handleSelectChange('priority', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="emergency">Emergency</SelectItem>
+                    <SelectItem value="urgent">Urgent</SelectItem>
+                    <SelectItem value="semi-urgent">Semi-Urgent</SelectItem>
+                    <SelectItem value="non-urgent">Non-Urgent</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Chronicity Status</Label>
+                <Select onValueChange={(value) => handleSelectChange('chronicityStatus', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="acute">Acute</SelectItem>
+                    <SelectItem value="subacute">Subacute</SelectItem>
+                    <SelectItem value="chronic">Chronic</SelectItem>
+                    <SelectItem value="recurrent">Recurrent</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+          <label className="block text-sm font-medium text-[#007664] mb-2">
+            Primary Diagnosis
+          </label>
+          <textarea
+            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+            rows={3}
+   
+            onChange={(e) => handleInputChange("diagnosis", "primary", "diagnosis", e.target.value)}
+          />
+        </div>
+
+        {/* Secondary Diagnoses (FHIR: Condition.code) */}
+        <div>
+          <label className="block text-sm font-medium text-[#007664] mb-2">
+            Secondary Diagnoses
+          </label>
+          <textarea
+            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+            rows={3}
+           
+            onChange={(e) => handleInputChange("diagnosis", "secondary", "diagnosis", e.target.value)}
+          />
+        </div>
+
+        {/* Differential Diagnoses (FHIR: Condition.code) */}
+        <div>
+          <label className="block text-sm font-medium text-[#007664] mb-2">
+            Differential Diagnoses
+          </label>
+          <textarea
+            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+            rows={3}
+           
+            onChange={(e) => handleInputChange("diagnosis", "differential", "diagnosis", e.target.value)}
+          />
+        </div>
+
+     
+
+        {/* Diagnosis Status (FHIR: Condition.status) */}
+        <div>
+          <label className="block text-sm font-medium text-[#007664] mb-2">
+            Diagnosis Status
+          </label>
+          <select
+            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+           
+            onChange={(e) => handleInputChange("diagnosis", "status", "status", e.target.value)}
+          >
+            <option value="">Select status...</option>
+            <option value="active">Active</option>
+            <option value="resolved">Resolved</option>
+            <option value="remission">Remission</option>
+            <option value="inactive">Inactive</option>
+            <option value="unknown">Unknown</option>
+          </select>
+        </div>
+
+        {/* Diagnosis Verification Status (FHIR: Condition.verificationStatus) */}
+        <div>
+          <label className="block text-sm font-medium text-[#007664] mb-2">
+            Verification Status
+          </label>
+          <select
+            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+      
+            onChange={(e) => handleInputChange("diagnosis", "verificationStatus", "verificationStatus", e.target.value)}
+          >
+            <option value="">Select verification status...</option>
+            <option value="unconfirmed">Unconfirmed</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="differential">Differential</option>
+            <option value="refuted">Refuted</option>
+            <option value="entered-in-error">Entered in Error</option>
+          </select>
+        </div>
+
+    
+
+             
+   
+    
+            {/* Rest of the form remains the same */}
+            <div className="space-y-2">
+              <Label htmlFor="symptoms">Key Symptoms and Clinical Markers</Label>
+              <Textarea
+                id="symptoms"
+                name="symptoms"
+                value={formData.symptoms}
+                onChange={handleInputChange}
+                placeholder="List symptoms with frequency and clinical significance"
+                className="h-24"
+              />
+            </div>
+
+            <div className="flex justify-end space-x-4">
+            
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+const renderPrognosisForm = () => {
+ 
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormDataprog(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSelectChange = (name, value) => {
+    setFormDataprog(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  return (
+    <div className="container mx-auto p-4 max-w-3xl" style={{ width: '65vw' }}>
+      <Card>
+      <CardHeader className="text-2xl font-bold text-center bg-teal-700 text-white rounded-t-lg" > 
+          <CardTitle className="text-2xl font-bold text-center">Prognosis</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form className="space-y-6">
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Expected Outcome</Label>
+                <div className="space-y-2">
+                  <Select onValueChange={(value) => handleSelectChange('expectedOutcome', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select expected outcome" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="complete_recovery">Complete Recovery</SelectItem>
+                      <SelectItem value="partial_recovery">Partial Recovery</SelectItem>
+                      <SelectItem value="chronic_management">Chronic Management Required</SelectItem>
+                      <SelectItem value="progressive_decline">Progressive Decline</SelectItem>
+                      <SelectItem value="terminal">Terminal</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  {formDataprog.expectedOutcome === 'other' && (
+                    <Input
+                      name="otherOutcome"
+                      value={formData.otherOutcome}
+                      onChange={handleInputChange}
+                      placeholder="Please specify outcome"
+                      className="mt-2"
+                    />
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Timeframe</Label>
+                <Select onValueChange={(value) => handleSelectChange('timeframe', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select timeframe" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="days">Days</SelectItem>
+                    <SelectItem value="weeks">Weeks</SelectItem>
+                    <SelectItem value="months">Months</SelectItem>
+                    <SelectItem value="years">Years</SelectItem>
+                    <SelectItem value="lifetime">Lifetime</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Risk Level</Label>
+                <Select onValueChange={(value) => handleSelectChange('riskLevel', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select risk level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="moderate">Moderate</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="severe">Severe</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Recovery Potential</Label>
+                <Select onValueChange={(value) => handleSelectChange('recoveryPotential', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select recovery potential" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="excellent">Excellent</SelectItem>
+                    <SelectItem value="good">Good</SelectItem>
+                    <SelectItem value="fair">Fair</SelectItem>
+                    <SelectItem value="poor">Poor</SelectItem>
+                    <SelectItem value="uncertain">Uncertain</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>5-Year Survival Rate (%)</Label>
+              <Input
+                type="number"
+                name="survivalRate"
+                value={formDataprog.survivalRate}
+                onChange={handleInputChange}
+                placeholder="Enter percentage"
+                min="0"
+                max="100"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Potential Complications</Label>
+              <Textarea
+                name="complications"
+                value={formDataprog.complications}
+                onChange={handleInputChange}
+                placeholder="List potential complications and their likelihood"
+                className="h-24"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Long-term Effects</Label>
+              <Textarea
+                name="longTermEffects"
+                value={formDataprog.longTermEffects}
+                onChange={handleInputChange}
+                placeholder="Describe expected long-term effects and their impact"
+                className="h-24"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Lifestyle Modifications</Label>
+              <Textarea
+                name="lifestyleModifications"
+                value={formData.lifestyleModifications}
+                onChange={handleInputChange}
+                placeholder="Required lifestyle changes and recommendations"
+                className="h-24"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Monitoring Requirements</Label>
+              <Textarea
+                name="monitoringRequirements"
+                value={formDataprog.monitoringRequirements}
+                onChange={handleInputChange}
+                placeholder="Specify monitoring and testing requirements"
+                className="h-24"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Follow-up Schedule</Label>
+              <Textarea
+                name="followUpSchedule"
+                value={formDataprog.followUpSchedule}
+                onChange={handleInputChange}
+                placeholder="Outline recommended follow-up schedule and milestones"
+                className="h-24"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Additional Notes</Label>
+              <Textarea
+                name="additionalNotes"
+                value={formDataprog.additionalNotes}
+                onChange={handleInputChange}
+                placeholder="Any additional relevant information"
+                className="h-24"
+              />
+            </div>
+
+            <div className="flex justify-end space-x-4">
+           
+        
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+    const pages = [
+      renderDiagnosisHistory,
+      renderPreChecks,
+      () => RenderDiagnosticAssessment({  selectedSymptoms, setSelectedSymptoms }),
+      renderDiagnosisForm,
+      renderPrognosisForm,
+  
+  
+      
+    ];
+  
+    return (
+      <div className="flex flex-col min-h-screen max-w-6xl mx-auto p-6">
+      {/* Page number circles at the top */}
+      <div className="flex justify-center gap-2 mb-8">
+        {Array.from({ length: pages.length }, (_, i) => i + 1).map((pageNum) => (
+          <button
+            key={pageNum}
+            onClick={() => setCurrentPage(pageNum)}
+            className={`
+              w-10 h-10 rounded-full flex items-center justify-center
+              border-2 border-teal-500 font-medium text-sm
+              ${currentPage === pageNum 
+                ? 'bg-teal-500 text-white' 
+                : 'bg-white text-teal-500 hover:bg-teal-50'
+              }
+              transition-colors duration-200
+            `}
+          >
+            {pageNum}
+          </button>
+        ))}
+      </div>
+    
+      {/* Content area */}
+      <div className="flex-1 overflow-auto mb-8"> {/* This makes the content take the available space */}
+        {pages[currentPage - 1]()}
+      </div>
+    
+      {/* Navigation footer */}
+      <div className="bg-white border-t shadow-lg">
+        <div className="max-w-6xl mx-auto px-6 py-4">
+          <div className="flex justify-between items-center">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="flex items-center px-6 py-3 text-sm font-medium text-white bg-teal-500 rounded-lg hover:bg-teal-600 disabled:opacity-50 disabled:hover:bg-teal-500 transition-colors duration-200"
+            >
+              <ChevronLeft className="w-5 h-5 mr-2" />
+              Previous
+            </button>
+            <span className="text-sm font-medium text-gray-500">
+              Page {currentPage} of {pages.length}
+            </span>
+            <button
+  onClick={() => {
+    if (currentPage === pages.length) {
+      // "Continue" logic
+      startSmartConsult();
+    } else {
+      // "Next" logic
+      setCurrentPage(prev => Math.min(pages.length, prev + 1));
+    }
+  }}
+  disabled={false} // Ensure the button is always active
+  className="flex items-center px-6 py-3 text-sm font-medium text-white bg-teal-500 rounded-lg hover:bg-teal-600 disabled:opacity-50 disabled:hover:bg-teal-500 transition-colors duration-200"
+>
+  {currentPage === pages.length ? "Continue" : "Next"}
+  <ChevronRight className="w-5 h-5 ml-2" />
+</button>
+
+
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    );
+  };
+
+  const MedicalConsultationForm = () => {
+    const [currentPage, setCurrentPage] = useState(1);
+    const [formData, setFormData] = useState({});
+    const [selectedComplaints, setSelectedComplaints] = useState([]);
+    const [filteredComplaints, setFilteredComplaints] = useState({});
+    const [expandedVisit, setExpandedVisit] = useState(null);
+    const [sicknessSections, setSicknessSection] =useState({
+    
+      generalSymptoms: {
+        title: "General Symptoms",
+        subsections: {
+          fever: {
+            title: "Fever",
+            fields: [
+              { name: "feverDuration", label: "Duration (Days)", type: "text" },
+              { name: "feverNature", label: "Nature", type: "select", options: ["Everyday", "Alternative", "Irregular", "Others"] },
+              { name: "feverType", label: "Type", type: "select", options: ["All day", "Morning", "Evening", "Night", "Others"] },
+              { name: "feverIntensity", label: "Intensity", type: "select", options: ["High", "Low", "High and Low", "None", "Others"] },
+              { name: "shivers", label: "Shivers?", type: "radio", options: ["Yes", "No"] },
+              { name: "associatedSymptoms", label: "Associated Symptoms?", type: "radio", options: ["Yes", "No"], requiresSpecify:true },
+
+              { name: "cough", label: "Cough?", type: "radio", options: ["Yes", "No"] },
+              { name: "coughWithBleeding", label: "Cough with bleeding?", type: "radio", options: ["Yes", "No"] },
+              { name: "pain", label: "Any Pain?", type: "radio", options: ["Yes", "No"], requiresSpecify: true },
+
               { name: "generalWeakness", label: "General Weakness?", type: "radio", options: ["Yes", "No"] },
               { name: "lossOfWeight", label: "Loss of weight?", type: "radio", options: ["Yes", "No"] },
               { name: "burningInUrine", label: "Burning in urine?", type: "radio", options: ["Yes", "No"] },
@@ -859,43 +2846,130 @@ const MultiSectionSymptomsForm = (selectedComplaints) => {
             min={field.type === "number" ? "0" : undefined}
           />
         );
+        case "radio":
+  return (
+    <div className={baseInputStyles}>
+      {field.options.map((option, index) => (
+        <label
+          key={index}
+          className={`flex items-center space-x-2 ${
+            value === option ? "text-teal-800 font-bold" : "text-gray-700"
+          }`}
+        >
+          <input
+            type="radio"
+            name={field.name}
+            value={option}
+            checked={value === option}
+            onChange={(e) => {
+              handleInputChange(mainSection, subsectionKey, field.name, e.target.value);
+              if (field.requiresSpecify && option === "Yes") {
+                handleInputChange(mainSection, subsectionKey, `${field.name}_specify`, ""); // Initialize specify field
+              } else if (field.requiresSpecify) {
+                handleInputChange(mainSection, subsectionKey, `${field.name}_specify`, null); // Clear specify field
+              }
+            }}
+            className="hidden" // Hide the default radio button
+          />
+          <div
+            className={`w-4 h-4 rounded-full border-2 ${
+              value === option ? "border-teal-800 bg-teal-800" : "border-gray-400"
+            }`}
+          ></div>
+          <span>{option}</span>
+        </label>
+      ))}
 
-      case "select":
-        return (
-          <select
-            className={baseInputStyles}
-            value={value}
-            onChange={(e) => handleInputChange(mainSection, subsectionKey, field.name, e.target.value)}
-          >
-            <option value="">Select...</option>
-            {field.options.map(option => (
-              <option key={option} value={option}>{option}</option>
-            ))}
-          </select>
-        );
+      {/* Conditionally render the "If Yes, specify" field */}
+      {field.requiresSpecify && value === "Yes" && (
+        <div className="mt-2">
+          <label className="block text-sm text-gray-700">If Yes, specify</label>
+          <input
+            type="text"
+          
+            onChange={(e) =>
+              handleInputChange(mainSection, subsectionKey, `${field.name}_specify`, e.target.value)
+            }
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-800 focus:ring-teal-800"
+          />
+        </div>
+      )}
+    </div>
+  );
 
-      case "multiselect":
-        const selectedValues = Array.isArray(value) ? value : [];
-        return (
-          <div className="space-y-2">
-            {field.options.map(option => (
-              <label key={option} className="flex items-center">
-                <input
-                  type="checkbox"
-                  className="form-checkbox text-[#75C05B] rounded border-[#007664] focus:ring-[#53FDFD]"
-                  checked={selectedValues.includes(option)}
-                  onChange={(e) => {
-                    const newValues = e.target.checked
-                      ? [...selectedValues, option]
-                      : selectedValues.filter(v => v !== option);
-                    handleInputChange(mainSection, subsectionKey, field.name, newValues);
-                  }}
-                />
-                <span className="ml-2 text-[#007664]">{option}</span>
-              </label>
-            ))}
+        
+  case "select":
+    return (
+      <div className={baseInputStyles}>
+        <select
+          className={baseInputStyles}
+          value={value}
+          onChange={(e) => handleInputChange(mainSection, subsectionKey, field.name, e.target.value)}
+        >
+          <option value="">Select...</option>
+          {field.options.map(option => (
+            <option key={option} value={option}>{option}</option>
+          ))}
+        </select>
+  
+        {/* Conditionally render the "If Others, specify" field when 'Others' is selected */}
+        {value === "Others" && (
+          <div className="mt-2">
+            <label>If Others, specify</label>
+            <input
+              type="text"
+              onChange={(e) => handleInputChange(mainSection, subsectionKey, `${field.name}_specify`, e.target.value)}
+              className="mt-1 p-2 border border-gray-300 rounded"
+            />
           </div>
-        );
+        )}
+      </div>
+    );
+  
+    case "multiselect":
+  const selectedValues = Array.isArray(value) ? value : [];
+  return (
+    <div className="space-y-2">
+      {field.options.map(option => (
+        <label key={option} className="flex items-center">
+          <input
+            type="checkbox"
+            className="form-checkbox text-[#75C05B] rounded border-[#007664] focus:ring-[#53FDFD]"
+            checked={selectedValues.includes(option)}
+            onChange={(e) => {
+              const newValues = e.target.checked
+                ? [...selectedValues, option]
+                : selectedValues.filter(v => v !== option);
+              handleInputChange(mainSection, subsectionKey, field.name, newValues);
+            }}
+          />
+          <span className="ml-2 text-[#007664]">{option}</span>
+        </label>
+      ))}
+
+      {/* Show the "Specify" text box if "Others" is selected */}
+      {selectedValues.includes("Others") && (
+        <div className="mt-2">
+          <label className="text-[#007664] block mb-1">If Others, specify:</label>
+          <input
+            type="text"
+            value={field.specifyValue || ""} // Use a state or value for "Others" input
+            onChange={(e) =>
+              handleInputChange(
+                mainSection,
+                subsectionKey,
+                `${field.name}_specify`,
+                e.target.value
+              )
+            }
+            className="w-full p-2 border-2 border-[#75C05B] rounded text-[#007664] focus:ring-[#007664] focus:ring-offset-2"
+            placeholder="Please specify..."
+          />
+        </div>
+      )}
+    </div>
+  );
+
 
       default:
         return null;
@@ -920,412 +2994,6 @@ const MultiSectionSymptomsForm = (selectedComplaints) => {
       </div>
     </div>
   );
-
-  const sections = {
-    
-generalSymptoms: {
-  title: "General Symptoms",
-  subsections: {
-    fever: {
-      title: "Fever",
-      fields: [
-        { name: "feverDuration", label: "Duration (Days)", type: "text" },
-        { name: "feverNature", label: "Nature", type: "select", options: ["Everyday", "Alternative", "Irregular", "Others"] },
-        { name: "feverType", label: "Type", type: "select", options: ["All day", "Morning", "Evening", "Night", "Others"] },
-        { name: "feverIntensity", label: "Intensity", type: "select", options: ["High", "Low", "High and Low", "None", "Others"] },
-        { name: "shivers", label: "Shivers?", type: "radio", options: ["Yes", "No"] },
-        { name: "associatedSymptoms", label: "Associated Symptoms?", type: "radio", options: ["Yes", "No"] },
-        { name: "associatedSymptomsDetail", label: "If Yes, specify", type: "text", conditional: true },
-        { name: "cough", label: "Cough?", type: "radio", options: ["Yes", "No"] },
-        { name: "coughWithBleeding", label: "Cough with bleeding?", type: "radio", options: ["Yes", "No"] },
-        { name: "pain", label: "Any Pain?", type: "radio", options: ["Yes", "No"] },
-        { name: "painDetail", label: "If Yes, specify", type: "text", conditional: true },
-        { name: "generalWeakness", label: "General Weakness?", type: "radio", options: ["Yes", "No"] },
-        { name: "lossOfWeight", label: "Loss of weight?", type: "radio", options: ["Yes", "No"] },
-        { name: "burningInUrine", label: "Burning in urine?", type: "radio", options: ["Yes", "No"] },
-        { name: "causes", label: "What causes it?", type: "text" },
-        { name: "reliefs", label: "What relieves it?", type: "text" },
-        { name: "bodyTemperature", label: "Body temperature", type: "autofilled" },
-        { name: "chillsSweating", label: "Chills or sweating", type: "radio", options: ["Yes", "No"] },
-        { name: "fatigueWeakness", label: "Fatigue or weakness", type: "radio", options: ["Yes", "No"] },
-        { name: "bodyAches", label: "Body aches", type: "radio", options: ["Yes", "No"] }
-      ]
-    },
-    generalWeakness: {
-      title: "General Weakness/Fatigue",
-      fields: [
-        { name: "weaknessDuration", label: "Duration (Days)", type: "text" },
-        { name: "appetite", label: "Appetite", type: "select", options: ["Normal", "Decreased", "Others"] },
-        { name: "weightChange", label: "Change in Weight", type: "select", options: ["Increased", "Decreased", "No Change", "Others"] },
-        { name: "abdominalPain", label: "Abdominal Pain?", type: "radio", options: ["Yes", "No"] },
-        { name: "chestPain", label: "Chest Pain?", type: "radio", options: ["Yes", "No"] },
-        { name: "fever", label: "Fever?", type: "radio", options: ["Yes", "No"] },
-        { name: "cough", label: "Cough?", type: "radio", options: ["Yes", "No"] },
-        { name: "diarrhea", label: "Diarrhea?", type: "radio", options: ["Yes", "No"] },
-        { name: "constipation", label: "Constipation?", type: "radio", options: ["Yes", "No"] }
-      ]
-    },
-    specificWeakness: {
-      title: "Specific Weakness",
-      fields: [
-        { name: "specificWeaknessDuration", label: "Duration (Days)", type: "text" },
-        { name: "weaknessLocation", label: "Location of Weakness", type: "text" },
-        { name: "historyOfInjury", label: "History of Injury (H/O injury)?", type: "select", options: ["Yes", "No", "Others"] },
-        { name: "startCause", label: "How did it start?", type: "text" },
-        { name: "progress", label: "Progress", type: "select", options: ["Same as Before", "Improving", "Worsening", "Others"] }
-      ]
-    },
-    dizziness: {
-      title: "Dizziness",
-      fields: [
-        { name: "dizzinessDuration", label: "Duration (Days)", type: "text" },
-        { name: "dizzinessNature", label: "Nature", type: "select", options: ["Everyday", "Some Days", "Others"] },
-        { name: "dizzinessType", label: "Type", type: "select", options: ["Whole Day", "Morning", "Evening", "Others"] },
-        { name: "dizzinessCause", label: "What causes it?", type: "text" },
-        { name: "dizzinessRelief", label: "What relieves it?", type: "text" },
-        { name: "relationWithPosition", label: "Relation with Position", type: "select", options: ["Lying Down", "Standing Up", "Moving Neck", "Opening Eyes", "None", "Others"] },
-        { name: "historyOfFainting", label: "History of Fainting?", type: "select", options: ["Yes", "No", "Others"] },
-        { name: "historyOfFall", label: "History of Fall?", type: "select", options: ["Yes", "No", "Others"] },
-        { name: "associatedSymptoms", label: "Associated Symptoms", type: "multi-select", options: ["Vomiting", "Chest Pain", "Breathlessness", "Pain in Ear", "None", "Others"] },
-        { name: "vision", label: "Vision", type: "select", options: ["All Right", "Diminished", "Others"] },
-        { name: "hearing", label: "Hearing", type: "select", options: ["Normal", "Less", "Others"] }
-      ]
-    },
-    fainting: {
-      title: "Fainting",
-      fields: [
-        { name: "faintingEpisodes", label: "Number of Episodes", type: "text" },
-        { name: "intervalBetweenEpisodes", label: "Interval Between Episodes", type: "text" },
-        { name: "consciousnessLost", label: "Is Consciousness Lost?", type: "select", options: ["Yes", "No", "Others"] },
-        { name: "associatedFits", label: "Any Associated Fits?", type: "select", options: ["Yes", "No", "Others"] },
-        { name: "fall", label: "Fall?", type: "select", options: ["Yes", "No", "Others"] },
-        { name: "dizziness", label: "Dizziness?", type: "select", options: ["Yes", "No", "Others"] },
-        { name: "faintingCause", label: "What Brings It On?", type: "text" },
-        { name: "faintingRelief", label: "How Is It Relieved?", type: "text" }
-      ]
-    },
-    headache: {
-      title: "Headache",
-      fields: [
-        { name: "painLocation", label: "Pain Location", type: "select", options: ["Forehead", "Temples", "Behind the Eyes", "Top of the Head", "Back of the Head", "One Side of the Head", "Neck", "Other (Specify)"] },
-        { name: "painIntensity", label: "Intensity", type: "select", options: ["Mild", "Moderate", "Severe", "Others"] },
-        { name: "durationOfHeadache", label: "Duration of Headache", type: "select", options: ["Less than 1 Hour", "1-3 Hours", "3-6 Hours", "6-12 Hours", "More than 12 Hours", "Intermittent", "Continuous", "Other (Specify)"] },
-        { name: "associatedSymptoms", label: "Associated Symptoms", type: "multi-select", options: ["Nausea", "Sensitivity to Light", "Sensitivity to Sound", "Others"] }
-      ]
-    }
-  }
-},
-      gastrointestinalIssues: {
-    title: "Gastrointestinal Issues",
-    subsections: {
-      acidityIndigestion: {
-        title: "Acidity/Indigestion",
-        fields: [
-          { name: "duration", label: "Duration (Days)", type: "text" },
-          { name: "abdominalPain", label: "Any Abdominal Pain?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "vomiting", label: "Any Vomiting?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "nausea", label: "Nausea?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "bowelHabitChange", label: "Change in Bowel Habit?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "appetite", label: "Appetite", type: "select", options: ["Normal", "Less", "Others"] },
-          { name: "constipation", label: "Constipation?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "diarrhea", label: "Diarrhea?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "cause", label: "What causes it?", type: "text" },
-          { name: "worsens", label: "What worsens it?", type: "text" },
-          { name: "jaundiceHistory", label: "History of Jaundice?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "alcohol", label: "Alcohol Ingestion?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "smoking", label: "History of Smoking?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "weightChange", label: "Change in Weight?", type: "select", options: ["Increased", "Decreased", "Did Not Change", "Others"] }
-        ]
-      },
-      diarrhea: {
-        title: "Diarrhea",
-        fields: [
-          { name: "duration", label: "Duration (Days)", type: "text" },
-          { name: "stoolType", label: "Stool Type", type: "select", options: ["Watery", "Soft", "Ill-formed", "Others"] },
-          { name: "nature", label: "Nature", type: "select", options: ["Everyday", "Some Days", "Others"] },
-          { name: "frequency", label: "Frequency", type: "text" },
-          { name: "blood", label: "With Blood?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "associatedSymptoms", label: "Any Associated Symptoms?", type: "multi-select", options: ["Vomiting", "Abdominal Pain", "Fever", "None", "Others"] },
-          { name: "relationWithFood", label: "Any Relation with Food?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "currentMedications", label: "Any Current Medications?", type: "select", options: ["Yes", "No", "Others"] }
-        ]
-      },
-      vomiting: {
-        title: "Vomiting",
-        fields: [
-          { name: "duration", label: "Duration (Days)", type: "text" },
-          { name: "nature", label: "Nature", type: "select", options: ["Everyday", "Some Days", "Others"] },
-          { name: "frequency", label: "Frequency", type: "text" },
-          { name: "appetite", label: "Appetite", type: "select", options: ["Normal", "Less", "Others"] },
-          { name: "cause", label: "What causes it?", type: "text" },
-          { name: "relief", label: "What relieves it?", type: "text" },
-          { name: "blood", label: "With Blood?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "associatedSymptoms", label: "Associated Symptoms", type: "multi-select", options: ["Abdominal Pain", "Headache", "Diarrhea", "Constipation", "None", "Others"] },
-          { name: "nausea", label: "Nausea?", type: "select", options: ["Yes", "No", "Others"] }
-        ]
-      },
-      abdominalPain: {
-        title: "Abdominal Pain",
-        fields: [
-          { name: "duration", label: "Duration (Days)", type: "text" },
-          { name: "startLocation", label: "Where did it start?", type: "select", options: ["Upper (R)", "Upper (C)", "Upper (L)", "Middle (R)", "Middle (C)", "Middle (L)", "Lower (R)", "Lower (C)", "Lower (L)", "All Over", "Others"] },
-          { name: "currentLocation", label: "Where is it now?", type: "select", options: ["Upper (R)", "Upper (C)", "Upper (L)", "Middle (R)", "Middle (C)", "Middle (L)", "Lower (R)", "Lower (C)", "Lower (L)", "All Over", "Others"] },
-          { name: "painStart", label: "How did the pain start?", type: "select", options: ["Sudden", "Gradual", "Others"] },
-          { name: "intensity", label: "Intensity", type: "select", options: ["Mild", "Moderate", "Severe", "Varies", "Others"] },
-          { name: "nature", label: "Nature", type: "select", options: ["Continuous", "Comes and Goes", "Sometimes Worse", "Others"] },
-          { name: "triggers", label: "What brings it on?", type: "select", options: ["Food", "Empty Stomach", "Period", "None", "Others"] },
-          { name: "relief", label: "What relieves it?", type: "select", options: ["Food", "Vomiting", "None", "Others"] },
-          { name: "associatedSymptoms", label: "Associated Symptoms", type: "multi-select", options: ["Constipation", "Diarrhea", "Vomiting", "Loss of Appetite", "None", "Others"] }
-        ]
-      },
-      bleedingWithStool: {
-        title: "Bleeding with Stool",
-        fields: [
-          { name: "duration", label: "Duration (Days)", type: "text" },
-          { name: "stoolColor", label: "Color of Stool", type: "select", options: ["Bright Red", "Dark Red", "Others"] },
-          { name: "amount", label: "Amount of Stool", type: "select", options: ["Lot", "Drops", "Others"] },
-          { name: "painDuringPassing", label: "Pain During Passing Stool?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "bowelHabitChange", label: "Change in Bowel Habit?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "constipation", label: "Constipation?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "diarrhea", label: "Diarrhea?", type: "select", options: ["Yes", "No", "Others"] }
-        ]
-      },
-      ulcer: {
-        title: "Ulcer",
-        fields: [
-          { name: "duration", label: "Duration (Days)", type: "text" },
-          { name: "location", label: "Where?", type: "text" },
-          { name: "startCause", label: "How did it start?", type: "select", options: ["Injury", "On its Own", "Others"] },
-          { name: "pain", label: "Any Pain?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "surface", label: "Surface", type: "select", options: ["Clean", "Dirty", "Pink", "Black", "Green", "Mixed", "Others"] },
-          { name: "edges", label: "Edges", type: "select", options: ["Raised", "Flat", "Others"] },
-          { name: "size", label: "Size", type: "text" }
-        ]
-      }
-    }
-  },
-    respiratoryIssues: {
-    title: "Respiratory Issues",
-    subsections: {
-      coughThroatProblem: {
-        title: "Cough/Throat Problem",
-        fields: [
-          { name: "duration", label: "Duration (Days)", type: "text" },
-          { name: "frequency", label: "How Often?", type: "select", options: ["All Day", "In the Morning", "At Night", "Sometimes", "Others"] },
-          { name: "sputum", label: "Is there any Sputum?", type: "radio", options: ["Yes", "No"] },
-          { name: "sputumColor", label: "Color of the Sputum", type: "select", options: ["Yellow", "Green", "Others"] },
-          { name: "sputumAmount", label: "Amount of Sputum", type: "select", options: ["Lot", "Medium", "Small", "Others"] },
-          { name: "fever", label: "Is there any Fever?", type: "radio", options: ["Yes", "No", "Others"] },
-          { name: "difficultySwallowing", label: "Is there any Difficulty in Swallowing?", type: "radio", options: ["Yes", "No", "Others"] },
-          { name: "throatPain", label: "Is there any Pain in the Throat?", type: "radio", options: ["Yes", "No", "Others"] },
-          { name: "breathingDifficulty", label: "Is there any Difficulty in Breathing?", type: "radio", options: ["Yes", "No", "Others"] }
-        ]
-      },
-      shortnessOfBreath: {
-        title: "Difficulty in Breathing/Shortness of Breath",
-        fields: [
-          { name: "duration", label: "Duration (Days)", type: "text" },
-          { name: "progression", label: "How has it progressed?", type: "select", options: ["Same as Before", "Worsening", "Improving", "Varies with Reason", "Others"] },
-          { name: "triggers", label: "What brings it on?", type: "select", options: ["Exertion", "Climbing Stairs", "None", "Others"] },
-          { name: "relief", label: "What relieves it?", type: "select", options: ["Rest", "Sitting Up", "None", "Others"] },
-          { name: "wakesAtNight", label: "Does it wake you up at night?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "chestPain", label: "Any Chest Pain?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "cough", label: "Any Cough?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "associatedSymptoms", label: "Associated Symptoms", type: "multi-select", options: ["General Weakness", "Fever", "Others"] }
-        ]
-      },
-      soreThroat: {
-        title: "Sore Throat",
-        fields: [
-          { name: "duration", label: "Duration (Days)", type: "text" },
-          { name: "severity", label: "Severity", type: "select", options: ["Mild", "Moderate", "Severe", "Others"] },
-          { name: "painLevel", label: "Pain Level", type: "select", options: ["Mild", "Moderate", "Severe", "Others"] },
-          { name: "painLocation", label: "Pain Location", type: "select", options: ["Left Side", "Right Side", "Both Sides", "Back of Throat", "Others"] },
-          { name: "difficultySwallowing", label: "Difficulty Swallowing?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "voiceChanges", label: "Voice Changes?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "associatedSymptoms", label: "Associated Symptoms", type: "multi-select", options: ["Fever", "Cough", "Runny Nose", "Ear Pain", "Swollen Glands", "Others"] },
-          { name: "recentIllness", label: "Recent Illness or Exposure to Illness?", type: "select", options: ["Yes", "No", "Others"] }
-        ]
-      }
-    }
-  },
-  
-   urinaryAndReproductiveHealth: {
-    title: "Urinary and Reproductive Health",
-    subsections: {
-      yellowUrine: {
-        title: "Yellow Urine",
-        fields: [
-          { name: "duration", label: "Duration (Days)", type: "number" },
-          { name: "abdominalPain", label: "Abdominal Pain?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "fever", label: "Fever?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "stoolColor", label: "Color of Stool?", type: "select", options: ["Normal", "Others"] },
-          { name: "burningWithUrine", label: "Burning with Urine?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "generalWeakness", label: "General Weakness?", type: "select", options: ["Yes", "No", "Others"] }
-        ]
-      },
-      urinaryIssues: {
-        title: "Urinary Issues",
-        fields: [
-          { name: "symptomsDuration", label: "How long have you felt the symptoms?", type: "number" },
-          { name: "frequencyPerDay", label: "Number of times/day?", type: "number" },
-          { name: "frequencyNature", label: "Nature of frequency?", type: "select", options: ["All day", "More at night", "Others"] },
-          { name: "burningNature", label: "Nature of burning?", type: "select", options: ["Only at the beginning", "All through passing urine", "Others"] },
-          { name: "burningColor", label: "Color of burning?", type: "select", options: ["Normal", "Dark Yellow", "Others"] },
-          { name: "fever", label: "Is there any fever?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "bloodInUrine", label: "Any blood in urine?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "urineHolding", label: "Can you hold urine?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "urineStream", label: "How is the stream?", type: "select", options: ["As before", "Weak", "Others"] }
-        ]
-      },
-      menstrualIssues: {
-        title: "Menstrual Issues",
-        fields: [
-          { name: "hadPeriod", label: "Did you have period ever?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "firstPeriod", label: "When was your first period?", type: "date" },
-          { name: "periodFrequency", label: "How often do your periods take place?", type: "select", options: ["Regular", "Irregular", "Others"] },
-          { name: "menstrualFlow", label: "How much is your menstrual flow?", type: "select", options: ["Light", "Moderate", "Heavy", "Don't know", "Others"] },
-          { name: "daysWithFlow", label: "Number of days with active menstrual flow", type: "number" },
-          { name: "painDuringPeriod", label: "Do you experience lower abdominal pain or cramps?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "otherSymptoms", label: "Any other symptoms during menstruation or 2 days before it?", type: "select", options: ["Mood swing", "Tiredness", "Trouble sleeping", "Upset stomach", "Headache", "Acne", "None", "Others"] },
-          { name: "symptomsDisappear", label: "Do these symptoms disappear after menstruation?", type: "select", options: ["Yes", "No", "Others"] }
-        ]
-      },
-      sexualHealthIssues: {
-        title: "Sexual Health Issues",
-        fields: [
-          { name: "married", label: "Married?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "lmp", label: "Date of LMP?", type: "date" },
-          { name: "periodDuration", label: "Duration of period", type: "number" },
-          { name: "durationRegular", label: "Duration Regular?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "intervalBetweenPeriods", label: "Interval between periods", type: "number" },
-          { name: "intervalRegular", label: "Interval Regular?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "flow", label: "Flow", type: "select", options: ["Normal", "Heavy", "Low", "Varies", "Others"] },
-          { name: "numberOfChildren", label: "Number of children", type: "number" },
-          { name: "numberOfPregnancies", label: "Number of pregnancies", type: "number" },
-          { name: "firstChildbirthAge", label: "Age at first childbirth", type: "number" },
-          { name: "lastChildbirthAge", label: "Age at last childbirth", type: "number" },
-          { name: "contraceptionPractice", label: "Contraception practice?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "discharge", label: "Any discharge?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "bleedingBetweenPeriods", label: "Bleeding between periods?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "pain", label: "Pain?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "itching", label: "Itching?", type: "select", options: ["Yes", "No", "Others"] }
-        ]
-      },
-      prenatalIssues: {
-        title: "Prenatal Issues",
-        fields: [
-          { name: "married", label: "Married?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "lmp", label: "Date of LMP?", type: "date" },
-          { name: "duration", label: "Duration of period (days)", type: "number" },
-          { name: "durationRegular", label: "Duration Regular?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "interval", label: "Interval between periods (days)", type: "number" },
-          { name: "intervalRegular", label: "Interval Regular?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "flow", label: "Flow", type: "select", options: ["Normal", "Heavy", "Low", "Varies", "Others"] },
-          { name: "painDuringIntercourse", label: "Pain during intercourse?", type: "select", options: ["Yes", "No", "Others"] }
-        ]
-      },
-      pregnancy: {
-        title: "Pregnancy",
-        fields: [
-          { name: "sexuallyActive", label: "Are you sexually active?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "lastIntercourse", label: "When was the last sexual intercourse(s) that may have caused the pregnancy?", type: "date" },
-          { name: "lastMenstrualPeriod", label: "When was your last menstrual period?", type: "date" },
-          { name: "menstrualCyclesRegular", label: "Are your menstrual cycles generally regular?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "previousPregnancy", label: "Have you been pregnant before?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "pregnancyOutcome", label: "If YES to the above, what was the pregnancy outcome?", type: "select", options: ["Childbirth", "Abortion/Medical", "Others"] },
-          { name: "forcedSexualEvent", label: "Was there any forced sexual event?", type: "select", options: ["Yes", "No", "Others"] }
-        ]
-      },
-      familyPlanning: {
-        title: "Family Planning/Contraceptives",
-        fields: [
-          { name: "contraceptiveMethod", label: "Have you ever used a contraceptive method?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "methodUsed", label: "If YES, which method have you used?", type: "select", options: ["Pill", "Injection", "IUD (Mirena)", "IUD CU", "Implant", "Male Condom", "Female Condom", "Natural Awareness Method", "Tube Litigation", "Vasectomy (Male surgery)", "Others"] },
-          { name: "adoptMethod", label: "If NO, would you like to adopt a method?", type: "select", options: ["Yes", "No", "Others"] },
-          { name: "planningChildren", label: "Are you planning to have any more children?", type: "select", options: ["Yes", "No", "Others"] }
-        ]
-      }
-    }
-  },
-  
-skinAndExternalConditions: {
-  title: "Skin and External Conditions",
-  subsections: {
-    boils: {
-      title: "Boils",
-      fields: [
-        { name: "boilLocation", label: "Where are the boils located, and have you had similar issues in the past?", type: "text" },
-        { name: "boilDuration", label: "Duration (Days)", type: "number" },
-        { name: "boilWhere", label: "Where?", type: "text" },
-        { name: "boilStart", label: "How did it start?", type: "select", options: ["Injury", "On its own", "Others"] },
-        { name: "boilPain", label: "Any Pain?", type: "select", options: ["Yes", "No", "Others"] },
-        { name: "boilSkinColor", label: "Color of Skin Over the Boil", type: "select", options: ["Normal", "Red", "Others"] }
-      ]
-    },
-    skinRash: {
-      title: "Skin Rash",
-      fields: [
-        { name: "rashDuration", label: "Duration (Days)", type: "number" },
-        { name: "rashLocation", label: "Where?", type: "text" },
-        { name: "rashSize", label: "Size", type: "text" },
-        { name: "rashCount", label: "How many?", type: "select", options: ["Single", "Multiple", "Many", "Others"] },
-        { name: "rashSurface", label: "Surface", type: "select", options: ["Smooth", "Rough", "Others"] },
-        { name: "rashColor", label: "Color", type: "select", options: ["Red", "Pink", "Brown", "White", "Yellow", "Others"] }
-      ]
-    },
-    injury: {
-      title: "Injury",
-      fields: [
-        { name: "injuryDuration", label: "Duration (Days)", type: "number" },
-        { name: "injuryLocation", label: "Where is it?", type: "text" },
-        { name: "injuryCause", label: "How sustained?", type: "select", options: ["Fall (at home)", "Fall (on road)", "Fall (from height)", "Hit by car", "Hit by bike", "Hit by cycle", "Crushed in machine", "Cut", "Violence", "Others"] },
-        { name: "injuryProblem", label: "Problem", type: "select", options: ["Can't walk", "Can't move", "Pain", "Others"] },
-        { name: "injuryBleeding", label: "Any bleeding?", type: "select", options: ["Yes", "No", "Others"] }
-      ]
-    }
-  }
-},
-cardiovascularIssues: {
-  title: "Cardiovascular Issues",
-  subsections: {
-    palpitations: {
-      title: "Palpitations",
-      fields: [
-        { name: "palpitationDuration", label: "Duration (Days)", type: "number" },
-        { name: "palpitationType", label: "Type", type: "select", options: ["Intermittent", "Always", "Others"] },
-        { name: "palpitationDurationDetail", label: "How long does it last?", type: "text" },
-        { name: "palpitationAssociatedSymptoms", label: "Associated symptoms", type: "select", options: ["Dizziness", "Shortness of breath", "Chest pain", "Fatigue", "Others"] },
-        { name: "palpitationFainting", label: "Fainting?", type: "select", options: ["Yes", "No", "Others"] },
-        { name: "palpitationFall", label: "Fall?", type: "select", options: ["Yes", "No", "Others"] },
-        { name: "palpitationDizziness", label: "Dizziness?", type: "select", options: ["Yes", "No", "Others"] },
-        { name: "palpitationTriggers", label: "What brings it on?", type: "text" },
-        { name: "palpitationRelief", label: "How is it relieved?", type: "text" }
-      ]
-    }
-  }
-},
-otherSymptoms: {
-  title: "Other",
-  subsections: {
-    symptoms: {
-      title: "Other Symptoms",
-      fields: [
-        { name: "otherSpecify", label: "Other (Specify)", type: "text" },
-        { name: "otherDuration", label: "Duration (Days)", type: "number" },
-        { name: "otherLocation", label: "Location of symptoms", type: "text" },
-        { name: "otherType", label: "Type of symptoms", type: "text" },
-        { name: "otherSeverity", label: "Severity of symptoms", type: "select", options: ["Mild", "Moderate", "Severe", "Others"] },
-        { name: "otherFrequency", label: "Frequency of symptoms", type: "select", options: ["Intermittent", "Constant", "Others"] },
-        { name: "otherAssociatedSymptoms", label: "Associated symptoms", type: "text" },
-        { name: "otherTriggers", label: "Triggers", type: "text" },
-        { name: "otherAlleviatingFactors", label: "Alleviating factors", type: "text" }
-      ]
-    }
-  }
-}
-
-  };
  
     const filtered = Object.keys(sicknessSections || {}).reduce((acc, sectionKey) => {
       const section = sicknessSections[sectionKey];
@@ -1359,43 +3027,187 @@ otherSymptoms: {
    //setFilteredComplaints(filtered);
 // Add dependencies that should trigger a re-filter
 //
-  return (
-    <div className="max-w-7xl mx-auto p-6 bg-[#F7F7F7] min-h-screen">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-[#007664] mb-2">Medical Assessment Form</h1>
-        <p className="text-[#B24531]">Please complete all relevant sections</p>
-      </div>
+return (
+  <div className="max-w-7xl mx-auto p-6 bg-[#F7F7F7] min-h-screen">
+    <div className="mb-8">
+      <h1 className="text-3xl font-bold text-[#007664] mb-2">Medical Assessment Form</h1>
+      <p className="text-[#B24531]">Please complete all relevant sections</p>
+    </div>
 
-      <div className="space-y-8">
-        {Object.entries(filteredComplaints).map(([mainSectionKey, mainSection]) => (
-          <div key={mainSectionKey} className="rounded-xl overflow-hidden bg-white border border-[#75C05B]">
-            <div className="bg-[#007664] px-6 py-4">
-              <h2 className="text-xl font-bold text-[#53FDFD] flex items-center">
-                {mainSection.title}
-              </h2>
-            </div>
-            
-            <div className="p-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {Object.entries(mainSection.subsections).map(([subsectionKey, subsection]) => (
-                  <div key={subsectionKey} className="bg-[#F7F7F7] p-6 rounded-xl border border-[#75C05B]">
-                    <h3 className={`text-lg font-semibold mb-4 pb-2 border-b-2 ${
-                      activeSection === subsectionKey ? 'text-[#B24531] border-[#B24531]' : 'text-[#007664] border-[#75C05B]'
-                    }`}>
-                      {subsection.title}
-                    </h3>
-                    {renderSubsection(mainSectionKey, subsectionKey, subsection)}
-                  </div>
-                ))}
-              </div>
-            </div>
+    <div className="space-y-8">
+      {Object.entries(filteredComplaints).map(([mainSectionKey, mainSection]) => (
+        <div key={mainSectionKey} className="rounded-xl overflow-hidden bg-white border border-[#75C05B]">
+          <div className="bg-[#007664] px-6 py-4">
+            <h2 className="text-xl font-bold text-[#53FDFD] flex items-center">
+              {mainSection.title}
+            </h2>
           </div>
-        ))}
-      </div>
+          
+          <div className="p-6">
+            {/* Calculate number of visible subsections */}
+            {(() => {
+              const visibleSubsections = Object.entries(mainSection.subsections).filter(
+                ([key, subsection]) => /* Your visibility condition here */true
+              );
+              
+              const gridCols = visibleSubsections.length > 1 ? "lg:grid-cols-2" : "lg:grid-cols-1";
+              
+              return (
+                <div className={`grid grid-cols-1 ${gridCols} gap-6`}>
+                  {Object.entries(mainSection.subsections).map(([subsectionKey, subsection]) => (
+                    <div key={subsectionKey} className="bg-[#F7F7F7] p-6 rounded-xl border border-[#75C05B]">
+                      <h3 className={`text-lg font-semibold mb-4 pb-2 border-b-2 ${
+                        activeSection === subsectionKey ? 'text-[#B24531] border-[#B24531]' : 'text-[#007664] border-[#75C05B]'
+                      }`}>
+                        {subsection.title}
+                      </h3>
+                      {renderSubsection(mainSectionKey, subsectionKey, subsection)}
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      ))}
+    </div>
 
-      <div className="sticky bottom-0 bg-[#F7F7F7] pt-4 mt-8 border-t border-[#75C05B] pb-4">
-        
-      </div>
+    <div className="sticky bottom-0 bg-[#F7F7F7] pt-4 mt-8 border-t border-[#75C05B] pb-4">
+    </div>
+  </div>
+);
+};
+
+const renderPatientVisitsList = () => {
+ 
+  
+  // Sample data
+  const visits = [
+    {
+      id: 1,
+      date: '2024-12-28',
+      time: '09:30',
+      doctor: 'Dr. Smith',
+      reason: 'Regular Checkup',
+      diagnosis: 'Healthy, no concerns',
+      prescription: 'None',
+      vitals: {
+        bp: '120/80',
+        temp: '98.6°F',
+        pulse: '72'
+      }
+    },
+    {
+      id: 2,
+      date: '2024-12-15',
+      time: '14:45',
+      doctor: 'Dr. Johnson',
+      reason: 'Fever and Cough',
+      diagnosis: 'Upper Respiratory Infection',
+      prescription: 'Amoxicillin 500mg',
+      vitals: {
+        bp: '118/78',
+        temp: '101.2°F',
+        pulse: '88'
+      }
+    },
+    {
+      id: 3,
+      date: '2024-11-30',
+      time: '11:15',
+      doctor: 'Dr. Smith',
+      reason: 'Follow-up',
+      diagnosis: 'Recovery progressing well',
+      prescription: 'Continue previous medication',
+      vitals: {
+        bp: '122/82',
+        temp: '98.8°F',
+        pulse: '76'
+      }
+    }
+  ];
+
+  const toggleVisit = (id) => {
+    setExpandedVisit(expandedVisit === id ? null : id);
+  };
+
+  return (
+    <div className="bg-[#F7F7F7] p-4 " style={{ width: '65vw', maxWidth: '87%' , display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: '100vh', // Ensures it takes the full screen height
+    margin: '0 auto', }}>
+      <Card className="w-full  bg-white shadow-lg">
+        <CardHeader className="bg-[#007664] text-white rounded-t-lg">
+          <CardTitle className="text-2xl">Previous Visits</CardTitle>
+          <CardDescription className="text-[#F7F7F7]">
+            Click on a visit to view detailed information
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="space-y-4">
+            {visits.map((visit) => (
+              <div 
+                key={visit.id}
+                className="border rounded-lg overflow-hidden shadow-sm"
+              >
+                <button
+                  onClick={() => toggleVisit(visit.id)}
+                  className="w-full p-4 flex items-center justify-between hover:bg-[#53FDFD]/10 transition-colors"
+                  style={{ backgroundColor: expandedVisit === visit.id ? '#53FDFD/20' : 'white' }}
+                >
+                  <div className="flex items-center space-x-4">
+                    <Calendar className="text-[#007664]" size={20} />
+                    <div className="text-left">
+                      <div className="font-medium text-[#007664]">
+                        {new Date(visit.date).toLocaleDateString()}
+                      </div>
+                      <div className="text-sm text-[#75C05B]">
+                        {visit.reason}
+                      </div>
+                    </div>
+                  </div>
+                  {expandedVisit === visit.id ? 
+                    <ChevronUp className="text-[#007664]" size={20} /> : 
+                    <ChevronDown className="text-[#007664]" size={20} />
+                  }
+                </button>
+                
+                {expandedVisit === visit.id && (
+                  <div className="p-4 bg-[#F7F7F7] border-t">
+                    <div className="grid gap-4">
+                      <div className="flex items-center space-x-2">
+                        <Clock className="text-[#75C05B]" size={16} />
+                        <span className="text-sm text-[#007664]">Time: {visit.time}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <User className="text-[#75C05B]" size={16} />
+                        <span className="text-sm text-[#007664]">Doctor: {visit.doctor}</span>
+                      </div>
+                      <div className="space-y-2">
+                        <h4 className="font-medium text-[#B24531]">Vitals</h4>
+                        <div className="grid grid-cols-3 gap-4 text-sm text-[#007664]">
+                          <div className="p-2 bg-white rounded">BP: {visit.vitals.bp}</div>
+                          <div className="p-2 bg-white rounded">Temp: {visit.vitals.temp}</div>
+                          <div className="p-2 bg-white rounded">Pulse: {visit.vitals.pulse}</div>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <h4 className="font-medium text-[#B24531]">Diagnosis</h4>
+                        <p className="text-sm text-[#007664] p-2 bg-white rounded">{visit.diagnosis}</p>
+                      </div>
+                      <div className="space-y-2">
+                        <h4 className="font-medium text-[#B24531]">Prescription</h4>
+                        <p className="text-sm text-[#007664] p-2 bg-white rounded">{visit.prescription}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
@@ -1409,6 +3221,7 @@ otherSymptoms: {
         'I observed the patient\'s gait',
         'I asked the patient if there was any pain anywhere',
         'There is a female chaperon in the room (for female patient)',
+        'I have checked patients visit history',
       ];
   
    const vitalFields = [
@@ -1529,7 +3342,17 @@ otherSymptoms: {
         {
           title: 'Urinary and Reproductive Health',
           icon: '⚕️',
-          items: ['Yellow Urine', 'Urinary Issues', 'Menstrual Issues', 'Sexual Health Issues']
+          items: ['Yellow Urine', 'Urinary Issues (e.g., Painful Urination, Frequent Urination)', 'Menstrual Issues (e.g., Period Problem, Menstruation)', 'Sexual Health Issues (e.g., Intercourse Problem, Private Part Problem)','Prenatal Issues','Pregnancy','Family Planning/Contraceptives']
+        },
+        {
+          title: 'Skin and External Conditions ',
+          icon: '🧴',
+          items: ['Boils', 'Skin Rash', 'Injury', 'Cardiovascular Issues','Palpitations']
+        },
+        {
+          title: 'Others',
+          icon: '❓',
+          items: ['']
         }
       ];
      // let selectedComplaints = []; // Local variable to track selected complaints
@@ -1588,29 +3411,41 @@ otherSymptoms: {
                 </div>
     
                 <div className="space-y-3">
-                  {section.items.map(item => (
-                    <div key={item} className="flex items-center group">
-                      <div className="relative">
-                        <input
-                          type="checkbox"
-                          id={`${section.title}-${item}`}
-                          name={item}
-                          checked={isComplaintSelected(section.title, item)}
-                          className="peer h-5 w-5 rounded border-2 border-[#75C05B] text-[#007664] 
-                                   focus:ring-[#007664] focus:ring-offset-2 transition-colors duration-200 
-                                   cursor-pointer appearance-none checked:bg-[#007664] checked:border-transparent"
-                          onChange={(event) => handleChangeChiefcomplain(section.title, item, event.target.checked)}
-                        />
-                        <Check className="absolute top-1 left-1 h-3 w-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity duration-200" />
-                      </div>
-                      <label
-                        htmlFor={`${section.title}-${item}`}
-                        className="ml-3 text-[#007664]/80 group-hover:text-[#007664] cursor-pointer text-sm"
-                      >
-                        {item}
-                      </label>
-                    </div>
-                  ))}
+                {section.items.map(item => (
+  <div key={item} className="flex items-center group">
+    <div className="relative">
+      {/* Check if the item is 'Others' */}
+      {section.title === "Others" ? (
+        // If item is "Others", render a text area or input box instead of checkbox
+        <textarea
+          id={`${section.title}-${item}`}
+          name={item}
+          value={isComplaintSelected(section.title, item) || ""}
+          className="h-24 w-full p-2 border-2 border-[#75C05B] text-[#007664] focus:ring-[#007664] focus:ring-offset-2 rounded-md transition-colors duration-200"
+          onChange={(event) => handleChangeChiefcomplain(section.title, item, event.target.value)}
+          placeholder="Please specify..."
+        />
+      ) : (
+        // If item is not "Others", render the checkbox as usual
+        <input
+          type="checkbox"
+          id={`${section.title}-${item}`}
+          name={item}
+          checked={isComplaintSelected(section.title, item)}
+          className="peer h-5 w-5 rounded border-2 border-[#75C05B] text-[#007664] focus:ring-[#007664] focus:ring-offset-2 transition-colors duration-200 cursor-pointer appearance-none checked:bg-[#007664] checked:border-transparent"
+          onChange={(event) => handleChangeChiefcomplain(section.title, item, event.target.checked)}
+        />
+      )}
+    </div>
+    <label
+      htmlFor={`${section.title}-${item}`}
+      className="ml-3 text-[#007664]/80 group-hover:text-[#007664] cursor-pointer text-sm"
+    >
+      {item}
+    </label>
+  </div>
+))}
+
                 </div>
               </div>
             ))}
@@ -1625,47 +3460,48 @@ otherSymptoms: {
       // Handle form changes here
       console.log(e.target.name, e.target.value);
     };
-  
     return (
       <div className="max-w-4xl mx-auto p-6 space-y-8 bg-gray-50">
         <div className="w-full max-w-6xl mx-auto p-6 space-y-6">
           <h2 className="text-2xl font-bold text-gray-900">Physical Examination</h2>
-    
+          <Image src={main} alt="Description of the image" width={500} height={300} />
           {[
             {
               title: 'Eye',
-              image: '/api/placeholder/400/320',
               sections: [
                 {
                   name: 'Jaundice',
+                  image: eye,
                   options: ['Yes', 'No']
                 },
                 {
                   name: 'Pallor',
+                  image: pallor,
                   options: ['Mild', 'Moderate', 'Severe', 'None']
                 }
               ]
             },
             {
               title: 'Hand',
-              image: '/api/placeholder/400/320',
               sections: [
                 {
                   name: 'Cyanosis',
+                  image: cybosis,
                   options: ['Yes', 'No']
                 },
                 {
                   name: 'Clubbing',
+                  image: curbing,
                   options: ['Normal', 'Clubbing', 'None']
                 }
               ]
             },
             {
               title: 'Leg',
-              image: '/api/placeholder/400/320',
               sections: [
                 {
                   name: 'Oedema',
+                  image: leg,
                   options: ['Mild', 'Moderate', 'Severe', 'None']
                 }
               ]
@@ -1674,23 +3510,25 @@ otherSymptoms: {
             <div key={area.title} className="bg-white rounded-xl shadow-sm p-6 space-y-6">
               <h3 className="text-xl font-semibold text-gray-800">{area.title}</h3>
               
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="w-full h-64 bg-gray-100 rounded-lg overflow-hidden">
-                  <img 
-                    src={area.image} 
-                    alt={area.title} 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
+              <div className="space-y-6">
+                {area.sections.map(section => (
+                  <div key={section.name} className="grid md:grid-cols-2 gap-6">
+                    <div className="w-full h-64 bg-gray-100 rounded-lg overflow-hidden">
+                      <Image 
+                        src={section.image}
+                        alt={section.name}
+                        className="w-full h-full object-cover"
+                        width={300}
+                        height={256}
+                      />
+                    </div>
   
-                <div className="space-y-6">
-                  {area.sections.map(section => (
-                    <div key={section.name} className="space-y-3">
+                    <div className="space-y-3">
                       <p className="font-medium text-gray-700">{section.name}</p>
                       <div className="grid grid-cols-2 gap-4">
                         {section.options.map(option => (
-                          <label 
-                            key={option} 
+                          <label
+                            key={option}
                             className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
                           >
                             <input
@@ -1705,93 +3543,25 @@ otherSymptoms: {
                         ))}
                       </div>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
             </div>
           ))}
         </div>
       </div>
     );
+ 
   };
   
-    const renderLabTests = () => (
-      <div className="space-y-8">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Laboratory Tests</h2>
-          <p className="text-gray-600 mt-2">Select the required diagnostic tests for the patient</p>
-        </div>
-  
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {[
-            {
-              category: 'General Health Screening',
-              icon: <Beaker className="w-6 h-6 text-blue-500" />,
-              color: 'from-blue-50 to-blue-100',
-              textColor: 'text-blue-700',
-              tests: ['Complete Blood Count (CBC)', 'Basic Metabolic Panel (BMP)', 'Comprehensive Metabolic Panel (CMP)', 'Lipid Panel', 'Urinalysis']
-            },
-            {
-              category: 'Diabetes and Endocrine Function',
-              icon: <Activity className="w-6 h-6 text-purple-500" />,
-              color: 'from-purple-50 to-purple-100',
-              textColor: 'text-purple-700',
-              tests: ['Fasting Blood Glucose', 'Hemoglobin A1c (HbA1c)', 'Thyroid Function Tests (TSH, T3, T4)']
-            },
-            {
-              category: 'Cardiovascular Health',
-              icon: <Heart className="w-6 h-6 text-red-500" />,
-              color: 'from-red-50 to-red-100',
-              textColor: 'text-red-700',
-              tests: ['Electrocardiogram (ECG)', 'Troponin Test']
-            },
-            {
-              category: 'Advanced Diagnostics',
-              icon: <flask-conical className="w-6 h-6 text-emerald-500" />,
-              color: 'from-emerald-50 to-emerald-100',
-              textColor: 'text-emerald-700',
-              tests: ['Chest X-ray', 'MRI Scan', 'CT Scan', 'Ultrasound']
-            }
-          ].map(category => (
-            <Card key={category.category} className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
-              <CardContent className="p-0">
-                <div className={`bg-gradient-to-r ${category.color} p-4`}>
-                  <div className="flex items-center gap-3 mb-4">
-                    {category.icon}
-                    <h3 className={`text-lg font-semibold ${category.textColor}`}>
-                      {category.category}
-                    </h3>
-                  </div>
-                  <div className="space-y-3">
-                    {category.tests.map(test => (
-                      <label key={test} className="flex items-center gap-3 bg-white rounded-lg p-3 cursor-pointer hover:bg-gray-50 transition-colors duration-200">
-                        <div className="relative">
-                          <input
-                            type="checkbox"
-                            id={test}
-                            name={test}
-                            className="w-5 h-5 border-2 rounded text-blue-600 focus:ring-blue-500"
-                            onChange={handleChange}
-                          />
-                        </div>
-                        <span className="text-gray-700 text-sm font-medium">{test}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  
     const pages = [
+      renderPatientVisitsList,
       renderPreChecks,
       () => renderChiefComplaints({ selectedComplaints, setSelectedComplaints }),
       () => MultiSectionSymptomsForm({ selectedComplaints }),
       renderPhysicalExam,
-      renderLabTests
+      
+      
     ];
   
     return (
@@ -1862,6 +3632,19 @@ otherSymptoms: {
     
     );
   };
+
+
+
+
+
+
+
+
+
+
+
+
+
 
  const LabResultDetailsModal = ({ result, isOpen, onClose }) => {
   return (
@@ -2808,6 +4591,94 @@ const MedicationDetailsModal = ({ medic, isOpen, onClose }) => {
     </Dialog>
   );
 };
+const handleChange = (e) => {
+  const { name, value } = e.target;
+  setlabtestFormData(prev => ({
+    ...prev,
+    [name]: value
+  }));
+};
+const RenderLabTests = () => (
+  <div className="space-y-8">
+    <div className="text-center mb-12">
+      <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Laboratory Tests</h2>
+      <p className="text-gray-600 mt-2">Select the required diagnostic tests for the patient</p>
+    </div>
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {[
+        {
+          category: 'General Health Screening',
+          icon: <Beaker className="w-6 h-6 text-blue-500" />,
+          color: 'from-blue-50 to-blue-100',
+          textColor: 'text-blue-700',
+          tests: ['Complete Blood Count (CBC)', 'Basic Metabolic Panel (BMP)', 'Comprehensive Metabolic Panel (CMP)', 'Lipid Panel', 'Urinalysis']
+        },
+        {
+          category: 'Diabetes and Endocrine Function',
+          icon: <Activity className="w-6 h-6 text-purple-500" />,
+          color: 'from-purple-50 to-purple-100',
+          textColor: 'text-purple-700',
+          tests: ['Fasting Blood Glucose', 'Hemoglobin A1c (HbA1c)', 'Thyroid Function Tests (TSH, T3, T4)']
+        },
+        {
+          category: 'Cardiovascular Health',
+          icon: <Heart className="w-6 h-6 text-red-500" />,
+          color: 'from-red-50 to-red-100',
+          textColor: 'text-red-700',
+          tests: ['Electrocardiogram (ECG)', 'Troponin Test']
+        },
+        {
+          category: 'Advanced Diagnostics',
+          icon: <flask-conical className="w-6 h-6 text-emerald-500" />,
+          color: 'from-emerald-50 to-emerald-100',
+          textColor: 'text-emerald-700',
+          tests: ['Chest X-ray', 'MRI Scan', 'CT Scan', 'Ultrasound']
+        }
+      ].map(category => (
+        <Card key={category.category} className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
+          <CardContent className="p-0">
+            <div className={`bg-gradient-to-r ${category.color} p-4`}>
+              <div className="flex items-center gap-3 mb-4">
+                {category.icon}
+                <h3 className={`text-lg font-semibold ${category.textColor}`}>
+                  {category.category}
+                </h3>
+              </div>
+              <div className="space-y-3">
+                {category.tests.map(test => (
+                  <label key={test} className="flex items-center gap-3 bg-white rounded-lg p-3 cursor-pointer hover:bg-gray-50 transition-colors duration-200">
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        id={test}
+                        name={test}
+                        className="w-5 h-5 border-2 rounded text-blue-600 focus:ring-blue-500"
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <span className="text-gray-700 text-sm font-medium">{test}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+  
+
+    </div>
+    <div className="flex justify-end">
+  <Button 
+    className="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded"
+    onClick={startSmartConsult}
+  >
+    Next
+  </Button>
+</div>
+
+  </div>
+);
 
 const doctors = [{ id: 1, name: "Dr. Alice" }, { id: 2, name: "Dr. Bob" }];
 const labTechnicians = [{ id: 1, name: "Tech Anne" }, { id: 2, name: "Tech Max" }];
@@ -3222,11 +5093,11 @@ const ConsultationForm = ({ buttonText, onSubmit, consultationData }) => {
       </TabsTrigger>
       <TabsTrigger value="diagnoses" className="flex items-center gap-2 text-[#007664] hover:bg-[#007664]/20">
         <FileText className="h-4 w-4" />
-        Diagnoses
+        Diagnosis &amp; Prognosis
       </TabsTrigger>
       <TabsTrigger value="labresult" className="flex items-center gap-2 text-[#007664] hover:bg-[#007664]/20">
         <Thermometer className="h-4 w-4" />
-        Lab Result
+        Lab Test
       </TabsTrigger>
       <TabsTrigger value="medications" className="flex items-center gap-2 text-[#007664] hover:bg-[#007664]/20">
         <Pill className="h-4 w-4" />
@@ -3273,7 +5144,7 @@ const ConsultationForm = ({ buttonText, onSubmit, consultationData }) => {
                 </div>
                 {/* Rest of the component remains structurally the same, just updating colors */}
                 <div>
-                  <h3 className="font-medium text-lg text-[#007664] mb-2">Lab Test Results</h3>
+                  <h3 className="font-medium text-lg text-[#007664] mb-2">Previous Lab Test</h3>
                   <div className="mb-2">
                     <Select onValueChange={setSelectedLabTest} value={selectedLabTest}>
                       <SelectTrigger className="w-[180px]">
@@ -3489,15 +5360,13 @@ const ConsultationForm = ({ buttonText, onSubmit, consultationData }) => {
           </Button>
         </DialogTrigger>
 
-        <DialogContent className="max-w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-full sm:max-w-5xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>New Diagnose</DialogTitle>
           </DialogHeader>
 
-          <DiagnosisForm 
-            buttonText="Submit Diagnose" 
-            onSubmit={() => handleFormSubmit('add')}
-            isLoading={isLoading}
+          <NewDiagnosisForm
+           
           />
         </DialogContent>
       </Dialog>
@@ -3592,10 +5461,29 @@ const ConsultationForm = ({ buttonText, onSubmit, consultationData }) => {
         </div>
       </TabsContent>
  <TabsContent value="labresult" className="mt-32 sm:mt-6">
-  <div className="flex justify-between mb-4">
-    <h3 className="text-lg font-semibold text-[#007664]">Lab Results</h3>
+ <div className="flex justify-between items-center mb-4">
+  <h3 className="text-lg font-semibold text-[#007664]">Lab Test</h3>
   
-  </div>
+  <Dialog open={isAddlabtestOpen} onOpenChange={(isOpen) => handleDialogChangelabtest(isOpen, 'add')}>
+    <DialogTrigger asChild>
+      <Button className="bg-[#007664] hover:bg-[#007664]/80 w-full sm:w-auto">
+        <Plus className="h-4 w-4" />
+        New Lab Test
+      </Button>
+    </DialogTrigger>
+
+    <DialogContent className="max-w-full sm:max-w-5xl max-h-[90vh] overflow-y-auto">
+      <DialogHeader>
+        <div className="flex justify-center items-center ">
+          <DialogTitle className="text-teal-800">Lab Test</DialogTitle>
+        </div>
+      </DialogHeader>
+
+      <RenderLabTests />
+    </DialogContent>
+  </Dialog>
+</div>
+
   <div className="border rounded-lg overflow-x-auto">
           <table className="w-full table-auto border-collapse">
       <thead className="bg-[#007664] text-white">

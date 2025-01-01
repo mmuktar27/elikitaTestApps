@@ -375,40 +375,11 @@ const preCheckTasks = [
         {step.label}
       </Label>
       {step.key === 'chiefcomplaint' ? (
-        <div>
-          <div className="flex flex-wrap gap-4 mb-2">
-            {chiefComplaintOptions.map((complaint) => (
-              <div
-                key={complaint}
-                className="flex items-center space-x-2 w-full sm:w-auto"
-              >
-                <Checkbox
-                  id={`complaint-${complaint}`}
-                  checked={selectedChiefComplaints.includes(complaint)}
-                  onCheckedChange={() => handleChiefComplaintToggle(complaint)}
-                />
-                <Label htmlFor={`complaint-${complaint}`}>{complaint}</Label>
-              </div>
-            ))}
-          </div>
-          {selectedChiefComplaints.includes('Not listed (specify)') && (
-            <Input
-              placeholder="Specify other chief complaint"
-              value={otherChiefComplaint}
-              onChange={(e) => setOtherChiefComplaint(e.target.value)}
-              className="mt-2 w-full"
-            />
-          )}
-        </div>
-      ) : (
-        <Textarea
-          id={step.key}
-          placeholder={`Enter ${step.label}`}
-          value={consultationData[step.key] || ''}
-          onChange={(e) => handleConsultationInput(step.key, e.target.value)}
-          className="h-24 mb-2 bg-white border-[#007664] focus:border-[#75C05B] focus:ring-[#75C05B] w-full"
-        />
-      )}
+  // JSX to render if condition is true
+  <div>
+  </div>
+) : null}
+
       <div className="flex flex-wrap sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-2">
         <Button
           onClick={() => handleVoiceInput(step.key)}
