@@ -1374,7 +1374,7 @@ const renderPrognosisSection = () => (
         {/* Prognosis Source (FHIR field: CarePlan.derivedFrom or Observation.source) */}
         <div>
           <label className="block text-sm font-medium text-[#007664] mb-2">
-            Prognosis Source (e.g., physician's notes)
+            Prognosis Source (e.g., physicians notes)
           </label>
           <input
             type="text"
