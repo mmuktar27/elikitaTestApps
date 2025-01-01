@@ -781,7 +781,7 @@ const PatientDetailsView = ({ patient, onClose , SelectedPatient }) => {
               { name: "injuryDuration", label: "Duration (Days)", type: "number" },
               { name: "injuryLocation", label: "Where is it?", type: "text" },
               { name: "injuryCause", label: "How sustained?", type: "select", options: ["Fall (at home)", "Fall (on road)", "Fall (from height)", "Hit by car", "Hit by bike", "Hit by cycle", "Crushed in machine", "Cut", "Violence", "Others"] },
-              { name: "injuryProblem", label: "Problem", type: "select", options: ["Can't walk", "Can't move", "Pain", "Others"] },
+              { name: "injuryProblem", label: "Problem", type: "select", options: ["Cant walk", "Cant move", "Pain", "Others"] },
               { name: "injuryBleeding", label: "Any bleeding?", type: "select", options: ["Yes", "No", "Others"] }
             ]
           }
@@ -1582,7 +1582,7 @@ const renderDiagnosisHistory = () => {
         'I greeted the patient by name',
         'I verified patient identity',
         'I have asked the patient to sit/lie down comfortably, as necessary',
-        'I observed the patient\'s gait',
+        'I observed the patients gait',
         'I asked the patient if there was any pain anywhere',
         'There is a female chaperon in the room (for female patient)',
         'I have checked patients diagnosis history',
