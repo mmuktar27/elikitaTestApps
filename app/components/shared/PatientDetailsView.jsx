@@ -738,15 +738,98 @@ const PatientDetailsView = ({ patient, onClose , SelectedPatient }) => {
                 { name: "forcedSexualEvent", label: "Was there any forced sexual event?", type: "select", options: ["Yes", "No", "Others"] }
               ]
             },
-            familyPlanning: {
+    familyPlanning: {
               title: "Family Planning/Contraceptives",
               fields: [
-                { name: "contraceptiveMethod", label: "Have you ever used a contraceptive method?", type: "select", options: ["Yes", "No", "Others"] },
-                { name: "methodUsed", label: "If YES, which method have you used?", type: "select", options: ["Pill", "Injection", "IUD (Mirena)", "IUD CU", "Implant", "Male Condom", "Female Condom", "Natural Awareness Method", "Tube Litigation", "Vasectomy (Male surgery)", "Others"] },
-                { name: "adoptMethod", label: "If NO, would you like to adopt a method?", type: "select", options: ["Yes", "No", "Others"] },
-                { name: "planningChildren", label: "Are you planning to have any more children?", type: "select", options: ["Yes", "No", "Others"] }
-              ]
-            }
+                {
+                  name: "contraceptiveMethod",
+                  label: "Have you ever used a contraceptive method?",
+                  type: "select",
+                  options: ["Yes", "No", "Others"],
+                  conditions: {
+                    Yes: {
+                      type: "select",
+                      label: "Which method have you used?",
+                      options: [
+                        "Pill",
+                        "Injection",
+                        "IUD (Mirena)",
+                        "IUD CU",
+                        "Implant",
+                        "Male Condom",
+                        "Female Condom",
+                        "Natural Awareness Method (specify)",
+                        "Tube Litigation",
+                        "Vasectomy (Male surgery)",
+                        "Others",
+                      ],
+                    },
+                    No: {
+                      type: "select",
+                      label: "Would you like to adopt a method?",
+                      options: ["Yes", "No", "Others"],
+                    },
+                    Others: {
+                      type: "text",
+                      label: "If Others, specify",
+                    },
+                  },
+                },
+                {
+                  name: "menstrualCycles",
+                  label: "Are your menstrual cycles generally regular?",
+                  type: "select",
+                  options: ["Yes", "No", "Others"],
+                },
+                {
+                  name: "pregnancyHistory",
+                  label: "Have you been pregnant before?",
+                  type: "select",
+                  options: ["Yes", "No", "Others"],
+                },
+                {
+                  name: "children",
+                  label: "Do you have children?",
+                  type: "select",
+                  options: ["Yes", "No", "Others"],
+                },
+                {
+                  name: "planningChildren",
+                  label: "Are you planning to have any more children?",
+                  type: "select",
+                  options: ["Yes", "No", "Others"],
+                  conditions: {
+                    Yes: {
+                      type: "select",
+                      label: "Have you planned the timing of your next pregnancy?",
+                      options: ["Yes", "No", "Others"],
+                    },
+                  },
+                },
+                {
+                  name: "previousCondition",
+                  label: "Do you have any previous condition?",
+                  type: "select",
+                  options: ["Yes", "No", "Others"],
+                  conditions: {
+                    Yes: {
+                      type: "select",
+                      label: "Specify the condition",
+                      options: [
+                        "Diabetes",
+                        "Hypertension",
+                        "Regular headache/Migraine",
+                        "Stroke",
+                        "Blood Clot, or Blood Problems",
+                        "Others",
+                      ],
+                    },
+                  },
+                },
+              ],
+            },
+            
+            
           }
         },
         
@@ -959,33 +1042,81 @@ const MultiSectionSymptomsForm = (selectedSymptoms) => {
 
         
   case "select":
-    return (
-      <div className={baseInputStyles}>
-        <select
-          className={baseInputStyles}
-          value={value}
-          onChange={(e) => handleInputChange(mainSection, subsectionKey, field.name, e.target.value)}
-        >
-          <option value="">Select...</option>
-          {field.options.map(option => (
-            <option key={option} value={option}>{option}</option>
-          ))}
-        </select>
-  
-        {/* Conditionally render the "If Others, specify" field when 'Others' is selected */}
-        {value === "Others" && (
-          <div className="mt-2">
-            <label>If Others, specify</label>
+    const showConditions =
+    value && value !== "" && field.conditions && field.conditions[value];
+
+return (
+  <div className={baseInputStyles}>
+    <label className="block mb-2">{field.label}</label>
+    <select
+      className={baseInputStyles}
+      value={value || ""}
+      onChange={(e) =>
+        handleInputChange(mainSection, subsectionKey, field.name, e.target.value)
+      }
+    >
+      <option value="">Select...</option>
+      {field.options.map((option) => (
+        <option key={option} value={option}>
+          {option}
+        </option>
+      ))}
+    </select>
+
+    {/* Only render the condition fields if the selected value matches a condition */}
+    {showConditions && field.conditions[value] && (
+      <div className="mt-4">
+        {field.conditions[value].type === "select" ? (
+          <div>
+            <label className="block mb-2">{field.conditions[value].label}</label>
+            <select
+              className="mt-1 p-2 border border-gray-300 rounded w-full"
+              value={conditionValue || ""}
+              onChange={(e) =>
+                handleInputChange(
+                  mainSection,
+                  subsectionKey,
+                  `${field.name}_details`,
+                  e.target.value
+                )
+              }
+            >
+              <option value="">Select...</option>
+              {field.conditions[value].options.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : field.conditions[value].type === "text" ? (
+          <div>
+            <label className="block mb-2">{field.conditions[value].label}</label>
             <input
               type="text"
-              onChange={(e) => handleInputChange(mainSection, subsectionKey, `${field.name}_specify`, e.target.value)}
-              className="mt-1 p-2 border border-gray-300 rounded"
+              value={conditionValue || ""}
+              onChange={(e) =>
+                handleInputChange(
+                  mainSection,
+                  subsectionKey,
+                  `${field.name}_details`,
+                  e.target.value
+                )
+              }
+              className="mt-1 p-2 border border-gray-300 rounded w-full"
+              placeholder="Please specify"
             />
           </div>
-        )}
+        ) : null}
       </div>
-    );
-  
+    )}
+  </div>
+);
+
+
+
+
+    
     case "multiselect":
   const selectedValues = Array.isArray(value) ? value : [];
   return (
@@ -2362,6 +2493,9 @@ const renderPrognosisForm = () => {
     const [selectedComplaints, setSelectedComplaints] = useState([]);
     const [filteredComplaints, setFilteredComplaints] = useState({});
     const [expandedVisit, setExpandedVisit] = useState(null);
+    const [conditionValue, setConditionValue] = useState("");
+    const [selectedValue, setSelectedValue] = useState(""); // Manage state for selected value
+
     const [sicknessSections, setSicknessSection] =useState({
     
       generalSymptoms: {
@@ -2681,12 +2815,97 @@ const renderPrognosisForm = () => {
             familyPlanning: {
               title: "Family Planning/Contraceptives",
               fields: [
-                { name: "contraceptiveMethod", label: "Have you ever used a contraceptive method?", type: "select", options: ["Yes", "No", "Others"] },
-                { name: "methodUsed", label: "If YES, which method have you used?", type: "select", options: ["Pill", "Injection", "IUD (Mirena)", "IUD CU", "Implant", "Male Condom", "Female Condom", "Natural Awareness Method", "Tube Litigation", "Vasectomy (Male surgery)", "Others"] },
-                { name: "adoptMethod", label: "If NO, would you like to adopt a method?", type: "select", options: ["Yes", "No", "Others"] },
-                { name: "planningChildren", label: "Are you planning to have any more children?", type: "select", options: ["Yes", "No", "Others"] }
-              ]
-            }
+                {
+                  name: "contraceptiveMethod",
+                  label: "Have you ever used a contraceptive method?",
+                  type: "select",
+                  options: ["Yes", "No", "Others"],
+                  conditions: {
+                    Yes: {
+                      type: "select",
+                      label: "Which method have you used?",
+                      options: [
+                        "Pill",
+                        "Injection",
+                        "IUD (Mirena)",
+                        "IUD CU",
+                        "Implant",
+                        "Male Condom",
+                        "Female Condom",
+                        "Natural Awareness Method (specify)",
+                        "Tube Litigation",
+                        "Vasectomy (Male surgery)",
+                        "Others",
+                      ],
+                    },
+                    No: {
+                      type: "select",
+                      label: "Would you like to adopt a method?",
+                      options: ["Yes", "No", "Others"],
+                    },
+                    Others: {
+                      type: "text",
+                      label: "If Others, specify",
+                    },
+                  },
+                },
+                {
+                  name: "menstrualCycles",
+                  label: "Are your menstrual cycles generally regular?",
+                  type: "select",
+                  options: ["Yes", "No", "Others"],
+                },
+                {
+                  name: "pregnancyHistory",
+                  label: "Have you been pregnant before?",
+                  type: "select",
+                  options: ["Yes", "No", "Others"],
+                },
+                {
+                  name: "children",
+                  label: "Do you have children?",
+                  type: "select",
+                  options: ["Yes", "No", "Others"],
+                },
+                {
+                  name: "planningChildren",
+                  label: "Are you planning to have any more children?",
+                  type: "select",
+                  options: ["Yes", "No", "Others"],
+                  conditions: {
+                    Yes: {
+                      type: "select",
+                      label: "Have you planned the timing of your next pregnancy?",
+                      options: ["Yes", "No", "Others"],
+                    },
+                  },
+                },
+                {
+                  name: "previousCondition",
+                  label: "Do you have any previous condition?",
+                  type: "select",
+                  options: ["Yes", "No", "Others"],
+                  conditions: {
+                    Yes: {
+                      type: "select",
+                      label: "Specify the condition",
+                      options: [
+                        "Diabetes",
+                        "Hypertension",
+                        "Regular headache/Migraine",
+                        "Stroke",
+                        "Blood Clot, or Blood Problems",
+                        "Others",
+                      ],
+                    },
+                  },
+                },
+              ],
+            },
+            
+            
+          
+        
           }
         },
         
@@ -2899,76 +3118,83 @@ const MultiSectionSymptomsForm = (selectedComplaints) => {
 
         
   case "select":
-    return (
-      <div className={baseInputStyles}>
-        <select
-          className={baseInputStyles}
-          value={value}
-          onChange={(e) => handleInputChange(mainSection, subsectionKey, field.name, e.target.value)}
-        >
-          <option value="">Select...</option>
-          {field.options.map(option => (
-            <option key={option} value={option}>{option}</option>
-          ))}
-        </select>
-  
-        {/* Conditionally render the "If Others, specify" field when 'Others' is selected */}
-        {value === "Others" && (
-          <div className="mt-2">
-            <label>If Others, specify</label>
-            <input
-              type="text"
-              onChange={(e) => handleInputChange(mainSection, subsectionKey, `${field.name}_specify`, e.target.value)}
-              className="mt-1 p-2 border border-gray-300 rounded"
-            />
-          </div>
-        )}
-      </div>
-    );
-  
-    case "multiselect":
-  const selectedValues = Array.isArray(value) ? value : [];
-  return (
-    <div className="space-y-2">
-      {field.options.map(option => (
-        <label key={option} className="flex items-center">
-          <input
-            type="checkbox"
-            className="form-checkbox text-[#75C05B] rounded border-[#007664] focus:ring-[#53FDFD]"
-            checked={selectedValues.includes(option)}
-            onChange={(e) => {
-              const newValues = e.target.checked
-                ? [...selectedValues, option]
-                : selectedValues.filter(v => v !== option);
-              handleInputChange(mainSection, subsectionKey, field.name, newValues);
-            }}
-          />
-          <span className="ml-2 text-[#007664]">{option}</span>
-        </label>
-      ))}
+    const showConditions =
+    selectedValue && selectedValue !== "" && field.conditions && field.conditions[selectedValue];
 
-      {/* Show the "Specify" text box if "Others" is selected */}
-      {selectedValues.includes("Others") && (
-        <div className="mt-2">
-          <label className="text-[#007664] block mb-1">If Others, specify:</label>
-          <input
-            type="text"
-            value={field.specifyValue || ""} // Use a state or value for "Others" input
-            onChange={(e) =>
-              handleInputChange(
-                mainSection,
-                subsectionKey,
-                `${field.name}_specify`,
-                e.target.value
-              )
-            }
-            className="w-full p-2 border-2 border-[#75C05B] rounded text-[#007664] focus:ring-[#007664] focus:ring-offset-2"
-            placeholder="Please specify..."
-          />
+  const handleSelectChange = (e) => {
+    const selected = e.target.value;
+    setSelectedValue(selected); // Update the selected value state
+    handleInputChange(mainSection, subsectionKey, field.name, selected); // Trigger input change
+  };
+
+  return (
+    <div className={baseInputStyles}>
+      <label className="block mb-2">{field.label}</label>
+      <select
+        className={baseInputStyles}
+        value={selectedValue || ""}
+        onChange={handleSelectChange}
+      >
+        <option value="">Select...</option>
+        {field.options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+
+      {/* Only render the condition fields if the selected value matches a condition */}
+      {showConditions && field.conditions[selectedValue] && (
+        <div className="mt-4">
+          {field.conditions[selectedValue].type === "select" ? (
+            <div>
+              <label className="block mb-2">{field.conditions[selectedValue].label}</label>
+              <select
+                className="mt-1 p-2 border border-gray-300 rounded w-full"
+                value={conditionValue || ""}
+                onChange={(e) => {
+                  setConditionValue(e.target.value); // Update the conditionValue
+                  handleInputChange(
+                    mainSection,
+                    subsectionKey,
+                    `${field.name}_details`,
+                    e.target.value
+                  );
+                }}
+              >
+                <option value="">Select...</option>
+                {field.conditions[selectedValue].options.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : field.conditions[selectedValue].type === "text" ? (
+            <div>
+              <label className="block mb-2">{field.conditions[selectedValue].label}</label>
+              <input
+                type="text"
+                value={conditionValue || ""}
+                onChange={(e) => {
+                  setConditionValue(e.target.value); // Update the conditionValue
+                  handleInputChange(
+                    mainSection,
+                    subsectionKey,
+                    `${field.name}_details`,
+                    e.target.value
+                  );
+                }}
+                className="mt-1 p-2 border border-gray-300 rounded w-full"
+                placeholder="Please specify"
+              />
+            </div>
+          ) : null}
         </div>
       )}
     </div>
   );
+
 
 
       default:
