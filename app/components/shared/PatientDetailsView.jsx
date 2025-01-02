@@ -4860,7 +4860,63 @@ const RenderLabTests = () => (
           color: 'from-emerald-50 to-emerald-100',
           textColor: 'text-emerald-700',
           tests: ['Chest X-ray', 'MRI Scan', 'CT Scan', 'Ultrasound']
-        }
+        },
+        {
+        category: 'Infectious Diseases',
+        icon: <flask-conical className="w-6 h-6 text-emerald-500" />,
+        color: 'from-emerald-50 to-emerald-100',
+        textColor: 'text-emerald-700',
+        tests: ['Rapid Strep Test','Influenza Test','HIV Test','Hepatitis Panel','Tuberculosis (TB) Test']
+      },
+      {
+        category: 'Kidney Function',
+        icon: <flask-conical className="w-6 h-6 text-emerald-500" />,
+        color: 'from-emerald-50 to-emerald-100',
+        textColor: 'text-emerald-700',
+        tests: ['Serum Creatinine','Blood Urea Nitrogen (BUN)']
+      },
+      {
+        category: 'Liver Function',
+        icon: <flask-conical className="w-6 h-6 text-emerald-500" />,
+        color: 'from-emerald-50 to-emerald-100',
+        textColor: 'text-emerald-700',
+        tests: ['Liver Function Tests (LFTs)']
+      },
+      {
+        category: 'Reproductive Health',
+        icon: <flask-conical className="w-6 h-6 text-emerald-500" />,
+        color: 'from-emerald-50 to-emerald-100',
+        textColor: 'text-emerald-700',
+        tests: ['Sexually Transmitted Infection (STI) Tests','Pap Smear','Pregnancy Test']
+      },
+      {
+        category: 'Respiratory Health',
+        icon: <flask-conical className="w-6 h-6 text-emerald-500" />,
+        color: 'from-emerald-50 to-emerald-100',
+        textColor: 'text-emerald-700',
+        tests: ['Chest X-ray','Sputum Culture']
+      },
+      {
+        category: 'Gastrointestinal Health',
+        icon: <flask-conical className="w-6 h-6 text-emerald-500" />,
+        color: 'from-emerald-50 to-emerald-100',
+        textColor: 'text-emerald-700',
+        tests: ['Stool Culture','Helicobacter pylori Test']
+      },
+      {
+        category: 'Nutritional Status',
+        icon: <flask-conical className="w-6 h-6 text-emerald-500" />,
+        color: 'from-emerald-50 to-teal-100',
+        textColor: 'text-emerald-700',
+        tests: ['Iron Studies','Vitamin B12 and Folate Levels']
+      },
+      {
+        category: 'Inflammatory and Autoimmune Conditions',
+        icon: <flask-conical className="w-6 h-6 text-emerald-500" />,
+        color: 'from-teal-50 to-teal-100',
+        textColor: 'text-emerald-700',
+        tests: ['Erythrocyte Sedimentation Rate (ESR)','Reactive Protein (CRP)']
+      }
       ].map(category => (
         <Card key={category.category} className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
           <CardContent className="p-0">
