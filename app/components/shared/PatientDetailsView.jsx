@@ -6611,7 +6611,7 @@ const ConsultationForm = ({ buttonText, onSubmit, consultationData }) => {
           
         </DialogTrigger>
 
-        <DialogContent className="max-w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-full sm:max-w-5xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Lab Result</DialogTitle>
           </DialogHeader>
