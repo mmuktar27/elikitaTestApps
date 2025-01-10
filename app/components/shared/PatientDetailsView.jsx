@@ -1,4 +1,4 @@
-
+"use client";
 
 import React, { useState, useEffect } from 'react';
 
@@ -10,10 +10,11 @@ import {
   PulseIcon, 
   RulerIcon, 
   ScaleIcon, 
-  AlertCircle, 
+  AlertCircle,
   OxygenIcon, 
   LungsIcon, 
   ChevronRight, 
+  VolumeIcon,
   Beaker, 
   Activity, 
   Heart, 
@@ -134,7 +135,7 @@ import cybosis from './cybosis.png';
 import main from './main.png';
 // Third-party Modal
 import Modal from 'react-modal';
-
+import { motion } from 'framer-motion';
 const consultationSteps = [
   { key: 'chiefcomplaint', label: 'Chief Complaint' },
   { key: 'symptoms', label: 'Symptoms' },
@@ -163,7 +164,27 @@ const PatientDetailsView = ({ patient, onClose , SelectedPatient }) => {
    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
    const [itemToDelete, setItemToDelete] = useState(null);
    const [completedTasks, setCompletedTasks] = useState([]);
- const [labtestFormData, setlabtestFormData]=useState([]);
+   const [testSelections, setTestSelections] = useState([
+    { id: 1, selectedCategory: '', selectedTests: [], otherTest: '', isOpen: false, isSubsectionOpen: false }
+  ]);
+ const [labtestFormData, setlabtestFormData]=useState({
+  dateOfRequest: '',
+  priority: '',
+  testsRequested: {},
+  diagnosis: '',
+  icdCode: '',
+  additionalNotes: '',
+  specimenType: [],
+  collectionDateTime: '',
+  collectedBy: '',
+  specialInstructions: ''
+});
+const [selectedCategories, setSelectedCategories] = useState([]);
+const [selectedCategory, setSelectedCategory] = useState('');
+const [selectedTests, setSelectedTests] = useState([]);
+const [otherTest, setOtherTest] = useState('');
+const [isOpen, setIsOpen] = useState(false);
+const [isSubsectionOpen, setIsSubsectionOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [isAddlabtestOpen, setIsAddlabtestOpen] = useState(false);
@@ -1219,307 +1240,6 @@ return (
     console.log(filteredComplaints)
    //setFilteredComplaints(filtered);
 // Add dependencies that should trigger a re-filter
-//
-const renderDiagnosisSection = () => (
-  <div className="rounded-xl overflow-hidden bg-white border border-[#75C05B] mt-8">
-    <div className="bg-[#007664] px-6 py-4">
-      <h2 className="text-xl font-bold text-[#53FDFD]">Diagnosis</h2>
-    </div>
-    <div className="p-6">
-      <div className="space-y-4">
-        {/* Primary Diagnosis (FHIR: Condition.code) */}
-        <div>
-          <label className="block text-sm font-medium text-[#007664] mb-2">
-            Primary Diagnosis
-          </label>
-          <textarea
-            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
-            rows={3}
-   
-            onChange={(e) => handleInputChange("diagnosis", "primary", "diagnosis", e.target.value)}
-          />
-        </div>
-
-        {/* Secondary Diagnoses (FHIR: Condition.code) */}
-        <div>
-          <label className="block text-sm font-medium text-[#007664] mb-2">
-            Secondary Diagnoses
-          </label>
-          <textarea
-            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
-            rows={3}
-           
-            onChange={(e) => handleInputChange("diagnosis", "secondary", "diagnosis", e.target.value)}
-          />
-        </div>
-
-        {/* Differential Diagnoses (FHIR: Condition.code) */}
-        <div>
-          <label className="block text-sm font-medium text-[#007664] mb-2">
-            Differential Diagnoses
-          </label>
-          <textarea
-            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
-            rows={3}
-           
-            onChange={(e) => handleInputChange("diagnosis", "differential", "diagnosis", e.target.value)}
-          />
-        </div>
-
-        {/* Diagnosis Date (FHIR: Condition.onsetDateTime) */}
-        <div>
-          <label className="block text-sm font-medium text-[#007664] mb-2">
-            Diagnosis Date
-          </label>
-          <input
-            type="date"
-            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
-    
-            onChange={(e) => handleInputChange("diagnosis", "diagnosisDate", "date", e.target.value)}
-          />
-        </div>
-
-        {/* Diagnosis Status (FHIR: Condition.status) */}
-        <div>
-          <label className="block text-sm font-medium text-[#007664] mb-2">
-            Diagnosis Status
-          </label>
-          <select
-            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
-           
-            onChange={(e) => handleInputChange("diagnosis", "status", "status", e.target.value)}
-          >
-            <option value="">Select status...</option>
-            <option value="active">Active</option>
-            <option value="resolved">Resolved</option>
-            <option value="remission">Remission</option>
-            <option value="inactive">Inactive</option>
-            <option value="unknown">Unknown</option>
-          </select>
-        </div>
-
-        {/* Diagnosis Verification Status (FHIR: Condition.verificationStatus) */}
-        <div>
-          <label className="block text-sm font-medium text-[#007664] mb-2">
-            Verification Status
-          </label>
-          <select
-            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
-      
-            onChange={(e) => handleInputChange("diagnosis", "verificationStatus", "verificationStatus", e.target.value)}
-          >
-            <option value="">Select verification status...</option>
-            <option value="unconfirmed">Unconfirmed</option>
-            <option value="confirmed">Confirmed</option>
-            <option value="differential">Differential</option>
-            <option value="refuted">Refuted</option>
-            <option value="entered-in-error">Entered in Error</option>
-          </select>
-        </div>
-
-        {/* Diagnosis Category (FHIR: Condition.category) */}
-        <div>
-          <label className="block text-sm font-medium text-[#007664] mb-2">
-            Diagnosis Category
-          </label>
-          <select
-            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
-          
-            onChange={(e) => handleInputChange("diagnosis", "category", "category", e.target.value)}
-          >
-            <option value="">Select category...</option>
-            <option value="diagnosis">Diagnosis</option>
-            <option value="problem-list-item">Problem List Item</option>
-            <option value="health-concern">Health Concern</option>
-          </select>
-        </div>
-
-        {/* Diagnosis Severity (FHIR: Condition.severity) */}
-        <div>
-          <label className="block text-sm font-medium text-[#007664] mb-2">
-            Diagnosis Severity
-          </label>
-          <select
-            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
-         
-            onChange={(e) => handleInputChange("diagnosis", "severity", "severity", e.target.value)}
-          >
-            <option value="">Select severity...</option>
-            <option value="mild">Mild</option>
-            <option value="moderate">Moderate</option>
-            <option value="severe">Severe</option>
-            <option value="fatal">Fatal</option>
-          </select>
-        </div>
-
-        
-      </div>
-    </div>
-  </div>
-);
-
-
-const renderPrognosisSection = () => (
-  <div className="rounded-xl overflow-hidden bg-white border border-[#75C05B] mt-8">
-    <div className="bg-[#007664] px-6 py-4">
-      <h2 className="text-xl font-bold text-[#53FDFD]">Prognosis</h2>
-    </div>
-    <div className="p-6">
-      <div className="space-y-4">
-        {/* Expected Outcome */}
-        <div>
-          <label className="block text-sm font-medium text-[#007664] mb-2">
-            Expected Outcome
-          </label>
-          <select
-            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
-            value={formData.prognosis?.outcome || ""}
-            onChange={(e) => handleInputChange("prognosis", "outcome", "outcome", e.target.value)}
-          >
-            <option value="">Select outcome...</option>
-            <option value="excellent">Excellent</option>
-            <option value="good">Good</option>
-            <option value="fair">Fair</option>
-            <option value="poor">Poor</option>
-            <option value="guarded">Guarded</option>
-          </select>
-        </div>
-
-        {/* Estimated Recovery Time */}
-        <div>
-          <label className="block text-sm font-medium text-[#007664] mb-2">
-            Estimated Recovery Time
-          </label>
-          <div className="flex space-x-4">
-            <input
-              type="number"
-              className="w-24 p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
-              min="0"
-              value={formData.prognosis?.recoveryTime?.duration || ""}
-              onChange={(e) => handleInputChange("prognosis", "recoveryTime", "duration", e.target.value)}
-            />
-            <select
-              className="w-40 p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
-              value={formData.prognosis?.recoveryTime?.unit || ""}
-              onChange={(e) => handleInputChange("prognosis", "recoveryTime", "unit", e.target.value)}
-            >
-              <option value="">Select unit</option>
-              <option value="days">Days</option>
-              <option value="weeks">Weeks</option>
-              <option value="months">Months</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Treatment Plan */}
-        <div>
-          <label className="block text-sm font-medium text-[#007664] mb-2">
-            Treatment Plan
-          </label>
-          <textarea
-            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
-            rows={4}
-            value={formData.prognosis?.treatmentPlan || ""}
-            onChange={(e) => handleInputChange("prognosis", "treatmentPlan", "plan", e.target.value)}
-          />
-        </div>
-
-        {/* Follow-up Requirements */}
-        <div>
-          <label className="block text-sm font-medium text-[#007664] mb-2">
-            Follow-up Requirements
-          </label>
-          <textarea
-            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
-            rows={3}
-            value={formData.prognosis?.followUp || ""}
-            onChange={(e) => handleInputChange("prognosis", "followUp", "requirements", e.target.value)}
-          />
-        </div>
-
-        {/* Prognosis Description (FHIR field: CarePlan.description) */}
-        <div>
-          <label className="block text-sm font-medium text-[#007664] mb-2">
-            Prognosis Description
-          </label>
-          <textarea
-            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
-            rows={4}
-            value={formData.prognosis?.description || ""}
-            onChange={(e) => handleInputChange("prognosis", "description", "description", e.target.value)}
-          />
-        </div>
-
-        {/* Prognosis Date (FHIR field: CarePlan.activity.detail.scheduled) */}
-        <div>
-          <label className="block text-sm font-medium text-[#007664] mb-2">
-            Prognosis Date
-          </label>
-          <input
-            type="date"
-            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
-            value={formData.prognosis?.prognosisDate || ""}
-            onChange={(e) => handleInputChange("prognosis", "prognosisDate", "date", e.target.value)}
-          />
-        </div>
-
-        {/* Risk or Complications (FHIR field: Condition or CarePlan.activity.detail.risk) */}
-        <div>
-          <label className="block text-sm font-medium text-[#007664] mb-2">
-            Risk or Complications
-          </label>
-          <textarea
-            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
-            rows={3}
-            value={formData.prognosis?.risks || ""}
-            onChange={(e) => handleInputChange("prognosis", "risks", "risk", e.target.value)}
-          />
-        </div>
-
-        {/* Care Team Involved (FHIR field: CarePlan.careTeam) */}
-        <div>
-          <label className="block text-sm font-medium text-[#007664] mb-2">
-            Care Team Involved
-          </label>
-          <input
-            type="text"
-            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
-            value={formData.prognosis?.careTeam || ""}
-            onChange={(e) => handleInputChange("prognosis", "careTeam", "team", e.target.value)}
-          />
-        </div>
-
-        {/* Prognostic Score or Assessment (FHIR field: Observation.valueQuantity) */}
-        <div>
-          <label className="block text-sm font-medium text-[#007664] mb-2">
-            Prognostic Score (if applicable)
-          </label>
-          <input
-            type="number"
-            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
-            value={formData.prognosis?.prognosticScore || ""}
-            onChange={(e) => handleInputChange("prognosis", "prognosticScore", "score", e.target.value)}
-          />
-        </div>
-
-        {/* Prognosis Source (FHIR field: CarePlan.derivedFrom or Observation.source) */}
-        <div>
-          <label className="block text-sm font-medium text-[#007664] mb-2">
-            Prognosis Source (e.g., physicians notes)
-          </label>
-          <input
-            type="text"
-            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
-            value={formData.prognosis?.prognosisSource || ""}
-            onChange={(e) => handleInputChange("prognosis", "prognosisSource", "source", e.target.value)}
-          />
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-
 
 return (
   <div className="max-w-7xl mx-auto p-6 bg-[#F7F7F7] min-h-screen">
@@ -1756,263 +1476,110 @@ const renderDiagnosisHistory = () => {
   
       );
     }
-    const RenderDiagnosticAssessment = ({ selectedSymptoms, setSelectedSymptoms }) => {
-      const diagnosticSections = [
-        {
-          title: 'Constitutional Symptoms',
-          icon: '🌡️',
-          items: [
-            'Fever',
-            'Fatigue/Malaise',
-            'Weight Loss/Gain',
-            'Night Sweats',
-            'Changes in Appetite',
-            'Sleep Disturbances'
-          ]
-        },
-        {
-          title: 'Cardiopulmonary',
-          icon: '❤️',
-          items: [
-            'Chest Pain/Pressure',
-            'Dyspnea',
-            'Orthopnea',
-            'Palpitations',
-            'Cough',
-            'Hemoptysis',
-            'Wheezing'
-          ]
-        },
-        {
-          title: 'Neurological',
-          icon: '🧠',
-          items: [
-            'Headache',
-            'Dizziness/Vertigo',
-            'Syncope',
-            'Focal Weakness',
-            'Sensory Changes',
-            'Vision Changes',
-            'Speech Changes',
-            'Gait Disturbance'
-          ]
-        },
-        {
-          title: 'Gastrointestinal',
-          icon: '🔄',
-          items: [
-            'Abdominal Pain',
-            'Nausea/Vomiting',
-            'Diarrhea/Constipation',
-            'GI Bleeding',
-            'Dysphagia',
-            'Jaundice',
-            'Changes in Bowel Habits'
-          ]
-        },
-        {
-          title: 'Genitourinary',
-          icon: '⚕️',
-          items: [
-            'Dysuria',
-            'Frequency/Urgency',
-            'Hematuria',
-            'Incontinence',
-            'Flank Pain',
-            'Menstrual Irregularities',
-            'Pregnancy Symptoms'
-          ]
-        },
-        {
-          title: 'Musculoskeletal',
-          icon: '🦴',
-          items: [
-            'Joint Pain/Swelling',
-            'Muscle Pain/Weakness',
-            'Back Pain',
-            'Limited Range of Motion',
-            'Morning Stiffness',
-            'Trauma-related Symptoms'
-          ]
-        },
-        {
-          title: 'Skin/Integumentary',
-          icon: '🧴',
-          items: [
-            'Rash',
-            'Pruritus',
-            'Skin Lesions',
-            'Changes in Pigmentation',
-            'Wound/Ulcer',
-            'Skin Infections'
-          ]
-        },
-        {
-          title: 'Psychiatric',
-          icon: '🧠',
-          items: [
-            'Mood Changes',
-            'Anxiety',
-            'Depression',
-            'Sleep Disturbances',
-            'Memory Issues',
-            'Suicidal Ideation'
-          ]
-        },
-        {
-          title: 'Additional Symptoms',
-          icon: '📝',
-          items: ['']
-        }
-      ];
     
-      const handleSymptomChange = (sectionTitle, item, isChecked) => {
-        const updatedSymptoms = isChecked
-          ? [
-              ...selectedSymptoms,
-              {
-                category: sectionTitle,
-                symptom: item,
-                onset: null,
-                severity: null,
-                details: ''
-              }
-            ]
-          : selectedSymptoms.filter(
-              (symptom) => !(symptom.category === sectionTitle && symptom.symptom === item)
-            );
-    
-        setSelectedSymptoms(updatedSymptoms);
-      };
-    
-      const handleSymptomDetailsChange = (sectionTitle, item, field, value) => {
-        const updatedSymptoms = selectedSymptoms.map(symptom => {
-          if (symptom.category === sectionTitle && symptom.symptom === item) {
-            return { ...symptom, [field]: value };
-          }
-          return symptom;
-        });
-    
-        setSelectedSymptoms(updatedSymptoms);
-      };
-    
-      const isSymptomSelected = (sectionTitle, item) => {
-        return selectedSymptoms.some(
-          symptom => symptom.category === sectionTitle && symptom.symptom === item
-        );
-      };
-    
-      return (
-<div className="p-6 space-y-8 bg-gray-50 rounded-xl shadow-sm" style={{ width: '65vw' }}>          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start space-x-3">
-            <AlertCircle className="h-5 w-5 text-teal-700 mt-0.5 flex-shrink-0" />
-            <div className="space-y-2">
-              <p className="text-sm text-teal-700">
-                Please document all relevant symptoms for accurate diagnosis and prognosis assessment.
-              </p>
-              <p className="text-xs text-teal-600">
-                Include onset, duration, severity, and any associated factors for each symptom.
-              </p>
-            </div>
-          </div>
-    
-          <div className="border-b border-gray-200 pb-4">
-            <h2 className="text-2xl font-bold text-gray-900">Diagnostic Assessment</h2>
-            <p className="text-gray-600 mt-1">Select all applicable symptoms and provide relevant details</p>
-          </div>
-    
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {diagnosticSections.map(section => (
-              <div
-                key={section.title}
-                className="space-y-4 bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow duration-200"
-              >
-                <div className="flex items-center space-x-2">
-                  <span className="text-xl">{section.icon}</span>
-                  <h3 className="text-lg font-semibold text-gray-900">{section.title}</h3>
-                </div>
-    
-                <div className="space-y-3">
-                  {section.items.map(item => (
-                    <div key={item} className="flex items-center group">
-                      {section.title === "Additional Symptoms" ? (
-                        <textarea
-                          className="w-full p-2 border-2 border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-24"
-                          placeholder="Enter additional symptoms and their characteristics..."
-                          value={selectedSymptoms.find(s => s.category === section.title)?.details || ''}
-                          onChange={(e) => handleSymptomDetailsChange(section.title, 'additional', 'details', e.target.value)}
-                        />
-                      ) : (
-                        <>
-                          <input
-                            type="checkbox"
-                            id={`${section.title}-${item}`}
-                            checked={isSymptomSelected(section.title, item)}
-                            onChange={(e) => handleSymptomChange(section.title, item, e.target.checked)}
-                            className="h-5 w-5 rounded border-2 border-gray-300 text-blue-600 focus:ring-blue-500"
-                          />
-                          <label
-                            htmlFor={`${section.title}-${item}`}
-                            className="ml-3 text-gray-700 group-hover:text-gray-900 cursor-pointer text-sm"
-                          >
-                            {item}
-                          </label>
-    
-                          {isSymptomSelected(section.title, item) && (
-                            <div className="mt-2 space-y-2">
-                              <div>
-                                <label className="text-sm font-medium text-gray-700">Onset</label>
-                                <input
-                                  type="date"
-                                  value={selectedSymptoms.find(s => s.category === section.title && s.symptom === item)?.onset || ''}
-                                  onChange={(e) => handleSymptomDetailsChange(section.title, item, 'onset', e.target.value)}
-                                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500"
-                                />
-                              </div>
-                              <div>
-                                <label className="text-sm font-medium text-gray-700">Severity</label>
-                                <select
-                                  value={selectedSymptoms.find(s => s.category === section.title && s.symptom === item)?.severity || ''}
-                                  onChange={(e) => handleSymptomDetailsChange(section.title, item, 'severity', e.target.value)}
-                                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500"
-                                >
-                                  <option value="">Select Severity</option>
-                                  <option value="mild">Mild</option>
-                                  <option value="moderate">Moderate</option>
-                                  <option value="severe">Severe</option>
-                                </select>
-                              </div>
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    };
-    
-  
 const renderDiagnosisForm = () => {
-  
+  const handleSelectChange = (field, value) => {
+    const newData = { ...formDatadiagnosis, [field]: value };
+    setFormDatadiagnosis(newData);
+    onValueChange?.(newData);
+  };
+
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormDatadiagnosis(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    const newData = { ...formDatadiagnosis, [e.target.name]: e.target.value };
+    setFormDatadiagnosis(newData);
+    onValueChange?.(newData);
   };
 
-  const handleSelectChange = (name, value) => {
-    setFormDatadiagnosis(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  const handleAISuggest = async (field) => {
+    setLoadingStates(prev => ({ ...prev, [field]: true }));
+    try {
+      // Simulate AI suggestion - replace with actual AI call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Example AI suggestions for each field
+      const suggestions = {
+        severity: 'mild',
+        category: 'cardiovascular',
+        priority: 'emergency',
+        chronicityStatus: 'acute'
+      };
+      
+
+      setFormDatadiagnosis(prev => ({ ...prev, [field]: suggestions[field] }));
+      setAiModes(prev => ({ ...prev, [field]: true }));
+    } catch (error) {
+      console.error('Error getting AI suggestion:', error);
+    } finally {
+      setLoadingStates(prev => ({ ...prev, [field]: false }));
+    }
   };
 
+  const SelectWithAI = ({ field, label, options, placeholder }) => {
+    return (
+      <div className="space-y-2">
+        <div className="flex justify-between items-center">
+          <Label>{label}</Label>
+          {!aiModes[field] ? (
+             <button
+             onClick={() => handleAISuggest(field)}
+             disabled={loadingStates[field]}
+             variant="outline"
+             size="sm"
+             className="mt-4 inline-flex items-center gap-2 bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200"
+           >
+             <Lightbulb className="h-4 w-4" />
+             {loadingStates[field] ? 'Generating...' : 'AI Suggestions'}
+           </button>
+           
+           
+          ) : (
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setAiModes(prev => ({ ...prev, [field]: false }));
+                  setFormDatadiagnosis(prev => ({ ...prev, [field]: '' }));
+                }}
+                className="mt-4 inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200"
+              >
+                Manual
+              </button>
+              <button
+                onClick={() => handleAISuggest(field)}
+                className="mt-4 inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200"
+              >
+                <Sparkles className="w-3 h-3" />
+                Regenerate
+              </button>
+            </div>
+          )}
+        </div>
+        
+        {aiModes[field] ? (
+          <div className="px-3 py-2 bg-gray-50 border rounded-md text-gray-700">
+            {formDatadiagnosis[field].split('_').map(word => 
+              word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ')}
+          </div>
+        ) : (
+          <Select
+            value={formDatadiagnosis[field]}
+            onValueChange={(value) => handleSelectChange(field, value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={placeholder} />
+            </SelectTrigger>
+            <SelectContent>
+              {options.map(({ value, label }) => (
+                <SelectItem key={value} value={value}>{label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      </div>
+    );
+  };
+
+  
   return (
     <div className="container mx-auto p-4 max-w-3xl" style={{ width: '65vw' }}>
       <Card>
@@ -2022,93 +1589,108 @@ const renderDiagnosisForm = () => {
         <CardContent>
           <form className="space-y-6">
             {/* Previous fields remain the same */}
-            <div className="grid grid-cols-2 gap-4">
-           
-            </div>
+                   <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+  <SelectWithAI
+    field="severity"
+    label="Severity Level"
+    placeholder="Select severity"
+    options={[
+      { value: 'mild', label: 'Mild' },
+      { value: 'moderate', label: 'Moderate' },
+      { value: 'severe', label: 'Severe' },
+      { value: 'critical', label: 'Critical' }
+    ]}
+  />
+</div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Severity Level</Label>
-                <Select onValueChange={(value) => handleSelectChange('severity', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select severity" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="mild">Mild</SelectItem>
-                    <SelectItem value="moderate">Moderate</SelectItem>
-                    <SelectItem value="severe">Severe</SelectItem>
-                    <SelectItem value="critical">Critical</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+<div className="space-y-2">
+  <SelectWithAI
+    field="category"
+    label="Diagnosis Category"
+    placeholder="Select category"
+    options={[
+      { value: 'cardiovascular', label: 'Cardiovascular' },
+      { value: 'respiratory', label: 'Respiratory' },
+      { value: 'neurological', label: 'Neurological' },
+      { value: 'gastrointestinal', label: 'Gastrointestinal' },
+      { value: 'musculoskeletal', label: 'Musculoskeletal' },
+      { value: 'endocrine', label: 'Endocrine' },
+      { value: 'psychiatric', label: 'Psychiatric' },
+      { value: 'other', label: 'Other' }
+    ]}
+  />
+  {formDatadiagnosis.category === 'other' && (
+    <Input
+      name="otherCategory"
+      value={formData.otherCategory}
+      onChange={handleInputChange}
+      placeholder="Please specify category"
+      className="mt-2"
+    />
+  )}
+</div>
+</div>
+<div className="grid grid-cols-2 gap-4">
+  <SelectWithAI
+    field="priority"
+    label="Priority Level"
+    placeholder="Select priority"
+    options={[
+      { value: 'emergency', label: 'Emergency' },
+      { value: 'urgent', label: 'Urgent' },
+      { value: 'semi-urgent', label: 'Semi-Urgent' },
+      { value: 'non-urgent', label: 'Non-Urgent' }
+    ]}
+  />
 
-              <div className="space-y-2">
-                <Label>Diagnosis Category</Label>
-                <div className="space-y-2">
-                  <Select onValueChange={(value) => handleSelectChange('category', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="cardiovascular">Cardiovascular</SelectItem>
-                      <SelectItem value="respiratory">Respiratory</SelectItem>
-                      <SelectItem value="neurological">Neurological</SelectItem>
-                      <SelectItem value="gastrointestinal">Gastrointestinal</SelectItem>
-                      <SelectItem value="musculoskeletal">Musculoskeletal</SelectItem>
-                      <SelectItem value="endocrine">Endocrine</SelectItem>
-                      <SelectItem value="psychiatric">Psychiatric</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  
-                  {formDatadiagnosis.category === 'other' && (
-                    <Input
-                      name="otherCategory"
-                      value={formData.otherCategory}
-                      onChange={handleInputChange}
-                      placeholder="Please specify category"
-                      className="mt-2"
-                    />
-                  )}
-                </div>
-              </div>
-            </div>
+  <SelectWithAI
+    field="chronicityStatus"
+    label="Chronicity Status"
+    placeholder="Select status"
+    options={[
+      { value: 'acute', label: 'Acute' },
+      { value: 'subacute', label: 'Subacute' },
+      { value: 'chronic', label: 'Chronic' },
+      { value: 'recurrent', label: 'Recurrent' }
+    ]}
+  />
+</div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Priority Level</Label>
-                <Select onValueChange={(value) => handleSelectChange('priority', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="emergency">Emergency</SelectItem>
-                    <SelectItem value="urgent">Urgent</SelectItem>
-                    <SelectItem value="semi-urgent">Semi-Urgent</SelectItem>
-                    <SelectItem value="non-urgent">Non-Urgent</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Chronicity Status</Label>
-                <Select onValueChange={(value) => handleSelectChange('chronicityStatus', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="acute">Acute</SelectItem>
-                    <SelectItem value="subacute">Subacute</SelectItem>
-                    <SelectItem value="chronic">Chronic</SelectItem>
-                    <SelectItem value="recurrent">Recurrent</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
             <div>
           <label className="block text-sm font-medium text-[#007664] mb-2">
             Primary Diagnosis
           </label>
+          <div className="flex flex-wrap sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-2">
+        <Button
+      
+          variant="outline"
+          size="sm"
+          className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
+        >
+          <Mic className="h-4 w-4 mr-2" />
+          Voice Input
+        </Button>
+        <Button
+         
+          variant="outline"
+          size="sm"
+          className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
+        >
+          <VolumeIcon className="h-4 w-4 mr-2" />
+          Read Aloud
+        </Button>
+        <Button
+        
+          variant="outline"
+          size="sm"
+          className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
+        >
+          <Lightbulb className="h-4 w-4 mr-2" />
+           
+        AI Suggestions
+        </Button>
+        </div>
           <textarea
             className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
             rows={3}
@@ -2122,6 +1704,36 @@ const renderDiagnosisForm = () => {
           <label className="block text-sm font-medium text-[#007664] mb-2">
             Secondary Diagnoses
           </label>
+          <div className="flex flex-wrap sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-2">
+        <Button
+      
+          variant="outline"
+          size="sm"
+          className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
+        >
+          <Mic className="h-4 w-4 mr-2" />
+          Voice Input
+        </Button>
+        <Button
+         
+          variant="outline"
+          size="sm"
+          className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
+        >
+          <VolumeIcon className="h-4 w-4 mr-2" />
+          Read Aloud
+        </Button>
+        <Button
+        
+          variant="outline"
+          size="sm"
+          className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
+        >
+          <Lightbulb className="h-4 w-4 mr-2" />
+           
+        AI Suggestions
+        </Button>
+        </div>
           <textarea
             className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
             rows={3}
@@ -2135,6 +1747,36 @@ const renderDiagnosisForm = () => {
           <label className="block text-sm font-medium text-[#007664] mb-2">
             Differential Diagnoses
           </label>
+          <div className="flex flex-wrap sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-2">
+        <Button
+      
+          variant="outline"
+          size="sm"
+          className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
+        >
+          <Mic className="h-4 w-4 mr-2" />
+          Voice Input
+        </Button>
+        <Button
+         
+          variant="outline"
+          size="sm"
+          className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
+        >
+          <VolumeIcon className="h-4 w-4 mr-2" />
+          Read Aloud
+        </Button>
+        <Button
+        
+          variant="outline"
+          size="sm"
+          className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
+        >
+          <Lightbulb className="h-4 w-4 mr-2" />
+           
+        AI Suggestions
+        </Button>
+        </div>
           <textarea
             className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
             rows={3}
@@ -2146,51 +1788,72 @@ const renderDiagnosisForm = () => {
      
 
         {/* Diagnosis Status (FHIR: Condition.status) */}
-        <div>
-          <label className="block text-sm font-medium text-[#007664] mb-2">
-            Diagnosis Status
-          </label>
-          <select
-            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
-           
-            onChange={(e) => handleInputChange("diagnosis", "status", "status", e.target.value)}
-          >
-            <option value="">Select status...</option>
-            <option value="active">Active</option>
-            <option value="resolved">Resolved</option>
-            <option value="remission">Remission</option>
-            <option value="inactive">Inactive</option>
-            <option value="unknown">Unknown</option>
-          </select>
-        </div>
+        <div className="space-y-2">
+  <SelectWithAI
+    field="status"
+    label="Diagnosis Status"
+    placeholder="Select status"
+    options={[
+      { value: 'active', label: 'Active' },
+      { value: 'resolved', label: 'Resolved' },
+      { value: 'remission', label: 'Remission' },
+      { value: 'inactive', label: 'Inactive' },
+      { value: 'unknown', label: 'Unknown' }
+    ]}
+    onChange={(value) => handleInputChange("diagnosis", "status", "status", value)}
+  />
+</div>
 
-        {/* Diagnosis Verification Status (FHIR: Condition.verificationStatus) */}
-        <div>
-          <label className="block text-sm font-medium text-[#007664] mb-2">
-            Verification Status
-          </label>
-          <select
-            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
-      
-            onChange={(e) => handleInputChange("diagnosis", "verificationStatus", "verificationStatus", e.target.value)}
-          >
-            <option value="">Select verification status...</option>
-            <option value="unconfirmed">Unconfirmed</option>
-            <option value="confirmed">Confirmed</option>
-            <option value="differential">Differential</option>
-            <option value="refuted">Refuted</option>
-            <option value="entered-in-error">Entered in Error</option>
-          </select>
-        </div>
+<div className="space-y-2">
+  <SelectWithAI
+    field="verificationStatus"
+    label="Verification Status"
+    placeholder="Select verification status"
+    options={[
+      { value: 'unconfirmed', label: 'Unconfirmed' },
+      { value: 'confirmed', label: 'Confirmed' },
+      { value: 'differential', label: 'Differential' },
+      { value: 'refuted', label: 'Refuted' },
+      { value: 'entered-in-error', label: 'Entered in Error' }
+    ]}
+    onChange={(value) => handleInputChange("diagnosis", "verificationStatus", "verificationStatus", value)}
+  />
+</div>
 
-    
 
-             
-   
-    
             {/* Rest of the form remains the same */}
             <div className="space-y-2">
               <Label htmlFor="symptoms">Key Symptoms and Clinical Markers</Label>
+              <div className="flex flex-wrap sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-2">
+        <Button
+      
+          variant="outline"
+          size="sm"
+          className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
+        >
+          <Mic className="h-4 w-4 mr-2" />
+          Voice Input
+        </Button>
+        <Button
+         
+          variant="outline"
+          size="sm"
+          className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
+        >
+          <VolumeIcon className="h-4 w-4 mr-2" />
+          Read Aloud
+        </Button>
+        <Button
+        
+          variant="outline"
+          size="sm"
+          className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
+        >
+          <Lightbulb className="h-4 w-4 mr-2" />
+           
+        AI Suggestions
+        </Button>
+        </div>
               <Textarea
                 id="symptoms"
                 name="symptoms"
@@ -2211,26 +1874,124 @@ const renderDiagnosisForm = () => {
   );
 };
 
+const [aiModes, setAiModes] = useState({
+  expectedOutcome: false,
+  timeframe: false,
+  riskLevel: false,
+  recoveryPotential: false
+});
+
+const [loadingStates, setLoadingStates] = useState({
+  expectedOutcome: false,
+  timeframe: false,
+  riskLevel: false,
+  recoveryPotential: false
+});
 const renderPrognosisForm = () => {
  
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormDataprog(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  const handleSelectChange = (field, value) => {
+    const newData = { ...formDataprog, [field]: value };
+    setFormDataprog(newData);
+    onValueChange?.(newData);
   };
 
-  const handleSelectChange = (name, value) => {
-    setFormDataprog(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  const handleInputChange = (e) => {
+    const newData = { ...formDataprog, [e.target.name]: e.target.value };
+    setFormDataprog(newData);
+    onValueChange?.(newData);
+  };
+
+  const handleAISuggest = async (field) => {
+    setLoadingStates(prev => ({ ...prev, [field]: true }));
+    try {
+      // Simulate AI suggestion - replace with actual AI call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Example AI suggestions for each field
+      const suggestions = {
+        expectedOutcome: 'complete_recovery',
+        timeframe: 'weeks',
+        riskLevel: 'low',
+        recoveryPotential: 'excellent'
+      };
+
+      setFormDataprog(prev => ({ ...prev, [field]: suggestions[field] }));
+      setAiModes(prev => ({ ...prev, [field]: true }));
+    } catch (error) {
+      console.error('Error getting AI suggestion:', error);
+    } finally {
+      setLoadingStates(prev => ({ ...prev, [field]: false }));
+    }
+  };
+
+  const SelectWithAI = ({ field, label, options, placeholder }) => {
+    return (
+      <div className="space-y-2">
+        <div className="flex justify-between items-center">
+          <Label>{label}</Label>
+          {!aiModes[field] ? (
+             <button
+             onClick={() => handleAISuggest(field)}
+             disabled={loadingStates[field]}
+             variant="outline"
+             size="sm"
+             className="mt-4 inline-flex items-center gap-2 bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200"
+           >
+             <Lightbulb className="h-4 w-4" />
+             {loadingStates[field] ? 'Generating...' : 'AI Suggestions'}
+           </button>
+           
+           
+          ) : (
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setAiModes(prev => ({ ...prev, [field]: false }));
+                  setFormDataprog(prev => ({ ...prev, [field]: '' }));
+                }}
+                className="mt-4 inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200"
+              >
+                Manual
+              </button>
+              <button
+                onClick={() => handleAISuggest(field)}
+                className="mt-4 inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200"
+              >
+                <Sparkles className="w-3 h-3" />
+                Regenerate
+              </button>
+            </div>
+          )}
+        </div>
+        
+        {aiModes[field] ? (
+          <div className="px-3 py-2 bg-gray-50 border rounded-md text-gray-700">
+            {formDataprog[field].split('_').map(word => 
+              word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ')}
+          </div>
+        ) : (
+          <Select
+            value={formDataprog[field]}
+            onValueChange={(value) => handleSelectChange(field, value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={placeholder} />
+            </SelectTrigger>
+            <SelectContent>
+              {options.map(({ value, label }) => (
+                <SelectItem key={value} value={value}>{label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      </div>
+    );
   };
 
   return (
     <div className="container mx-auto p-4 max-w-3xl" style={{ width: '65vw' }}>
+
       <Card>
       <CardHeader className="text-2xl font-bold text-center bg-teal-700 text-white rounded-t-lg" > 
           <CardTitle className="text-2xl font-bold text-center">Prognosis</CardTitle>
@@ -2238,88 +1999,105 @@ const renderPrognosisForm = () => {
         <CardContent>
           <form className="space-y-6">
             
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Expected Outcome</Label>
-                <div className="space-y-2">
-                  <Select onValueChange={(value) => handleSelectChange('expectedOutcome', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select expected outcome" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="complete_recovery">Complete Recovery</SelectItem>
-                      <SelectItem value="partial_recovery">Partial Recovery</SelectItem>
-                      <SelectItem value="chronic_management">Chronic Management Required</SelectItem>
-                      <SelectItem value="progressive_decline">Progressive Decline</SelectItem>
-                      <SelectItem value="terminal">Terminal</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  
-                  {formDataprog.expectedOutcome === 'other' && (
-                    <Input
-                      name="otherOutcome"
-                      value={formData.otherOutcome}
-                      onChange={handleInputChange}
-                      placeholder="Please specify outcome"
-                      className="mt-2"
-                    />
-                  )}
-                </div>
-              </div>
+          <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <SelectWithAI
+            field="expectedOutcome"
+            label="Expected Outcome"
+            placeholder="Select expected outcome"
+            options={[
+              { value: 'complete_recovery', label: 'Complete Recovery' },
+              { value: 'partial_recovery', label: 'Partial Recovery' },
+              { value: 'chronic_management', label: 'Chronic Management Required' },
+              { value: 'progressive_decline', label: 'Progressive Decline' },
+              { value: 'terminal', label: 'Terminal' },
+              { value: 'other', label: 'Other' }
+            ]}
+          />
+          {formDataprog.expectedOutcome === 'other' && !aiModes.expectedOutcome && (
+            <Input
+              name="otherOutcome"
+              value={formData.otherOutcome}
+              onChange={handleInputChange}
+              placeholder="Please specify outcome"
+              className="mt-2"
+            />
+          )}
+        </div>
 
-              <div className="space-y-2">
-                <Label>Timeframe</Label>
-                <Select onValueChange={(value) => handleSelectChange('timeframe', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select timeframe" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="days">Days</SelectItem>
-                    <SelectItem value="weeks">Weeks</SelectItem>
-                    <SelectItem value="months">Months</SelectItem>
-                    <SelectItem value="years">Years</SelectItem>
-                    <SelectItem value="lifetime">Lifetime</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+        <SelectWithAI
+          field="timeframe"
+          label="Timeframe"
+          placeholder="Select timeframe"
+          options={[
+            { value: 'days', label: 'Days' },
+            { value: 'weeks', label: 'Weeks' },
+            { value: 'months', label: 'Months' },
+            { value: 'years', label: 'Years' },
+            { value: 'lifetime', label: 'Lifetime' }
+          ]}
+        />
+      </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Risk Level</Label>
-                <Select onValueChange={(value) => handleSelectChange('riskLevel', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select risk level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="moderate">Moderate</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="severe">Severe</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+      <div className="grid grid-cols-2 gap-4">
+        <SelectWithAI
+          field="riskLevel"
+          label="Risk Level"
+          placeholder="Select risk level"
+          options={[
+            { value: 'low', label: 'Low' },
+            { value: 'moderate', label: 'Moderate' },
+            { value: 'high', label: 'High' },
+            { value: 'severe', label: 'Severe' }
+          ]}
+        />
 
-              <div className="space-y-2">
-                <Label>Recovery Potential</Label>
-                <Select onValueChange={(value) => handleSelectChange('recoveryPotential', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select recovery potential" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="excellent">Excellent</SelectItem>
-                    <SelectItem value="good">Good</SelectItem>
-                    <SelectItem value="fair">Fair</SelectItem>
-                    <SelectItem value="poor">Poor</SelectItem>
-                    <SelectItem value="uncertain">Uncertain</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
+        <SelectWithAI
+          field="recoveryPotential"
+          label="Recovery Potential"
+          placeholder="Select recovery potential"
+          options={[
+            { value: 'excellent', label: 'Excellent' },
+            { value: 'good', label: 'Good' },
+            { value: 'fair', label: 'Fair' },
+            { value: 'poor', label: 'Poor' },
+            { value: 'uncertain', label: 'Uncertain' }
+          ]}
+        />
+      </div>
+  
             <div className="space-y-2">
               <Label>5-Year Survival Rate (%)</Label>
+              <div className="flex flex-wrap sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-2">
+        <Button
+      
+          variant="outline"
+          size="sm"
+          className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
+        >
+          <Mic className="h-4 w-4 mr-2" />
+          Voice Input
+        </Button>
+        <Button
+         
+          variant="outline"
+          size="sm"
+          className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
+        >
+          <VolumeIcon className="h-4 w-4 mr-2" />
+          Read Aloud
+        </Button>
+        <Button
+        
+          variant="outline"
+          size="sm"
+          className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
+        >
+          <Lightbulb className="h-4 w-4 mr-2" />
+           
+        AI Suggestions
+        </Button>
+        </div>
               <Input
                 type="number"
                 name="survivalRate"
@@ -2333,6 +2111,36 @@ const renderPrognosisForm = () => {
 
             <div className="space-y-2">
               <Label>Potential Complications</Label>
+              <div className="flex flex-wrap sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-2">
+        <Button
+      
+          variant="outline"
+          size="sm"
+          className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
+        >
+          <Mic className="h-4 w-4 mr-2" />
+          Voice Input
+        </Button>
+        <Button
+         
+          variant="outline"
+          size="sm"
+          className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
+        >
+          <VolumeIcon className="h-4 w-4 mr-2" />
+          Read Aloud
+        </Button>
+        <Button
+        
+          variant="outline"
+          size="sm"
+          className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
+        >
+          <Lightbulb className="h-4 w-4 mr-2" />
+           
+        AI Suggestions
+        </Button>
+        </div>
               <Textarea
                 name="complications"
                 value={formDataprog.complications}
@@ -2344,6 +2152,36 @@ const renderPrognosisForm = () => {
 
             <div className="space-y-2">
               <Label>Long-term Effects</Label>
+              <div className="flex flex-wrap sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-2">
+        <Button
+      
+          variant="outline"
+          size="sm"
+          className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
+        >
+          <Mic className="h-4 w-4 mr-2" />
+          Voice Input
+        </Button>
+        <Button
+         
+          variant="outline"
+          size="sm"
+          className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
+        >
+          <VolumeIcon className="h-4 w-4 mr-2" />
+          Read Aloud
+        </Button>
+        <Button
+        
+          variant="outline"
+          size="sm"
+          className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
+        >
+          <Lightbulb className="h-4 w-4 mr-2" />
+           
+        AI Suggestions
+        </Button>
+        </div>
               <Textarea
                 name="longTermEffects"
                 value={formDataprog.longTermEffects}
@@ -2355,6 +2193,36 @@ const renderPrognosisForm = () => {
 
             <div className="space-y-2">
               <Label>Lifestyle Modifications</Label>
+              <div className="flex flex-wrap sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-2">
+        <Button
+      
+          variant="outline"
+          size="sm"
+          className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
+        >
+          <Mic className="h-4 w-4 mr-2" />
+          Voice Input
+        </Button>
+        <Button
+         
+          variant="outline"
+          size="sm"
+          className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
+        >
+          <VolumeIcon className="h-4 w-4 mr-2" />
+          Read Aloud
+        </Button>
+        <Button
+        
+          variant="outline"
+          size="sm"
+          className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
+        >
+          <Lightbulb className="h-4 w-4 mr-2" />
+           
+        AI Suggestions
+        </Button>
+        </div>
               <Textarea
                 name="lifestyleModifications"
                 value={formData.lifestyleModifications}
@@ -2366,6 +2234,36 @@ const renderPrognosisForm = () => {
 
             <div className="space-y-2">
               <Label>Monitoring Requirements</Label>
+              <div className="flex flex-wrap sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-2">
+        <Button
+      
+          variant="outline"
+          size="sm"
+          className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
+        >
+          <Mic className="h-4 w-4 mr-2" />
+          Voice Input
+        </Button>
+        <Button
+         
+          variant="outline"
+          size="sm"
+          className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
+        >
+          <VolumeIcon className="h-4 w-4 mr-2" />
+          Read Aloud
+        </Button>
+        <Button
+        
+          variant="outline"
+          size="sm"
+          className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
+        >
+          <Lightbulb className="h-4 w-4 mr-2" />
+           
+        AI Suggestions
+        </Button>
+        </div>
               <Textarea
                 name="monitoringRequirements"
                 value={formDataprog.monitoringRequirements}
@@ -2377,6 +2275,36 @@ const renderPrognosisForm = () => {
 
             <div className="space-y-2">
               <Label>Follow-up Schedule</Label>
+              <div className="flex flex-wrap sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-2">
+        <Button
+      
+          variant="outline"
+          size="sm"
+          className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
+        >
+          <Mic className="h-4 w-4 mr-2" />
+          Voice Input
+        </Button>
+        <Button
+         
+          variant="outline"
+          size="sm"
+          className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
+        >
+          <VolumeIcon className="h-4 w-4 mr-2" />
+          Read Aloud
+        </Button>
+        <Button
+        
+          variant="outline"
+          size="sm"
+          className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
+        >
+          <Lightbulb className="h-4 w-4 mr-2" />
+           
+        AI Suggestions
+        </Button>
+        </div>
               <Textarea
                 name="followUpSchedule"
                 value={formDataprog.followUpSchedule}
@@ -2388,6 +2316,36 @@ const renderPrognosisForm = () => {
 
             <div className="space-y-2">
               <Label>Additional Notes</Label>
+              <div className="flex flex-wrap sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-2">
+        <Button
+      
+          variant="outline"
+          size="sm"
+          className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
+        >
+          <Mic className="h-4 w-4 mr-2" />
+          Voice Input
+        </Button>
+        <Button
+         
+          variant="outline"
+          size="sm"
+          className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
+        >
+          <VolumeIcon className="h-4 w-4 mr-2" />
+          Read Aloud
+        </Button>
+        <Button
+        
+          variant="outline"
+          size="sm"
+          className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
+        >
+          <Lightbulb className="h-4 w-4 mr-2" />
+           
+        AI Suggestions
+        </Button>
+        </div>
               <Textarea
                 name="additionalNotes"
                 value={formDataprog.additionalNotes}
@@ -2409,8 +2367,7 @@ const renderPrognosisForm = () => {
 };
     const pages = [
       renderDiagnosisHistory,
-      renderPreChecks,
-      () => RenderDiagnosticAssessment({  selectedSymptoms, setSelectedSymptoms }),
+     
       renderDiagnosisForm,
       renderPrognosisForm,
   
@@ -2419,7 +2376,11 @@ const renderPrognosisForm = () => {
     ];
   
     return (
+      <>
+  
       <div className="flex flex-col min-h-screen max-w-6xl mx-auto p-6">
+       
+
       {/* Page number circles at the top */}
       <div className="flex justify-center gap-2 mb-8">
         {Array.from({ length: pages.length }, (_, i) => i + 1).map((pageNum) => (
@@ -2448,42 +2409,64 @@ const renderPrognosisForm = () => {
     
       {/* Navigation footer */}
       <div className="bg-white border-t shadow-lg">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="flex justify-between items-center">
-            <button
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-              className="flex items-center px-6 py-3 text-sm font-medium text-white bg-teal-500 rounded-lg hover:bg-teal-600 disabled:opacity-50 disabled:hover:bg-teal-500 transition-colors duration-200"
-            >
-              <ChevronLeft className="w-5 h-5 mr-2" />
-              Previous
-            </button>
-            <span className="text-sm font-medium text-gray-500">
-              Page {currentPage} of {pages.length}
-            </span>
-            <button
-  onClick={() => {
-    if (currentPage === pages.length) {
-      // "Continue" logic
-      startSmartConsult();
-    } else {
-      // "Next" logic
-      setCurrentPage(prev => Math.min(pages.length, prev + 1));
-    }
-  }}
-  disabled={false} // Ensure the button is always active
-  className="flex items-center px-6 py-3 text-sm font-medium text-white bg-teal-500 rounded-lg hover:bg-teal-600 disabled:opacity-50 disabled:hover:bg-teal-500 transition-colors duration-200"
->
-  {currentPage === pages.length ? "Continue" : "Next"}
-  <ChevronRight className="w-5 h-5 ml-2" />
-</button>
+  <div className="max-w-6xl mx-auto px-6 py-4">
+    <div className="flex justify-between items-center">
+      <button
+        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+        disabled={currentPage === 1}
+        className="flex items-center px-6 py-3 text-sm font-medium text-white bg-teal-500 rounded-lg hover:bg-teal-600 disabled:opacity-50 disabled:hover:bg-teal-500 transition-colors duration-200"
+      >
+        <ChevronLeft className="w-5 h-5 mr-2" />
+        Previous
+      </button>
 
+      <span className="text-sm font-medium text-gray-500">
+        Page {currentPage} of {pages.length}
+      </span>
 
-          </div>
+      {currentPage === 2 ? (
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => {
+              // Submit logic here
+            }}
+            className="flex items-center px-6 py-3 text-sm font-medium text-white bg-teal-500 rounded-lg hover:bg-teal-600 transition-colors duration-200"
+          >
+            Submit
+          </button>
+          <button
+                    onClick={() => setCurrentPage(prev => Math.min(pages.length, prev + 1))}
+
+            className="flex items-center px-6 py-3 text-sm font-medium text-white bg-teal-500 rounded-lg hover:bg-teal-600 transition-colors duration-200"
+          >
+            Proceed with Prognosis
+          </button>
         </div>
+      ) : currentPage === 3 ? (
+        <button
+          onClick={() => {
+            // Submit logic here
+          }}
+          className="flex items-center px-6 py-3 text-sm font-medium text-white bg-teal-500 rounded-lg hover:bg-teal-600 transition-colors duration-200"
+        >
+          Submit
+        </button>
+      ) : (
+        <button
+          onClick={() => setCurrentPage(prev => Math.min(pages.length, prev + 1))}
+          className="flex items-center px-6 py-3 text-sm font-medium text-white bg-teal-500 rounded-lg hover:bg-teal-600 transition-colors duration-200"
+        >
+          Next
+          <ChevronRight className="w-5 h-5 ml-2" />
+        </button>
+      )}
+    </div>
+  </div>
+
+
       </div>
     </div>
-    
+    </>
     );
   };
 
@@ -3873,139 +3856,128 @@ const renderPatientVisitsList = () => {
 
 
  const LabResultDetailsModal = ({ result, isOpen, onClose }) => {
+  const isAbnormal = result.flags && result.flags.length > 0;
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Lab Result Details</DialogTitle>
-        </DialogHeader>
-        <Card className="space-y-4">
-          {/* Basic Test Information */}
-          <CardHeader>
-            <CardTitle>Basic Test Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4 border-b pb-4">
-              <div>
-                <h4 className="font-medium">Test Name</h4>
-                <p>{result.testName}</p>
-              </div>
-              <div>
-                <h4 className="font-medium">Description</h4>
-                <p>{result.description}</p>
-              </div>
-              <div>
-                <h4 className="font-medium">LOINC Code</h4>
-                <p>{result.code}</p>
-              </div>
-            </div>
-          </CardContent>
+    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 bg-[#F7F7F7]">
+      <DialogHeader className="bg-[#007664] text-white p-6 rounded-t-lg">
+        <DialogTitle className="text-2xl font-bold">Lab Result Details</DialogTitle>
+      </DialogHeader>
 
-          {/* Result Value and Reference Ranges */}
-          <CardHeader>
-            <CardTitle>Result and Reference Range</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4 border-b pb-4">
-              <div>
-                <h4 className="font-medium">Result Value</h4>
-                <p>{result.value} {result.unit}</p>
-              </div>
-              <div>
-                <h4 className="font-medium">Reference Range</h4>
-                <p>{result.referenceRange}</p>
-              </div>
-            </div>
-          </CardContent>
+      <div className="p-6 space-y-8">
+        {/* Basic Test Information */}
+        <motion.div {...fadeIn} className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-8 w-2 bg-[#75C05B] rounded-full" />
+            <h2 className="text-xl font-bold text-[#007664]">Basic Test Information</h2>
+          </div>
+          <Card className="border-none shadow-lg bg-white">
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+              <InfoItem label="Test Name" value={result.testName} />
+              <InfoItem label="Description" value={result.description} />
+              <InfoItem label="LOINC Code" value={result.code} />
+            </CardContent>
+          </Card>
+        </motion.div>
 
-          {/* Flags or Alerts */}
-          <CardHeader>
-            <CardTitle>Interpretive Comments</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="border-b pb-4">{result.flags}</p>
-          </CardContent>
+        {/* Result Value and Reference Ranges */}
+        <motion.div {...fadeIn} className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-8 w-2 bg-[#B24531] rounded-full" />
+            <h2 className="text-xl font-bold text-[#007664]">Result and Reference Range</h2>
+          </div>
+          <Card className="border-none shadow-lg bg-white">
+            <CardContent className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium text-gray-600">Result Value</h4>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-bold">{result.value} {result.unit}</span>
+                    {isAbnormal && <AlertTriangle className="text-[#B24531] h-5 w-5" />}
+                  </div>
+                </div>
+                <InfoItem label="Reference Range" value={result.referenceRange} />
+              </div>
+              {isAbnormal && (
+                <div className="bg-red-50 border-l-4 border-[#B24531] p-4 rounded">
+                  <h4 className="text-sm font-medium text-[#B24531] mb-1">Interpretive Comments</h4>
+                  <p className="text-sm text-gray-700">{result.flags}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
 
-          {/* Collection Details */}
-          <CardHeader>
-            <CardTitle>Collection Details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4 border-b pb-4">
-              <div>
-                <h4 className="font-medium">Collection Method</h4>
-                <p>{result.collectionMethod}</p>
-              </div>
-              <div>
-                <h4 className="font-medium">Specimen Type</h4>
-                <p>{result.specimenType}</p>
-              </div>
-            </div>
-          </CardContent>
+        {/* Collection Details */}
+        <motion.div {...fadeIn} className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-8 w-2 bg-[#53FDFD] rounded-full" />
+            <h2 className="text-xl font-bold text-[#007664]">Collection Details</h2>
+          </div>
+          <Card className="border-none shadow-lg bg-white">
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+              <InfoItem label="Collection Method" value={result.collectionMethod} />
+              <InfoItem label="Specimen Type" value={result.specimenType} />
+            </CardContent>
+          </Card>
+        </motion.div>
 
-          {/* Timing and Ordering Information */}
-          <CardHeader>
-            <CardTitle>Timing and Ordering</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-3 gap-4 border-b pb-4">
-              <div>
-                <h4 className="font-medium">Performed Date</h4>
-                <p>{result.performedDate}</p>
-              </div>
-              <div>
-                <h4 className="font-medium">Ordered By</h4>
-                <p>{result.orderedBy}</p>
-              </div>
-              <div>
-                <h4 className="font-medium">Performing Lab</h4>
-                <p>{result.performingLab}</p>
-              </div>
-            </div>
-          </CardContent>
+        {/* Timing and Ordering */}
+        <motion.div {...fadeIn} className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-8 w-2 bg-[#75C05B] rounded-full" />
+            <h2 className="text-xl font-bold text-[#007664]">Timing and Ordering</h2>
+          </div>
+          <Card className="border-none shadow-lg bg-white">
+            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
+              <InfoItem label="Performed Date" value={result.performedDate} />
+              <InfoItem label="Ordered By" value={result.orderedBy} />
+              <InfoItem label="Performing Lab" value={result.performingLab} />
+            </CardContent>
+          </Card>
+        </motion.div>
 
-          {/* Patient Details */}
-          <CardHeader>
-            <CardTitle>Patient Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-3 gap-4 border-b pb-4">
-              <div>
-                <h4 className="font-medium">Name</h4>
-                <p>{result.patientName}</p>
-              </div>
-              <div>
-                <h4 className="font-medium">DOB</h4>
-                <p>{result.patientDOB}</p>
-              </div>
-              <div>
-                <h4 className="font-medium">MRN</h4>
-                <p>{result.patientMRN}</p>
-              </div>
-            </div>
-          </CardContent>
+        {/* Patient Information */}
+        <motion.div {...fadeIn} className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-8 w-2 bg-[#B24531] rounded-full" />
+            <h2 className="text-xl font-bold text-[#007664]">Patient Information</h2>
+          </div>
+          <Card className="border-none shadow-lg bg-white">
+            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
+              <InfoItem label="Name" value={result.patientName} />
+              <InfoItem label="DOB" value={result.patientDOB} />
+              <InfoItem label="MRN" value={result.patientMRN} />
+            </CardContent>
+          </Card>
+        </motion.div>
 
-          {/* Additional Information */}
-          <CardHeader>
-            <CardTitle>Additional Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <h4 className="font-medium">Status</h4>
-                <p>{result.status}</p>
+        {/* Additional Information */}
+        <motion.div {...fadeIn} className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-8 w-2 bg-[#53FDFD] rounded-full" />
+            <h2 className="text-xl font-bold text-[#007664]">Additional Information</h2>
+          </div>
+          <Card className="border-none shadow-lg bg-white">
+            <CardContent className="grid grid-cols-1 gap-6 p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <InfoItem label="Status" value={result.status} />
               </div>
-              <div>
-                <h4 className="font-medium">Comments</h4>
-                <p>{result.comments}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </DialogContent>
-    </Dialog>
-  );
+              {result.comments && (
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-600 mb-2">Comments</h4>
+                  <p className="text-sm text-gray-700">{result.comments}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+    </DialogContent>
+  </Dialog>
+);
 };
+
 
 
 
@@ -4058,101 +4030,106 @@ const renderPatientVisitsList = () => {
   progress: [],                     // Progress notes
   summary: ''                       // High-level summary of consultation
 });
+const fadeIn = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5 }
+};
 
 const ConsultationDetailsModal = ({ consult, isOpen, onClose }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-4">
-        <DialogHeader>
-          <DialogTitle className="text-lg md:text-xl">Consultation Details</DialogTitle>
-        </DialogHeader>
-        <Card className="space-y-6">
-          {/* Basic Information */}
-          <CardHeader>
-            <CardTitle className="text-base md:text-lg">Basic Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b pb-4">
-              <div>
-                <h4 className="font-medium text-sm md:text-base">Status</h4>
-                <p className="text-sm md:text-base">{consult.status}</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-sm md:text-base">Category</h4>
-                <p className="text-sm md:text-base">{consult.category.join(', ')}</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-sm md:text-base">Service Type</h4>
-                <p className="text-sm md:text-base">{consult.serviceType.join(', ')}</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-sm md:text-base">Patient</h4>
-                <p className="text-sm md:text-base">{consult.subject.display}</p>
-              </div>
-            </div>
-          </CardContent>
+    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 bg-[#F7F7F7]">
+      <DialogHeader className="bg-[#007664] text-white p-6 rounded-t-lg">
+        <DialogTitle className="text-2xl font-bold">Consultation Details</DialogTitle>
+      </DialogHeader>
 
-          {/* Participant Details */}
-          <CardHeader>
-            <CardTitle className="text-base md:text-lg">Participant Details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {consult.participant.map((participant, index) => (
-              <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b pb-4">
-                <div>
-                  <h4 className="font-medium text-sm md:text-base">Type</h4>
-                  <p className="text-sm md:text-base">{participant.type.join(', ')}</p>
+      <div className="p-6 space-y-8">
+        {/* Basic Information */}
+        <motion.div {...fadeIn} className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-8 w-2 bg-[#75C05B] rounded-full" />
+            <h2 className="text-xl font-bold text-[#007664]">Basic Information</h2>
+          </div>
+          
+          <Card className="border-none shadow-lg bg-white">
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+              <InfoItem label="Status" value={consult.status} />
+              <InfoItem label="Category" value={consult.category.join(', ')} />
+              <InfoItem label="Service Type" value={consult.serviceType.join(', ')} />
+              <InfoItem label="Patient" value={consult.subject.display} />
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Participant Details */}
+        <motion.div {...fadeIn} className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-8 w-2 bg-[#B24531] rounded-full" />
+            <h2 className="text-xl font-bold text-[#007664]">Participant Details</h2>
+          </div>
+          
+          <Card className="border-none shadow-lg bg-white">
+            <CardContent className="divide-y divide-gray-100">
+              {consult.participant.map((participant, index) => (
+                <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+                  <InfoItem label="Type" value={participant.type.join(', ')} />
+                  <InfoItem label="Name" value={participant.individual.display} />
                 </div>
-                <div>
-                  <h4 className="font-medium text-sm md:text-base">Name</h4>
-                  <p className="text-sm md:text-base">{participant.individual.display}</p>
-                </div>
-              </div>
-            ))}
-          </CardContent>
+              ))}
+            </CardContent>
+          </Card>
+        </motion.div>
 
-          {/* Timing Information */}
-          <CardHeader>
-            <CardTitle className="text-base md:text-lg">Timing Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b pb-4">
-              <div>
-                <h4 className="font-medium text-sm md:text-base">Occurrence Date/Time</h4>
-                <p className="text-sm md:text-base">{consult.occurrenceDateTime}</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-sm md:text-base">Created</h4>
-                <p className="text-sm md:text-base">{consult.created}</p>
-              </div>
-            </div>
-          </CardContent>
+        {/* Timing Information */}
+        <motion.div {...fadeIn} className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-8 w-2 bg-[#53FDFD] rounded-full" />
+            <h2 className="text-xl font-bold text-[#007664]">Timing Information</h2>
+          </div>
+          
+          <Card className="border-none shadow-lg bg-white">
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+              <InfoItem label="Occurrence Date/Time" value={consult.occurrenceDateTime} />
+              <InfoItem label="Created" value={consult.created} />
+            </CardContent>
+          </Card>
+        </motion.div>
 
-          {/* Additional Details */}
-          <CardHeader>
-            <CardTitle className="text-base md:text-lg">Additional Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b pb-4">
-              <div>
-                <h4 className="font-medium text-sm md:text-base">Reason Code</h4>
-                <p className="text-sm md:text-base">{consult.reasonCode.join(', ')}</p>
+        {/* Additional Details */}
+        <motion.div {...fadeIn} className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-8 w-2 bg-[#75C05B] rounded-full" />
+            <h2 className="text-xl font-bold text-[#007664]">Additional Information</h2>
+          </div>
+          
+          <Card className="border-none shadow-lg bg-white">
+            <CardContent className="space-y-6 p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <InfoItem label="Reason Code" value={consult.reasonCode.join(', ')} />
+                <InfoItem label="Diagnosis" value={consult.diagnosis.join(', ')} />
               </div>
               <div>
-                <h4 className="font-medium text-sm md:text-base">Diagnosis</h4>
-                <p className="text-sm md:text-base">{consult.diagnosis.join(', ')}</p>
+                <h4 className="text-sm font-medium mb-2">Summary</h4>
+                <p className="text-sm leading-relaxed text-gray-700 bg-gray-50 p-4 rounded-lg">
+                  {consult.summary}
+                </p>
               </div>
-              <div className="col-span-1 md:col-span-2">
-                <h4 className="font-medium text-sm md:text-base">Summary</h4>
-                <p className="text-sm md:text-base">{consult.summary}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </DialogContent>
-    </Dialog>
-  );
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+    </DialogContent>
+  </Dialog>
+);
 };
+
+const InfoItem = ({ label, value }) => (
+<div className="space-y-1">
+  <h4 className="text-sm font-medium text-gray-600">{label}</h4>
+  <p className="text-sm text-gray-900">{value}</p>
+</div>
+);
 
 const [newDiagnosis, setNewDiagnosis] = useState({
   id: '',                           // Unique identifier for the Diagnosis
@@ -4440,103 +4417,135 @@ const DiagnosisForm = ({ buttonText, onSubmit, diagnosesData}) => {
 
 
 const DiagnosisDetailsModal = ({ diagnosis, isOpen, onClose }) => {
+  const getStatusColor = (status) => {
+    const statusColors = {
+      active: 'bg-green-50 text-green-700 border-green-200',
+      completed: 'bg-blue-50 text-blue-700 border-blue-200',
+      pending: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+      default: 'bg-gray-50 text-gray-700 border-gray-200'
+    };
+    return statusColors[status?.toLowerCase()] || statusColors.default;
+  };
+  const InfoItem = ({ label, value, icon, highlight }) => (
+    <div className="space-y-1">
+      <div className="flex items-center gap-2">
+        {icon}
+        <h4 className="text-sm font-medium text-gray-600">{label}</h4>
+      </div>
+      <p className={`${
+        highlight 
+          ? "text-lg font-semibold text-[#007664]" 
+          : "text-sm text-gray-900"
+      }`}>
+        {value}
+      </p>
+    </div>
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-4">
-        <DialogHeader>
-          <DialogTitle className="text-lg md:text-xl">Consultation Details</DialogTitle>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 bg-[#F7F7F7]">
+        <DialogHeader className="bg-[#007664] text-white p-6 rounded-t-lg">
+          <DialogTitle className="text-2xl font-bold flex items-center gap-3">
+            <Stethoscope className="h-6 w-6" />
+            Diagnosis & Prognosis Details
+          </DialogTitle>
         </DialogHeader>
-        <Card className="space-y-6">
+
+        <div className="p-6 space-y-8">
+          {/* Status Banner */}
+          <motion.div {...fadeIn} 
+            className={`rounded-lg p-4 border ${getStatusColor(diagnosis.status)} flex items-center gap-2`}
+          >
+            <Activity className="h-5 w-5" />
+            <span className="font-medium">Current Status: {diagnosis.status}</span>
+          </motion.div>
+
           {/* Basic Information */}
-          <CardHeader>
-            <CardTitle className="text-base md:text-lg">Basic Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b pb-4">
-              <div>
-                <h4 className="font-medium text-sm md:text-base">Status</h4>
-                <p>{diagnosis.status}</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-sm md:text-base">Category</h4>
-                <p>{diagnosis.category.join(', ')}</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-sm md:text-base">Service Type</h4>
-                <p>{diagnosis.serviceType.join(', ')}</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-sm md:text-base">Patient</h4>
-                <p>{diagnosis.patient.display}</p>
-              </div>
+          <motion.div {...fadeIn} className="space-y-4">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="h-8 w-2 bg-[#75C05B] rounded-full" />
+              <h2 className="text-xl font-bold text-[#007664]">Basic Information</h2>
             </div>
-          </CardContent>
+            <Card className="border-none shadow-lg bg-white">
+              <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <InfoItem label="Category" value={diagnosis.category.join(', ')} />
+                <InfoItem label="Service Type" value={diagnosis.serviceType.join(', ')} />
+                <InfoItem label="Patient" value={diagnosis.patient.display} highlight />
+              </CardContent>
+            </Card>
+          </motion.div>
 
           {/* Participant Details */}
-          <CardHeader>
-            <CardTitle className="text-base md:text-lg">Participant Details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {diagnosis.participant.map((participant, index) => (
-              <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b pb-4">
-                <div>
-                  <h4 className="font-medium text-sm md:text-base">Type</h4>
-                  <p>{participant.type.join(', ')}</p>
-                </div>
-                <div>
-                  <h4 className="font-medium text-sm md:text-base">Name</h4>
-                  <p>{participant.individual.display}</p>
-                </div>
-              </div>
-            ))}
-          </CardContent>
+          <motion.div {...fadeIn} className="space-y-4">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="h-8 w-2 bg-[#B24531] rounded-full" />
+              <h2 className="text-xl font-bold text-[#007664] flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Participant Details
+              </h2>
+            </div>
+            <Card className="border-none shadow-lg bg-white">
+              <CardContent className="p-6 space-y-4">
+                {diagnosis.participant.map((participant, index) => (
+                  <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-4 border-b last:border-0">
+                    <InfoItem label="Type" value={participant.type.join(', ')} />
+                    <InfoItem label="Name" value={participant.individual.display} highlight />
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </motion.div>
 
           {/* Timing Information */}
-          <CardHeader>
-            <CardTitle className="text-base md:text-lg">Timing Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b pb-4">
-              <div>
-                <h4 className="font-medium text-sm md:text-base">Occurrence Date/Time</h4>
-                <p>{diagnosis.occurrenceDateTime}</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-sm md:text-base">Created</h4>
-                <p>{diagnosis.created}</p>
-              </div>
+          <motion.div {...fadeIn} className="space-y-4">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="h-8 w-2 bg-[#53FDFD] rounded-full" />
+              <h2 className="text-xl font-bold text-[#007664] flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Timing Information
+              </h2>
             </div>
-          </CardContent>
+            <Card className="border-none shadow-lg bg-white">
+              <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <InfoItem 
+                  label="Occurrence Date/Time" 
+                  value={diagnosis.occurrenceDateTime} 
+                  icon={<Clock className="h-4 w-4 text-[#007664]" />}
+                />
+                <InfoItem 
+                  label="Created" 
+                  value={diagnosis.created} 
+                  icon={<Clock className="h-4 w-4 text-[#007664]" />}
+                />
+              </CardContent>
+            </Card>
+          </motion.div>
 
           {/* Additional Details */}
-          <CardHeader>
-            <CardTitle className="text-base md:text-lg">Additional Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b pb-4">
-              <div>
-                <h4 className="font-medium text-sm md:text-base">Reason Code</h4>
-                <p>{diagnosis.reasonCode.join(', ')}</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-sm md:text-base">Progress</h4>
-                <p>{diagnosis.progress.join(', ')}</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-sm md:text-base">Presented Problem</h4>
-                <p>{diagnosis.presentedProblem}</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-sm md:text-base">Presented Problem</h4>
-                <p>{diagnosis.presentedProblem}</p>
-              </div>
-              <div className="col-span-1 md:col-span-2">
-                <h4 className="font-medium text-sm md:text-base">Summary</h4>
-                <p>{diagnosis.summary}</p>
-              </div>
+          <motion.div {...fadeIn} className="space-y-4">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="h-8 w-2 bg-[#75C05B] rounded-full" />
+              <h2 className="text-xl font-bold text-[#007664] flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Additional Information
+              </h2>
             </div>
-          </CardContent>
-        </Card>
+            <Card className="border-none shadow-lg bg-white">
+              <CardContent className="p-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <InfoItem label="Reason Code" value={diagnosis.reasonCode.join(', ')} />
+                  <InfoItem label="Progress" value={diagnosis.progress.join(', ')} />
+                  <InfoItem label="Presented Problem" value={diagnosis.presentedProblem} highlight />
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg mt-4">
+                  <h4 className="font-medium text-sm text-gray-700 mb-2">Summary</h4>
+                  <p className="text-sm text-gray-600 leading-relaxed">{diagnosis.summary}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -4546,6 +4555,36 @@ const DiagnosisDetailsModal = ({ diagnosis, isOpen, onClose }) => {
 
 
 const MedicationForm = ({ buttonText, onSubmit, medicationData}) => {
+  const [aiModes, setAiModes] = useState({
+    expectedOutcome: false,   // Captures AI mode for expected outcome
+    timeframe: false,         // Captures AI mode for timeframe
+    riskLevel: false,         // Captures AI mode for risk level
+    recoveryPotential: false, // Captures AI mode for recovery potential
+  });
+  const [formDatamedication, setFormDatamedication] = useState({
+    medicationName: '',
+    dosage: '',
+    administrationRoute: '',
+    medicationFrequency: '',
+    medicationStatus: '',
+    startDate: '',
+    endDate: '',
+    treatmentDuration: '',
+    sideEffects: '',
+    contraindications: '',
+    precautions: '',
+    interactions: '',
+    specialInstructions: '',
+    expectedOutcome: '',
+    followUpProtocol: '',
+    evidenceBase: ''
+  });
+  const [loadingStates, setLoadingStates] = useState({
+    expectedOutcome: false,
+    timeframe: false,
+    riskLevel: false,
+    recoveryPotential: false
+  });
   const [newMedication, setNewMedication] = useState({
     medicationDescription: '',
     medicationNote: '',
@@ -4588,7 +4627,70 @@ const MedicationForm = ({ buttonText, onSubmit, medicationData}) => {
     }));
   };
   
-  
+  const SelectWithAI = ({ field, label, options, placeholder }) => {
+    return (
+      <div className="space-y-2">
+        <div className="flex justify-between items-center">
+          <Label>{label}</Label>
+          {!aiModes[field] ? (
+             <button
+             onClick={() => handleAISuggest(field)}
+             disabled={loadingStates[field]}
+             variant="outline"
+             size="sm"
+             className="mt-4 inline-flex items-center gap-2 bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200"
+           >
+             <Lightbulb className="h-4 w-4" />
+             {loadingStates[field] ? 'Generating...' : 'AI Suggestions'}
+           </button>
+           
+           
+          ) : (
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setAiModes(prev => ({ ...prev, [field]: false }));
+                  setFormDatamedication(prev => ({ ...prev, [field]: '' }));
+                }}
+                className="mt-4 inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200"
+              >
+                Manual
+              </button>
+              <button
+                onClick={() => handleAISuggest(field)}
+                className="mt-4 inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200"
+              >
+                <Sparkles className="w-3 h-3" />
+                Regenerate
+              </button>
+            </div>
+          )}
+        </div>
+        
+        {aiModes[field] ? (
+          <div className="px-3 py-2 bg-gray-50 border rounded-md text-gray-700">
+            {formDatamedication[field].split('_').map(word => 
+              word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ')}
+          </div>
+        ) : (
+          <Select
+            value={formDatamedication[field]}
+            onValueChange={(value) => handleSelectChange(field, value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={placeholder} />
+            </SelectTrigger>
+            <SelectContent>
+              {options.map(({ value, label }) => (
+                <SelectItem key={value} value={value}>{label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      </div>
+    );
+  };
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
       <div className="space-y-2">
@@ -4601,45 +4703,6 @@ const MedicationForm = ({ buttonText, onSubmit, medicationData}) => {
         />
       </div>
      
-     
-      <div className="space-y-2">
-        <Label htmlFor="medicationNote">Medication Note</Label>
-        <textarea
-          id="medicationNote"
-          placeholder="Medication Note"
-          value={newMedication.medicationNote}
-          onChange={(e) => setNewMedication({ ...newMedication, medicationNote: e.target.value })}
-          rows={4}
-          className="resize-none block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-        />
-      </div>
- <div className="space-y-2">
-        <Label htmlFor="medicationCode">Condition</Label>
-        <Input
-          id="medicationCode"
-          placeholder="Medication Code"
-          value={newMedication.medicationCode}
-          onChange={(e) => setNewMedication({ ...newMedication, medicationCode: e.target.value.split(', ') })}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="medicationCode">Name</Label>
-        <Input
-          id="medname"
-          placeholder="Medication name"
-          value={newMedication.name}
-          onChange={(e) => setNewMedication({ ...newMedication, name: e.target.value.split(', ') })}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="medicationDosage">Dosage</Label>
-        <Input
-          id="medicationDosage"
-          placeholder="Medication Dosage"
-          value={newMedication.dosage}
-          onChange={(e) => setNewMedication({ ...newMedication, dosage: e.target.value.split(', ') })}
-        />
-      </div>
       <div className="space-y-2">
         <Label htmlFor="medicationStatus">Medication Status</Label>
         <Select
@@ -4683,8 +4746,182 @@ const MedicationForm = ({ buttonText, onSubmit, medicationData}) => {
           onChange={(e) => setNewMedication({ ...newMedication, medicationStartTime: e.target.value })}
         />
       </div>
+      <div className="space-y-2">
+  <Label htmlFor="medicationFrequencyType">Frequency Type</Label>
+  <SelectWithAI
+    field="medicationFrequencyType"
+    value={newMedication.medicationFrequency.type}
+    onChange={(value) => setNewMedication({ ...newMedication, medicationFrequency: { ...newMedication.medicationFrequency, type: value } })}
+    label="Select Frequency Type"
+    placeholder="Select Frequency Type"
+    options={[
+      { value: 'daily', label: 'Daily' },
+      { value: 'weekly', label: 'Weekly' },
+      { value: 'monthly', label: 'Monthly' },
+      { value: 'custom', label: 'Custom' }
+    ]}
+  />
+</div>
+
+{newMedication.medicationFrequency.type === 'daily' && (
+  <div className="space-y-2">
+    <Label htmlFor="medicationFrequencyValue">Frequency Value</Label>
+    <Input
+      id="medicationFrequencyValue"
+      type="number"
+      value={newMedication.medicationFrequency.value}
+      onChange={(e) => {
+        const value = parseInt(e.target.value, 10);
+        if (!isNaN(value)) {
+          setNewMedication({ ...newMedication, medicationFrequency: { ...newMedication.medicationFrequency, value } });
+        }
+      }}
+      placeholder="Enter frequency value"
+    />
+  </div>
+)}
+    <div className="space-y-2">
+        <label>Administration Route</label>
+        <Input
+          type="text"
+          value={formDatamedication.administrationRoute}
+          onChange={(e) => handleFieldChange('administrationRoute', e.target.value)}
+          placeholder="Enter Administration Route (e.g., Oral, IV)"
+        />
+      </div>
+      <div className="space-y-2">
+        <label>Treatment Duration</label>
+        <Input
+          type="text"
+          value={formDatamedication.treatmentDuration}
+          onChange={(e) => handleFieldChange('treatmentDuration', e.target.value)}
+          placeholder="(e.g., 2 weeks)"
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="medicationNote">Medication Note</Label>
+        <div>
+                <Button
+      
+      variant="outline"
+      size="sm"
+      className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
+    >
+      <Mic className="h-4 w-4 mr-2" />
+      Voice Input
+    </Button>
+    <Button
+         
+         variant="outline"
+         size="sm"
+         className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
+       >
+         <VolumeIcon className="h-4 w-4 mr-2" />
+         Read Aloud
+       </Button>
+       <Button
+        
+        variant="outline"
+        size="sm"
+        className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
+      >
+        <Lightbulb className="h-4 w-4 mr-2" />
+         
+      AI Suggestions
+      </Button>
+
+
+                </div>
+        <textarea
+          id="medicationNote"
+          placeholder="Medication Note"
+          value={newMedication.medicationNote}
+          onChange={(e) => setNewMedication({ ...newMedication, medicationNote: e.target.value })}
+          rows={4}
+          className="resize-none block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        />
+      </div>
+ 
+      <div className="space-y-2">
+        <Label htmlFor="medicationDosage">Dosage</Label>
+        <div>
+                <Button
+      
+      variant="outline"
+      size="sm"
+      className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
+    >
+      <Mic className="h-4 w-4 mr-2" />
+      Voice Input
+    </Button>
+    <Button
+         
+         variant="outline"
+         size="sm"
+         className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
+       >
+         <VolumeIcon className="h-4 w-4 mr-2" />
+         Read Aloud
+       </Button>
+       <Button
+        
+        variant="outline"
+        size="sm"
+        className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
+      >
+        <Lightbulb className="h-4 w-4 mr-2" />
+         
+      AI Suggestions
+      </Button>
+
+
+                </div>
+        <textarea
+          id="medicationDosage"
+          placeholder="Medication Dosage"
+          value={newMedication.dosage}
+          onChange={(e) => setNewMedication({ ...newMedication, dosage: e.target.value.split(', ') })}
+          rows={4}
+          className="resize-none block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+   
+        />
+      </div>
+     
+    
        <div className="space-y-2">
         <Label htmlFor="medicationDescription">Medication</Label>
+        <div>
+                <Button
+      
+      variant="outline"
+      size="sm"
+      className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
+    >
+      <Mic className="h-4 w-4 mr-2" />
+      Voice Input
+    </Button>
+    <Button
+         
+         variant="outline"
+         size="sm"
+         className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
+       >
+         <VolumeIcon className="h-4 w-4 mr-2" />
+         Read Aloud
+       </Button>
+       <Button
+        
+        variant="outline"
+        size="sm"
+        className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
+      >
+        <Lightbulb className="h-4 w-4 mr-2" />
+         
+      AI Suggestions
+      </Button>
+
+
+                </div>
         <textarea
           id="medicationDescription"
           placeholder="Medication Description"
@@ -4695,39 +4932,277 @@ const MedicationForm = ({ buttonText, onSubmit, medicationData}) => {
        
        />
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="medicationFrequencyType">Frequency Type</Label>
-        <Select
-          value={newMedication.medicationFrequency.type}
-          onValueChange={(value) => setNewMedication({ ...newMedication, medicationFrequency: { ...newMedication.medicationFrequency, type: value } })}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select Frequency Type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="daily">Daily</SelectItem>
-            <SelectItem value="weekly">Weekly</SelectItem>
-            <SelectItem value="monthly">Monthly</SelectItem>
-            <SelectItem value="custom">Custom</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      {newMedication.medicationFrequency.type === 'daily' && (
-        <div className="space-y-2">
-          <Label htmlFor="medicationFrequencyValue">Frequency Value</Label>
-          <Input
-            id="medicationFrequencyValue"
-            type="number"
-            value={newMedication.medicationFrequency.value}
-            onChange={(e) => {
-              const value = parseInt(e.target.value, 10);
-              if (!isNaN(value)) {
-                setNewMedication({ ...newMedication, medicationFrequency: { ...newMedication.medicationFrequency, value } });
-              }
-            }}          />
-        </div>
-      )}
+  
+      <div>
+        <label>Side Effects</label>
+        <div>
+                <Button
       
+      variant="outline"
+      size="sm"
+      className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
+    >
+      <Mic className="h-4 w-4 mr-2" />
+      Voice Input
+    </Button>
+    <Button
+         
+         variant="outline"
+         size="sm"
+         className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
+       >
+         <VolumeIcon className="h-4 w-4 mr-2" />
+         Read Aloud
+       </Button>
+       <Button
+        
+        variant="outline"
+        size="sm"
+        className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
+      >
+        <Lightbulb className="h-4 w-4 mr-2" />
+         
+      AI Suggestions
+      </Button>
+
+
+                </div>
+        <textarea
+          value={formDatamedication.sideEffects}
+          onChange={(e) => handleFieldChange('sideEffects', e.target.value)}
+          placeholder="Enter potential side effects"
+          rows={4} 
+          className="resize-none block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+      
+        />
+      </div>
+
+      {/* Contraindications */}
+      <div>
+        <label>Contraindications</label>
+        <div>
+                <Button
+      
+      variant="outline"
+      size="sm"
+      className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
+    >
+      <Mic className="h-4 w-4 mr-2" />
+      Voice Input
+    </Button>
+    <Button
+         
+         variant="outline"
+         size="sm"
+         className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
+       >
+         <VolumeIcon className="h-4 w-4 mr-2" />
+         Read Aloud
+       </Button>
+       <Button
+        
+        variant="outline"
+        size="sm"
+        className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
+      >
+        <Lightbulb className="h-4 w-4 mr-2" />
+         
+      AI Suggestions
+      </Button>
+
+
+                </div>
+        <textarea
+          value={formDatamedication.contraindications}
+          onChange={(e) => handleFieldChange('contraindications', e.target.value)}
+          placeholder="Enter contraindications"
+          rows={4} 
+          className="resize-none block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+      
+        />
+      </div>
+
+      {/* Precautions */}
+      <div>
+        <label>Precautions</label>
+        <div>
+                <Button
+      
+      variant="outline"
+      size="sm"
+      className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
+    >
+      <Mic className="h-4 w-4 mr-2" />
+      Voice Input
+    </Button>
+    <Button
+         
+         variant="outline"
+         size="sm"
+         className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
+       >
+         <VolumeIcon className="h-4 w-4 mr-2" />
+         Read Aloud
+       </Button>
+       <Button
+        
+        variant="outline"
+        size="sm"
+        className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
+      >
+        <Lightbulb className="h-4 w-4 mr-2" />
+         
+      AI Suggestions
+      </Button>
+
+
+                </div>
+        <textarea
+          value={formDatamedication.precautions}
+          onChange={(e) => handleFieldChange('precautions', e.target.value)}
+          placeholder="Enter any precautions"
+          rows={4} 
+          className="resize-none block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+      
+        />
+      </div>
+
+      {/* Drug Interactions */}
+      <div>
+        <label>Drug Interactions</label>
+        <div>
+                <Button
+      
+      variant="outline"
+      size="sm"
+      className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
+    >
+      <Mic className="h-4 w-4 mr-2" />
+      Voice Input
+    </Button>
+    <Button
+         
+         variant="outline"
+         size="sm"
+         className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
+       >
+         <VolumeIcon className="h-4 w-4 mr-2" />
+         Read Aloud
+       </Button>
+       <Button
+        
+        variant="outline"
+        size="sm"
+        className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
+      >
+        <Lightbulb className="h-4 w-4 mr-2" />
+         
+      AI Suggestions
+      </Button>
+
+
+                </div>
+        <textarea
+          value={formDatamedication.interactions}
+          onChange={(e) => handleFieldChange('interactions', e.target.value)}
+          placeholder="Enter possible drug interactions"
+          rows={4} 
+          className="resize-none block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+      
+        />
+      </div>
+
+      {/* Special Instructions */}
+      <div className="space-y-2">
+        <label>Special Instructions</label>
+        <div>
+                <Button
+      
+      variant="outline"
+      size="sm"
+      className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
+    >
+      <Mic className="h-4 w-4 mr-2" />
+      Voice Input
+    </Button>
+    <Button
+         
+         variant="outline"
+         size="sm"
+         className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
+       >
+         <VolumeIcon className="h-4 w-4 mr-2" />
+         Read Aloud
+       </Button>
+       <Button
+        
+        variant="outline"
+        size="sm"
+        className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
+      >
+        <Lightbulb className="h-4 w-4 mr-2" />
+         
+      AI Suggestions
+      </Button>
+
+
+                </div>
+        <textarea
+          value={formDatamedication.specialInstructions}
+          onChange={(e) => handleFieldChange('specialInstructions', e.target.value)}
+          placeholder="Enter any special instructions"
+          rows={4} 
+          className="resize-none block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+      
+        />
+        
+        <div className="space-y-2"> 
+        <label>Follow-Up Protocol</label>
+        <div>
+                <Button
+      
+      variant="outline"
+      size="sm"
+      className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
+    >
+      <Mic className="h-4 w-4 mr-2" />
+      Voice Input
+    </Button>
+    <Button
+         
+         variant="outline"
+         size="sm"
+         className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
+       >
+         <VolumeIcon className="h-4 w-4 mr-2" />
+         Read Aloud
+       </Button>
+       <Button
+        
+        variant="outline"
+        size="sm"
+        className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
+      >
+        <Lightbulb className="h-4 w-4 mr-2" />
+         
+      AI Suggestions
+      </Button>
+
+
+                </div>
+        <textarea
+          value={formDatamedication.followUpProtocol}
+          onChange={(e) => handleFieldChange('followUpProtocol', e.target.value)}
+          placeholder="Enter follow-up protocol"
+          rows={4} 
+          className="resize-none block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+      
+        />
+      </div>
+      </div>
+
+     
+
       <div className="col-span-1 md:col-span-2 flex justify-end space-x-2 mt-4">
         <Button variant="outline" onClick={() => setIsEditOpen(false)}>
           Cancel
@@ -4745,221 +5220,577 @@ const MedicationForm = ({ buttonText, onSubmit, medicationData}) => {
 };
 
 const MedicationDetailsModal = ({ medic, isOpen, onClose }) => { 
-  
+  const isActive = medic.medicationStatus?.toLowerCase() === 'active';
+  const InfoItem = ({ label, value, icon, highlight }) => (
+    <div className="space-y-1">
+      <div className="flex items-center gap-2">
+        {icon}
+        <h4 className="text-sm font-medium text-gray-600">{label}</h4>
+      </div>
+      <p className={`${
+        highlight 
+          ? "text-lg font-semibold text-[#007664]" 
+          : "text-sm text-gray-900"
+      }`}>
+        {value}
+      </p>
+    </div>
+  );
+   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-4">
-        <DialogHeader>
-          <DialogTitle className="text-lg md:text-xl">Medication Details</DialogTitle>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 bg-[#F7F7F7]">
+        <DialogHeader className="bg-[#007664] text-white p-6 rounded-t-lg">
+          <DialogTitle className="text-2xl font-bold flex items-center gap-3">
+            <Pill className="h-6 w-6" />
+            Medication Details
+          </DialogTitle>
         </DialogHeader>
-        <Card className="space-y-6">
-          {/* Basic Information */}
-          <CardHeader>
-            <CardTitle className="text-base md:text-lg">Basic Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b pb-4">
-              <div>
-                <h4 className="font-medium text-sm md:text-base">Medication Name</h4>
-                <p>{medic.name}</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-sm md:text-base">Dosage</h4>
-                <p>{medic.dosage}</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-sm md:text-base">Frequency</h4>
-                <p>{medic.frequency}</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-sm md:text-base">Start Date</h4>
-                <p>{medic.startDate}</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-sm md:text-base">End Date</h4>
-                <p>{medic.endDate}</p>
-              </div>
-            </div>
-          </CardContent>
 
-          {/* Additional Information */}
-          <CardHeader>
-            <CardTitle className="text-base md:text-lg">Additional Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b pb-4">
-              <div>
-                <h4 className="font-medium text-sm md:text-base">Medication Status</h4>
-                <p>{medic.medicationStatus}</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-sm md:text-base">Medication Description</h4>
-                <p>{medic.medicationDescription}</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-sm md:text-base">Medication Frequency Type</h4>
-                <p>{medic.medicationFrequency.type}</p>
-              </div>
-              {medic.medicationFrequency.type === "daily" && (
-                <div>
-                  <h4 className="font-medium text-sm md:text-base">Frequency Value</h4>
-                  <p>{medic.medicationFrequency.value} times per day</p>
-                </div>
-              )}
-              <div>
-                <h4 className="font-medium text-sm md:text-base">Start Time</h4>
-                <p>{medic.medicationStartTime}</p>
-              </div>
+        <div className="p-6 space-y-8">
+          {/* Status Banner */}
+          <motion.div {...fadeIn} className={`rounded-lg p-4 flex items-center gap-3 ${
+            isActive ? 'bg-green-50 text-green-700' : 'bg-yellow-50 text-yellow-700'
+          }`}>
+            <AlertCircle className="h-5 w-5" />
+            <span className="font-medium">
+              Status: {medic.medicationStatus}
+            </span>
+          </motion.div>
+
+          {/* Basic Information */}
+          <motion.div {...fadeIn} className="space-y-4">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="h-8 w-2 bg-[#75C05B] rounded-full" />
+              <h2 className="text-xl font-bold text-[#007664]">Basic Information</h2>
             </div>
-          </CardContent>
-        </Card>
+            <Card className="border-none shadow-lg bg-white">
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <InfoItem 
+                    label="Medication Name" 
+                    value={medic.name}
+                    highlight
+                  />
+                  <InfoItem 
+                    label="Dosage" 
+                    value={medic.dosage}
+                    highlight
+                  />
+                  <InfoItem 
+                    label="Frequency" 
+                    value={medic.frequency}
+                    icon={<Clock className="h-4 w-4 text-[#007664]" />}
+                  />
+                  <InfoItem 
+                    label="Description" 
+                    value={medic.medicationDescription}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Timing Details */}
+          <motion.div {...fadeIn} className="space-y-4">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="h-8 w-2 bg-[#53FDFD] rounded-full" />
+              <h2 className="text-xl font-bold text-[#007664]">Timing Details</h2>
+            </div>
+            <Card className="border-none shadow-lg bg-white">
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <InfoItem 
+                    label="Start Date" 
+                    value={medic.startDate}
+                    icon={<Calendar className="h-4 w-4 text-[#007664]" />}
+                  />
+                  <InfoItem 
+                    label="End Date" 
+                    value={medic.endDate}
+                    icon={<Calendar className="h-4 w-4 text-[#007664]" />}
+                  />
+                  <InfoItem 
+                    label="Start Time" 
+                    value={medic.medicationStartTime}
+                    icon={<Clock className="h-4 w-4 text-[#007664]" />}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Frequency Details */}
+          <motion.div {...fadeIn} className="space-y-4">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="h-8 w-2 bg-[#B24531] rounded-full" />
+              <h2 className="text-xl font-bold text-[#007664]">Frequency Details</h2>
+            </div>
+            <Card className="border-none shadow-lg bg-white">
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <InfoItem 
+                    label="Frequency Type" 
+                    value={medic.medicationFrequency.type}
+                  />
+                  {medic.medicationFrequency.type === "daily" && (
+                    <InfoItem 
+                      label="Times Per Day" 
+                      value={`${medic.medicationFrequency.value} times`}
+                    />
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
       </DialogContent>
     </Dialog>
   );
 };
+
+
+const testCategories = [
+  {
+    category: 'General Health Screening',
+    tests: ['Complete Blood Count (CBC)', 'Basic Metabolic Panel (BMP)', 'Comprehensive Metabolic Panel (CMP)', 'Lipid Panel', 'Urinalysis']
+  },
+  {
+    category: 'Diabetes and Endocrine Function',
+    tests: ['Fasting Blood Glucose', 'Hemoglobin A1c (HbA1c)', 'Thyroid Function Tests (TSH, T3, T4)']
+  },
+  {
+    category: 'Cardiovascular Health',
+    tests: ['Electrocardiogram (ECG)', 'Troponin Test']
+  },
+  {
+    category: 'Advanced Diagnostics',
+    tests: ['Chest X-ray', 'MRI Scan', 'CT Scan', 'Ultrasound']
+  },
+  {
+    category: 'Infectious Diseases',
+    tests: ['Rapid Strep Test', 'Influenza Test', 'HIV Test', 'Hepatitis Panel', 'Tuberculosis (TB) Test']
+  },
+  {
+    category: 'Kidney Function',
+    tests: ['Serum Creatinine', 'Blood Urea Nitrogen (BUN)']
+  },
+  {
+    category: 'Liver Function',
+    tests: ['Liver Function Tests (LFTs)']
+  },
+  {
+    category: 'Reproductive Health',
+    tests: ['Sexually Transmitted Infection (STI) Tests', 'Pap Smear', 'Pregnancy Test']
+  },
+  {
+    category: 'Respiratory Health',
+    tests: ['Chest X-ray', 'Sputum Culture']
+  },
+  {
+    category: 'Gastrointestinal Health',
+    tests: ['Stool Culture', 'Helicobacter pylori Test']
+  },
+  {
+    category: 'Nutritional Status',
+    tests: ['Iron Studies', 'Vitamin B12 and Folate Levels']
+  },
+  {
+    category: 'Inflammatory and Autoimmune Conditions',
+    tests: ['Erythrocyte Sedimentation Rate (ESR)', 'Reactive Protein (CRP)']
+  }
+];
+
+const specimenOptions = ['Blood', 'Urine', 'Stool', 'Saliva'];
+
+const handleCheckboxChange = (category, test) => {
+  setlabtestFormData((prevData) => {
+    const updatedTests = { ...prevData.testsRequested };
+    if (!updatedTests[category]) {
+      updatedTests[category] = [];
+    }
+    if (updatedTests[category].includes(test)) {
+      updatedTests[category] = updatedTests[category].filter((t) => t !== test);
+    } else {
+      updatedTests[category].push(test);
+    }
+    return { ...prevData, testsRequested: updatedTests };
+  });
+};
+
 const handleChange = (e) => {
   const { name, value } = e.target;
-  setlabtestFormData(prev => ({
-    ...prev,
-    [name]: value
-  }));
+  setlabtestFormData((prevData) => ({ ...prevData, [name]: value }));
 };
+
+const handleSubmit = (e) => {
+  e.preventDefault();
+  console.log('Form Data Submitted:', labtestFormData);
+  // Here you can handle the form submission (e.g., send to an API)
+};
+
+const handleCategorySelect = (id, category) => {
+  setTestSelections(prev => prev.map(selection => 
+    selection.id === id 
+      ? { ...selection, selectedCategory: category, isSubsectionOpen: true, isOpen: false }
+      : selection
+  ));
+};
+
+const handleTestSelect = (id, test) => {
+  setTestSelections(prev => prev.map(selection => 
+    selection.id === id
+      ? {
+          ...selection,
+          selectedTests: selection.selectedTests.includes(test)
+            ? selection.selectedTests.filter(t => t !== test)
+            : [...selection.selectedTests, test]
+        }
+      : selection
+  ));
+};
+
+const handleOtherTestChange = (id, value) => {
+  setTestSelections(prev => prev.map(selection => 
+    selection.id === id
+      ? { ...selection, otherTest: value }
+      : selection
+  ));
+};
+
+const toggleDropdown = (id) => {
+  setTestSelections(prev => prev.map(selection => 
+    selection.id === id
+      ? { ...selection, isOpen: !selection.isOpen }
+      : selection
+  ));
+};
+
+const addNewTestSelection = () => {
+  const newId = Math.max(...testSelections.map(s => s.id)) + 1;
+  setTestSelections(prev => [...prev, {
+    id: newId,
+    selectedCategory: '',
+    selectedTests: [],
+    otherTest: '',
+    isOpen: false,
+    isSubsectionOpen: false
+  }]);
+};
+
+const hasSelectedTests = testSelections.some(selection => 
+  selection.selectedCategory && (selection.selectedTests.length > 0 || selection.otherTest)
+);
+
+
 const RenderLabTests = () => (
-  <div className="space-y-8">
+  <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div className="max-w-4xl mx-auto">
     <div className="text-center mb-12">
-      <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Laboratory Tests</h2>
-      <p className="text-gray-600 mt-2">Select the required diagnostic tests for the patient</p>
+      <h1 className="text-3xl font-bold text-gray-900 mb-2">Laboratory Test Request</h1>
+      <p className="text-gray-600">Select the required diagnostic tests for the patient</p>
     </div>
 
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {[
-        {
-          category: 'General Health Screening',
-          icon: <Beaker className="w-6 h-6 text-blue-500" />,
-          color: 'from-blue-50 to-blue-100',
-          textColor: 'text-blue-700',
-          tests: ['Complete Blood Count (CBC)', 'Basic Metabolic Panel (BMP)', 'Comprehensive Metabolic Panel (CMP)', 'Lipid Panel', 'Urinalysis']
-        },
-        {
-          category: 'Diabetes and Endocrine Function',
-          icon: <Activity className="w-6 h-6 text-purple-500" />,
-          color: 'from-purple-50 to-purple-100',
-          textColor: 'text-purple-700',
-          tests: ['Fasting Blood Glucose', 'Hemoglobin A1c (HbA1c)', 'Thyroid Function Tests (TSH, T3, T4)']
-        },
-        {
-          category: 'Cardiovascular Health',
-          icon: <Heart className="w-6 h-6 text-red-500" />,
-          color: 'from-red-50 to-red-100',
-          textColor: 'text-red-700',
-          tests: ['Electrocardiogram (ECG)', 'Troponin Test']
-        },
-        {
-          category: 'Advanced Diagnostics',
-          icon: <flask-conical className="w-6 h-6 text-emerald-500" />,
-          color: 'from-emerald-50 to-emerald-100',
-          textColor: 'text-emerald-700',
-          tests: ['Chest X-ray', 'MRI Scan', 'CT Scan', 'Ultrasound']
-        },
-        {
-        category: 'Infectious Diseases',
-        icon: <flask-conical className="w-6 h-6 text-emerald-500" />,
-        color: 'from-emerald-50 to-emerald-100',
-        textColor: 'text-emerald-700',
-        tests: ['Rapid Strep Test','Influenza Test','HIV Test','Hepatitis Panel','Tuberculosis (TB) Test']
-      },
-      {
-        category: 'Kidney Function',
-        icon: <flask-conical className="w-6 h-6 text-emerald-500" />,
-        color: 'from-emerald-50 to-emerald-100',
-        textColor: 'text-emerald-700',
-        tests: ['Serum Creatinine','Blood Urea Nitrogen (BUN)']
-      },
-      {
-        category: 'Liver Function',
-        icon: <flask-conical className="w-6 h-6 text-emerald-500" />,
-        color: 'from-emerald-50 to-emerald-100',
-        textColor: 'text-emerald-700',
-        tests: ['Liver Function Tests (LFTs)']
-      },
-      {
-        category: 'Reproductive Health',
-        icon: <flask-conical className="w-6 h-6 text-emerald-500" />,
-        color: 'from-emerald-50 to-emerald-100',
-        textColor: 'text-emerald-700',
-        tests: ['Sexually Transmitted Infection (STI) Tests','Pap Smear','Pregnancy Test']
-      },
-      {
-        category: 'Respiratory Health',
-        icon: <flask-conical className="w-6 h-6 text-emerald-500" />,
-        color: 'from-emerald-50 to-emerald-100',
-        textColor: 'text-emerald-700',
-        tests: ['Chest X-ray','Sputum Culture']
-      },
-      {
-        category: 'Gastrointestinal Health',
-        icon: <flask-conical className="w-6 h-6 text-emerald-500" />,
-        color: 'from-emerald-50 to-emerald-100',
-        textColor: 'text-emerald-700',
-        tests: ['Stool Culture','Helicobacter pylori Test']
-      },
-      {
-        category: 'Nutritional Status',
-        icon: <flask-conical className="w-6 h-6 text-emerald-500" />,
-        color: 'from-emerald-50 to-teal-100',
-        textColor: 'text-emerald-700',
-        tests: ['Iron Studies','Vitamin B12 and Folate Levels']
-      },
-      {
-        category: 'Inflammatory and Autoimmune Conditions',
-        icon: <flask-conical className="w-6 h-6 text-emerald-500" />,
-        color: 'from-teal-50 to-teal-100',
-        textColor: 'text-emerald-700',
-        tests: ['Erythrocyte Sedimentation Rate (ESR)','Reactive Protein (CRP)']
-      }
-      ].map(category => (
-        <Card key={category.category} className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
-          <CardContent className="p-0">
-            <div className={`bg-gradient-to-r ${category.color} p-4`}>
-              <div className="flex items-center gap-3 mb-4">
-                {category.icon}
-                <h3 className={`text-lg font-semibold ${category.textColor}`}>
-                  {category.category}
-                </h3>
-              </div>
-              <div className="space-y-3">
-                {category.tests.map(test => (
-                  <label key={test} className="flex items-center gap-3 bg-white rounded-lg p-3 cursor-pointer hover:bg-gray-50 transition-colors duration-200">
-                    <div className="relative">
-                      <input
-                        type="checkbox"
-                        id={test}
-                        name={test}
-                        className="w-5 h-5 border-2 rounded text-blue-600 focus:ring-blue-500"
-                        onChange={handleChange}
-                      />
-                    </div>
-                    <span className="text-gray-700 text-sm font-medium">{test}</span>
+    <form onSubmit={handleSubmit} className="bg-white shadow-lg rounded-lg p-8">
+      {/* Lab Test Information Section */}
+      <div className="space-y-8">
+        <div>
+          <h2 className="text-2xl font-semibold text-gray-800 mb-6 pb-2 border-b">Lab Test Information</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Priority</label>
+              <div className="flex space-x-4">
+                {['Routine', 'Urgent', 'STAT'].map((priority) => (
+                  <label key={priority} className="inline-flex items-center">
+                    <input
+                      type="radio"
+                      name="priority"
+                      value={priority}
+                      onChange={handleChange}
+                      className="form-radio text-blue-600"
+                    />
+                    <span className="ml-2 text-gray-700">{priority}</span>
                   </label>
                 ))}
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+
+        {/* Test Selection Section */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium text-gray-800">Test(s) Requested</h3>
+          <div className="w-full space-y-4">
+          {testSelections.map((selection) => (
+        <div key={selection.id} className="border rounded-lg p-4">
+          <div className="relative">
+            {/* Main Category Dropdown */}
+            <div 
+              className="p-3 border rounded-lg bg-white cursor-pointer flex justify-between items-center"
+              onClick={() => toggleDropdown(selection.id)}
+            >
+              <span>{selection.selectedCategory || 'Select Category'}</span>
+              {selection.isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+            </div>
+
+            {/* Category Options */}
+            {selection.isOpen && (
+              <div className="absolute w-full mt-1 bg-white border rounded-lg shadow-lg z-10">
+                {testCategories.map((cat) => (
+                  <div
+                    key={cat.category}
+                    className="p-3 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => handleCategorySelect(selection.id, cat.category)}
+                  >
+                    {cat.category}
+                  </div>
+                ))}
+                <div
+                  className="p-3 hover:bg-gray-100 cursor-pointer"
+                  onClick={() => handleCategorySelect(selection.id, 'Other')}
+                >
+                  Other
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Subsection Tests */}
+          {selection.selectedCategory && selection.selectedCategory !== 'Other' && selection.isSubsectionOpen && (
+            <div className="mt-4 border rounded-lg p-4">
+              <h3 className="font-medium mb-3">Select Tests:</h3>
+              {testCategories
+                .find(cat => cat.category === selection.selectedCategory)
+                ?.tests.map(test => (
+                  <div key={test} className="flex items-center mb-2">
+                    <input
+                      type="checkbox"
+                      id={`${selection.id}-${test}`}
+                      checked={selection.selectedTests.includes(test)}
+                      onChange={() => handleTestSelect(selection.id, test)}
+                      className="mr-2"
+                    />
+                    <label htmlFor={`${selection.id}-${test}`}>{test}</label>
+                  </div>
+                ))}
+            </div>
+          )}
+
+          {/* Other Input */}
+          {selection.selectedCategory === 'Other' && (
+            <div className="mt-4">
+              <input
+                type="text"
+                value={selection.otherTest}
+                onChange={(e) => handleOtherTestChange(selection.id, e.target.value)}
+                placeholder="Please specify the test"
+                className="w-full p-2 border rounded-lg"
+              />
+            </div>
+          )}
+
+          {/* Selected Tests Display */}
+       
+        </div>
       ))}
-  
 
-    </div>
-    <div className="flex justify-end">
-  <Button 
-    className="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded"
-    onClick={startSmartConsult}
-  >
-    Next
-  </Button>
-</div>
+      {/* Add Test Button */}
+      {hasSelectedTests && (
+        <button
+          onClick={addNewTestSelection}
+          className="flex items-center justify-center w-full p-3 border rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
+        >
+          <Plus className="w-5 h-5 mr-2" />
+          Add Another Test
+        </button>
+      )}
+    
+   </div>    </div>
 
+        {/* Clinical Information */}
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Clinical Diagnosis / Reason for Test</label>
+            <input
+              type="text"
+              name="diagnosis"
+              value={labtestFormData.diagnosis}
+              onChange={handleChange}
+              required
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">ICD-10 Code (if applicable)</label>
+            <input
+              type="text"
+              name="icdCode"
+              value={labtestFormData.icdCode}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Additional Notes</label>
+            <Button
+      
+      variant="outline"
+      size="sm"
+      className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
+    >
+      <Mic className="h-4 w-4 mr-2" />
+      Voice Input
+    </Button>
+    <Button
+         
+         variant="outline"
+         size="sm"
+         className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
+       >
+         <VolumeIcon className="h-4 w-4 mr-2" />
+         Read Aloud
+       </Button>
+       <Button
+        
+        variant="outline"
+        size="sm"
+        className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
+      >
+        <Lightbulb className="h-4 w-4 mr-2" />
+         
+      AI Suggestions
+      </Button>
+            <textarea
+              name="additionalNotes"
+              value={labtestFormData.additionalNotes}
+              onChange={handleChange}
+              rows={4}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+
+        {/* Specimen Collection Section */}
+        <div>
+          <h2 className="text-2xl font-semibold text-gray-800 mb-6 pb-2 border-b">Specimen Collection Details</h2>
+          
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Specimen Type</label>
+              <div className="grid grid-cols-2 gap-4">
+                {specimenOptions.map((specimen) => (
+                  <label key={specimen} className="inline-flex items-center">
+                    <input
+                      type="checkbox"
+                      name="specimenType"
+                      value={specimen}
+                      onChange={handleChange}
+                      className="rounded text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="ml-2 text-gray-700">{specimen}</span>
+                  </label>
+                ))}
+                <div className="col-span-2">
+                  <input
+                    type="text"
+                    name="otherSpecimen"
+                    onChange={handleChange}
+                    placeholder="Other (please specify)"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Collection Date & Time</label>
+                <input
+                  type="datetime-local"
+                  name="collectionDateTime"
+                  value={labtestFormData.collectionDateTime}
+                  onChange={handleChange}
+                  required
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Collected By</label>
+                <input
+                  type="text"
+                  name="collectedBy"
+                  disabled="disabled"
+                  value="Dr. Who"
+                  onChange={handleChange}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Special Instructions for Lab</label>
+                <div>
+                <Button
+      
+      variant="outline"
+      size="sm"
+      className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
+    >
+      <Mic className="h-4 w-4 mr-2" />
+      Voice Input
+    </Button>
+    <Button
+         
+         variant="outline"
+         size="sm"
+         className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
+       >
+         <VolumeIcon className="h-4 w-4 mr-2" />
+         Read Aloud
+       </Button>
+       <Button
+        
+        variant="outline"
+        size="sm"
+        className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
+      >
+        <Lightbulb className="h-4 w-4 mr-2" />
+         
+      AI Suggestions
+      </Button>
+
+
+                </div>
+              <textarea
+                name="specialInstructions"
+                value={labtestFormData.specialInstructions}
+                onChange={handleChange}
+                rows={4}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Submit Button */}
+      <div className="mt-8">
+        <button
+          type="submit"
+          className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-teal-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+        >
+          Submit Request
+        </button>
+      </div>
+    </form>
   </div>
+</div>
 );
 
 const doctors = [{ id: 1, name: "Dr. Alice" }, { id: 2, name: "Dr. Bob" }];
@@ -5451,26 +6282,9 @@ const ConsultationForm = ({ buttonText, onSubmit, consultationData }) => {
                 </div>
               </div>
               <div className="mt-6">
-                <h3 className="font-medium text-lg text-[#007664] mb-2">Pre-check Tasks</h3>
-                {preCheckTasks.map((task) => (
-                  <div key={task.id} className="flex items-center space-x-2 mb-2">
-                    <Checkbox
-                      id={task.id}
-                      checked={completedTasks.includes(task.id)}
-                      onCheckedChange={() => handleTaskToggle(task.id)}
-                    />
-                    <Label htmlFor={task.id} className="text-gray-700">{task.label}</Label>
-                  </div>
-                ))}
+               
               </div>
-              {completedTasks.length < preCheckTasks.length && (
-                <Alert variant="warning" className="mt-4 bg-[#fff3e6] border-[#B24531]">
-                  <AlertTitle className="text-[#B24531]">Attention</AlertTitle>
-                  <AlertDescription className="text-[#B24531]">
-                    Please complete all pre-check tasks before proceeding with the consultation.
-                  </AlertDescription>
-                </Alert>
-              )}
+              
             </CardContent>
           </Card>
         {/* Visit History Section */}
@@ -5516,7 +6330,11 @@ const ConsultationForm = ({ buttonText, onSubmit, consultationData }) => {
       <DialogContent className="max-w-full sm:max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
         <div className="flex justify-center items-center ">
-  <DialogTitle className="text-teal-800">New Consultation</DialogTitle>
+  <DialogTitle className="text-teal-800">
+  <div className="text-center mb-0">
+      <h2 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-transparent">New Consultation</h2>
+    </div>
+  </DialogTitle>
 </div>
         </DialogHeader>
 
@@ -5644,7 +6462,11 @@ const ConsultationForm = ({ buttonText, onSubmit, consultationData }) => {
 
         <DialogContent className="max-w-full sm:max-w-5xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>New Diagnose</DialogTitle>
+            <DialogTitle>
+            <div className="text-center mb-0">
+      <h2 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-transparent">New Diagnosis & Prognosis</h2>
+    </div>
+            </DialogTitle>
           </DialogHeader>
 
           <NewDiagnosisForm
@@ -5755,11 +6577,7 @@ const ConsultationForm = ({ buttonText, onSubmit, consultationData }) => {
     </DialogTrigger>
 
     <DialogContent className="max-w-full sm:max-w-5xl max-h-[90vh] overflow-y-auto">
-      <DialogHeader>
-        <div className="flex justify-center items-center ">
-          <DialogTitle className="text-teal-800">Lab Test</DialogTitle>
-        </div>
-      </DialogHeader>
+     
 
       <RenderLabTests />
     </DialogContent>
@@ -5834,9 +6652,13 @@ const ConsultationForm = ({ buttonText, onSubmit, consultationData }) => {
             </Button>
         </DialogTrigger>
 
-        <DialogContent className="max-w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-full sm:max-w-5xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>New Medication</DialogTitle>
+            <DialogTitle>
+            <div className="text-center mb-0">
+      <h2 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-transparent">New Medication</h2>
+    </div>
+            </DialogTitle>
           </DialogHeader>
 
           <MedicationForm 
