@@ -5,11 +5,7 @@ import React, { useState, useEffect } from 'react';
 // Lucide Icons
 import { 
   ChevronLeft, 
-  TemperatureIcon, 
-  HeartIcon, 
-  PulseIcon, 
-  RulerIcon, 
-  ScaleIcon, 
+  RefreshCw,
   AlertCircle,
   OxygenIcon, 
   LungsIcon, 
@@ -1476,268 +1472,201 @@ const renderDiagnosisHistory = () => {
   
       );
     }
-    
+    const [formdiagnosisData, setFormdiagnosisData] = useState({
+      severity: '',
+      category: '',
+      priority: '',
+      chronicityStatus: '',
+      primaryDiagnosis: '',
+      secondaryDiagnoses: '',
+      differentialDiagnoses: '',
+      status: '',
+      verificationStatus: '',
+      symptoms: ''
+    });
+    const [isDisabled, setIsDisabled] = useState(false);
+    const [showEditdiagnosisButton, setShowEditdiagnosisButton] = useState(false);  
 const renderDiagnosisForm = () => {
-  const handleSelectChange = (field, value) => {
-    const newData = { ...formDatadiagnosis, [field]: value };
-    setFormDatadiagnosis(newData);
-    onValueChange?.(newData);
+
+
+  const handleAIComplete = () => {
+    const demoData = {
+      severity: 'severe',
+      category: 'cardiovascular',
+      priority: 'urgent',
+      chronicityStatus: 'acute',
+      primaryDiagnosis: 'Acute myocardial infarction',
+      secondaryDiagnoses: 'Hypertension, Hyperlipidemia',
+      differentialDiagnoses: 'Aortic dissection, Pulmonary embolism',
+      status: 'active',
+      verificationStatus: 'confirmed',
+      symptoms: 'Chest pain, shortness of breath, dizziness'
+    };
+    setFormdiagnosisData(demoData);
+    setIsDisabled(true);
+    setShowEditdiagnosisButton(true);
   };
 
-  const handleInputChange = (e) => {
-    const newData = { ...formDatadiagnosis, [e.target.name]: e.target.value };
-    setFormDatadiagnosis(newData);
-    onValueChange?.(newData);
+  const handleManualEdit = () => {
+    setIsDisabled(false);
+    setShowEditdiagnosisButton(false);
   };
 
-  const handleAISuggest = async (field) => {
-    setLoadingStates(prev => ({ ...prev, [field]: true }));
-    try {
-      // Simulate AI suggestion - replace with actual AI call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Example AI suggestions for each field
-      const suggestions = {
-        severity: 'mild',
-        category: 'cardiovascular',
-        priority: 'emergency',
-        chronicityStatus: 'acute'
-      };
-      
-
-      setFormDatadiagnosis(prev => ({ ...prev, [field]: suggestions[field] }));
-      setAiModes(prev => ({ ...prev, [field]: true }));
-    } catch (error) {
-      console.error('Error getting AI suggestion:', error);
-    } finally {
-      setLoadingStates(prev => ({ ...prev, [field]: false }));
-    }
+  const handleRegenerate = () => {
+    handleAIComplete(); // Regenerate demo data
   };
 
-  const SelectWithAI = ({ field, label, options, placeholder }) => {
-    return (
-      <div className="space-y-2">
-        <div className="flex justify-between items-center">
-          <Label>{label}</Label>
-          {!aiModes[field] ? (
-             <button
-             onClick={() => handleAISuggest(field)}
-             disabled={loadingStates[field]}
-             variant="outline"
-             size="sm"
-             className="mt-4 inline-flex items-center gap-2 bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200"
-           >
-             <Lightbulb className="h-4 w-4" />
-             {loadingStates[field] ? 'Generating...' : 'AI Suggestions'}
-           </button>
-           
-           
-          ) : (
-            <div className="flex gap-2">
-              <button
-                onClick={() => {
-                  setAiModes(prev => ({ ...prev, [field]: false }));
-                  setFormDatadiagnosis(prev => ({ ...prev, [field]: '' }));
-                }}
-                className="mt-4 inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200"
-              >
-                Manual
-              </button>
-              <button
-                onClick={() => handleAISuggest(field)}
-                className="mt-4 inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200"
-              >
-                <Sparkles className="w-3 h-3" />
-                Regenerate
-              </button>
-            </div>
-          )}
-        </div>
-        
-        {aiModes[field] ? (
-          <div className="px-3 py-2 bg-gray-50 border rounded-md text-gray-700">
-            {formDatadiagnosis[field].split('_').map(word => 
-              word.charAt(0).toUpperCase() + word.slice(1)
-            ).join(' ')}
-          </div>
-        ) : (
-          <Select
-            value={formDatadiagnosis[field]}
-            onValueChange={(value) => handleSelectChange(field, value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={placeholder} />
-            </SelectTrigger>
-            <SelectContent>
-              {options.map(({ value, label }) => (
-                <SelectItem key={value} value={value}>{label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      </div>
-    );
+  const handleInputChange = (field, value) => {
+    setFormdiagnosisData((prevData) => ({
+      ...prevData,
+      [field]: value
+    }));
   };
 
   
   return (
-    <div className="container mx-auto p-4 max-w-3xl" style={{ width: '65vw' }}>
-      <Card>
-        <CardHeader className="text-2xl font-bold text-center bg-teal-700 text-white rounded-t-lg" > 
-          <CardTitle className="text-2xl font-bold text-center " >Diagnosis</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form className="space-y-6">
-            {/* Previous fields remain the same */}
-                   <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-  <SelectWithAI
-    field="severity"
-    label="Severity Level"
-    placeholder="Select severity"
-    options={[
-      { value: 'mild', label: 'Mild' },
-      { value: 'moderate', label: 'Moderate' },
-      { value: 'severe', label: 'Severe' },
-      { value: 'critical', label: 'Critical' }
-    ]}
-  />
-</div>
+    <div className="max-w-4xl mx-auto p-6 space-y-8  " style={{ width: '65vw' }}>
+    <Card className="grid grid-cols-1 md:grid-cols-1 gap-4 bg-white shadow-lg">
+      <CardHeader className="text-2xl font-bold text-center bg-teal-700 text-white rounded-t-lg">
+        <CardTitle className="text-2xl font-bold text-center">Diagnosis</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form className="space-y-6">
+          <div className="flex justify-end space-x-4 mt-2">
+          {!showEditdiagnosisButton && (
+            <Button
+              onClick={handleAIComplete}
+              variant="outline"
+              size="sm"
+              disabled={isDisabled}
+              className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d]"
+            >
+              <Lightbulb className="h-4 w-4 mr-2" />
+              Complete with AI
+            </Button>
+          )}
+            { showEditdiagnosisButton && (
+              <>
+                <Button
+                  onClick={handleManualEdit}
+                  variant="outline"
+                  size="sm"
+                  className="bg-gray-200 text-gray-700 hover:bg-gray-300"
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Manual Edit
+                </Button>
+                <Button
+                  onClick={handleRegenerate}
+                  variant="outline"
+                  size="sm"
+                  className="bg-blue-200 text-blue-700 hover:bg-blue-300"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Regenerate
+                </Button>
+              </>
+            )}
+          </div>
 
-<div className="space-y-2">
-  <SelectWithAI
-    field="category"
-    label="Diagnosis Category"
-    placeholder="Select category"
-    options={[
-      { value: 'cardiovascular', label: 'Cardiovascular' },
-      { value: 'respiratory', label: 'Respiratory' },
-      { value: 'neurological', label: 'Neurological' },
-      { value: 'gastrointestinal', label: 'Gastrointestinal' },
-      { value: 'musculoskeletal', label: 'Musculoskeletal' },
-      { value: 'endocrine', label: 'Endocrine' },
-      { value: 'psychiatric', label: 'Psychiatric' },
-      { value: 'other', label: 'Other' }
-    ]}
-  />
-  {formDatadiagnosis.category === 'other' && (
-    <Input
-      name="otherCategory"
-      value={formData.otherCategory}
-      onChange={handleInputChange}
-      placeholder="Please specify category"
-      className="mt-2"
-    />
-  )}
-</div>
-</div>
-<div className="grid grid-cols-2 gap-4">
-  <SelectWithAI
-    field="priority"
-    label="Priority Level"
-    placeholder="Select priority"
-    options={[
-      { value: 'emergency', label: 'Emergency' },
-      { value: 'urgent', label: 'Urgent' },
-      { value: 'semi-urgent', label: 'Semi-Urgent' },
-      { value: 'non-urgent', label: 'Non-Urgent' }
-    ]}
-  />
+          {/* Severity Level */}
+          <div className='grid grid-cols-2 gap-4'>
+          <div className="space-y-2">
+            <Label className="block text-sm font-medium text-[#007664]">Severity Level</Label>
+            <select
+              name="severity"
+              value={formdiagnosisData.severity}
+              disabled={isDisabled}
+              onChange={(e) => handleInputChange('severity', e.target.value)}
+              className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+            >
+              <option value="">Select severity</option>
+              <option value="mild">Mild</option>
+              <option value="moderate">Moderate</option>
+              <option value="severe">Severe</option>
+              <option value="critical">Critical</option>
+            </select>
+          </div>
 
-  <SelectWithAI
-    field="chronicityStatus"
-    label="Chronicity Status"
-    placeholder="Select status"
-    options={[
-      { value: 'acute', label: 'Acute' },
-      { value: 'subacute', label: 'Subacute' },
-      { value: 'chronic', label: 'Chronic' },
-      { value: 'recurrent', label: 'Recurrent' }
-    ]}
-  />
-</div>
+          {/* Diagnosis Category */}
+          <div className="space-y-2">
+            <Label className="block text-sm font-medium text-[#007664]">Diagnosis Category</Label>
+            <select
+              name="category"
+              value={formdiagnosisData.category}
+              disabled={isDisabled}
+              onChange={(e) => handleInputChange('category', e.target.value)}
+              className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+            >
+              <option value="">Select category</option>
+              <option value="cardiovascular">Cardiovascular</option>
+              <option value="respiratory">Respiratory</option>
+              <option value="neurological">Neurological</option>
+              <option value="gastrointestinal">Gastrointestinal</option>
+              <option value="musculoskeletal">Musculoskeletal</option>
+              <option value="endocrine">Endocrine</option>
+              <option value="psychiatric">Psychiatric</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
 
-            <div>
-          <label className="block text-sm font-medium text-[#007664] mb-2">
-            Primary Diagnosis
-          </label>
-          <div className="flex flex-wrap sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-2">
-        <Button
-      
-          variant="outline"
-          size="sm"
-          className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
-        >
-          <Mic className="h-4 w-4 mr-2" />
-          Voice Input
-        </Button>
-        <Button
-         
-          variant="outline"
-          size="sm"
-          className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
-        >
-          <VolumeIcon className="h-4 w-4 mr-2" />
-          Read Aloud
-        </Button>
-        <Button
-        
-          variant="outline"
-          size="sm"
-          className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
-        >
-          <Lightbulb className="h-4 w-4 mr-2" />
-           
-        AI Suggestions
-        </Button>
-        </div>
-          <textarea
-            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
-            rows={3}
-   
-            onChange={(e) => handleInputChange("diagnosis", "primary", "diagnosis", e.target.value)}
-          />
-        </div>
+          {/* Priority Level */}
+          <div className="space-y-2">
+            <Label className="block text-sm font-medium text-[#007664]">Priority Level</Label>
+            <select
+              name="priority"
+              value={formdiagnosisData.priority}
+              disabled={isDisabled}
+              onChange={(e) => handleInputChange('priority', e.target.value)}
+              className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+            >
+              <option value="">Select priority</option>
+              <option value="emergency">Emergency</option>
+              <option value="urgent">Urgent</option>
+              <option value="semi-urgent">Semi-Urgent</option>
+              <option value="non-urgent">Non-Urgent</option>
+            </select>
+          </div>
 
+          {/* Chronicity Status */}
+          <div className="space-y-2">
+            <Label className="block text-sm font-medium text-[#007664]">Chronicity Status</Label>
+            <select
+              name="chronicityStatus"
+              value={formdiagnosisData.chronicityStatus}
+              disabled={isDisabled}
+              onChange={(e) => handleInputChange('chronicityStatus', e.target.value)}
+              className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+            >
+              <option value="">Select status</option>
+              <option value="acute">Acute</option>
+              <option value="subacute">Subacute</option>
+              <option value="chronic">Chronic</option>
+              <option value="recurrent">Recurrent</option>
+            </select>
+          </div>
+          </div>
+          {/* Primary Diagnosis */}
+          <div>
+            <Label className="block text-sm font-medium text-[#007664]">Primary Diagnosis</Label>
+            <Textarea
+              name="primaryDiagnosis"
+              value={formdiagnosisData.primaryDiagnosis}
+              disabled={isDisabled}
+              onChange={(e) => handleInputChange('primaryDiagnosis', e.target.value)}
+              className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+              rows={3}
+            />
+          </div>
         {/* Secondary Diagnoses (FHIR: Condition.code) */}
         <div>
           <label className="block text-sm font-medium text-[#007664] mb-2">
             Secondary Diagnoses
           </label>
-          <div className="flex flex-wrap sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-2">
-        <Button
-      
-          variant="outline"
-          size="sm"
-          className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
-        >
-          <Mic className="h-4 w-4 mr-2" />
-          Voice Input
-        </Button>
-        <Button
-         
-          variant="outline"
-          size="sm"
-          className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
-        >
-          <VolumeIcon className="h-4 w-4 mr-2" />
-          Read Aloud
-        </Button>
-        <Button
-        
-          variant="outline"
-          size="sm"
-          className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
-        >
-          <Lightbulb className="h-4 w-4 mr-2" />
-           
-        AI Suggestions
-        </Button>
-        </div>
-          <textarea
+              <textarea
             className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
             rows={3}
-           
+            value={formdiagnosisData.secondaryDiagnoses}
             onChange={(e) => handleInputChange("diagnosis", "secondary", "diagnosis", e.target.value)}
           />
         </div>
@@ -1747,40 +1676,11 @@ const renderDiagnosisForm = () => {
           <label className="block text-sm font-medium text-[#007664] mb-2">
             Differential Diagnoses
           </label>
-          <div className="flex flex-wrap sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-2">
-        <Button
-      
-          variant="outline"
-          size="sm"
-          className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
-        >
-          <Mic className="h-4 w-4 mr-2" />
-          Voice Input
-        </Button>
-        <Button
-         
-          variant="outline"
-          size="sm"
-          className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
-        >
-          <VolumeIcon className="h-4 w-4 mr-2" />
-          Read Aloud
-        </Button>
-        <Button
-        
-          variant="outline"
-          size="sm"
-          className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
-        >
-          <Lightbulb className="h-4 w-4 mr-2" />
-           
-        AI Suggestions
-        </Button>
-        </div>
+          
           <textarea
             className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
             rows={3}
-           
+            value={formdiagnosisData.differentialDiagnoses}
             onChange={(e) => handleInputChange("diagnosis", "differential", "diagnosis", e.target.value)}
           />
         </div>
@@ -1789,80 +1689,52 @@ const renderDiagnosisForm = () => {
 
         {/* Diagnosis Status (FHIR: Condition.status) */}
         <div className="space-y-2">
-  <SelectWithAI
-    field="status"
-    label="Diagnosis Status"
-    placeholder="Select status"
-    options={[
-      { value: 'active', label: 'Active' },
-      { value: 'resolved', label: 'Resolved' },
-      { value: 'remission', label: 'Remission' },
-      { value: 'inactive', label: 'Inactive' },
-      { value: 'unknown', label: 'Unknown' }
-    ]}
-    onChange={(value) => handleInputChange("diagnosis", "status", "status", value)}
-  />
+        <select
+              name="status"
+              value={formdiagnosisData.status}
+              className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+              onChange={(e) => handleInputChange('diagnosis', 'status', 'status', e.target.value)}
+            >
+              <option value="">Select status</option>
+              <option value="active">Active</option>
+              <option value="resolved">Resolved</option>
+              <option value="remission">Remission</option>
+              <option value="inactive">Inactive</option>
+              <option value="unknown">Unknown</option>
+            </select>
 </div>
 
 <div className="space-y-2">
-  <SelectWithAI
-    field="verificationStatus"
-    label="Verification Status"
-    placeholder="Select verification status"
-    options={[
-      { value: 'unconfirmed', label: 'Unconfirmed' },
-      { value: 'confirmed', label: 'Confirmed' },
-      { value: 'differential', label: 'Differential' },
-      { value: 'refuted', label: 'Refuted' },
-      { value: 'entered-in-error', label: 'Entered in Error' }
-    ]}
-    onChange={(value) => handleInputChange("diagnosis", "verificationStatus", "verificationStatus", value)}
-  />
-</div>
+<select
+              name="verificationStatus"
+              value={formdiagnosisData.verificationStatus}
+              className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white"
+              onChange={(e) => handleInputChange('diagnosis', 'verificationStatus', 'verificationStatus', e.target.value)}
+            >
+              <option value="">Select verification status</option>
+              <option value="unconfirmed">Unconfirmed</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="differential">Differential</option>
+              <option value="refuted">Refuted</option>
+              <option value="entered-in-error">Entered in Error</option>
+            </select>
+          </div>
 
-
-            {/* Rest of the form remains the same */}
-            <div className="space-y-2">
-              <Label htmlFor="symptoms">Key Symptoms and Clinical Markers</Label>
-              <div className="flex flex-wrap sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-2">
-        <Button
-      
-          variant="outline"
-          size="sm"
-          className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
-        >
-          <Mic className="h-4 w-4 mr-2" />
-          Voice Input
-        </Button>
-        <Button
+          {/* Key Symptoms and Clinical Markers */}
+          <div className="space-y-2">
+            <label htmlFor="symptoms" className="block text-sm font-medium text-[#007664]">
+              Key Symptoms and Clinical Markers
+            </label>
+            <textarea
+              id="symptoms"
+              name="symptoms"
+              value={formdiagnosisData.symptoms}
+              onChange={handleInputChange}
+              placeholder="List symptoms with frequency and clinical significance"
+              className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white h-24"
+            />
+          </div>
          
-          variant="outline"
-          size="sm"
-          className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
-        >
-          <VolumeIcon className="h-4 w-4 mr-2" />
-          Read Aloud
-        </Button>
-        <Button
-        
-          variant="outline"
-          size="sm"
-          className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
-        >
-          <Lightbulb className="h-4 w-4 mr-2" />
-           
-        AI Suggestions
-        </Button>
-        </div>
-              <Textarea
-                id="symptoms"
-                name="symptoms"
-                value={formData.symptoms}
-                onChange={handleInputChange}
-                placeholder="List symptoms with frequency and clinical significance"
-                className="h-24"
-              />
-            </div>
 
             <div className="flex justify-end space-x-4">
             
@@ -1887,482 +1759,236 @@ const [loadingStates, setLoadingStates] = useState({
   riskLevel: false,
   recoveryPotential: false
 });
+
+const [showEditPrognosisButton, setShowEditPrognosisButton] = useState(false); // Initially false
+
 const renderPrognosisForm = () => {
  
-  const handleSelectChange = (field, value) => {
-    const newData = { ...formDataprog, [field]: value };
-    setFormDataprog(newData);
-    onValueChange?.(newData);
-  };
 
   const handleInputChange = (e) => {
-    const newData = { ...formDataprog, [e.target.name]: e.target.value };
-    setFormDataprog(newData);
-    onValueChange?.(newData);
+    const { name, value } = e.target;
+    setFormDataprog((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  const handleAISuggest = async (field) => {
-    setLoadingStates(prev => ({ ...prev, [field]: true }));
-    try {
-      // Simulate AI suggestion - replace with actual AI call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Example AI suggestions for each field
-      const suggestions = {
-        expectedOutcome: 'complete_recovery',
-        timeframe: 'weeks',
-        riskLevel: 'low',
-        recoveryPotential: 'excellent'
-      };
+  const handleAIComplete = () => {
+    const aiData = {
+      expectedOutcome: 'partial_recovery',
+      timeframe: 'months',
+      riskLevel: 'moderate',
+      recoveryPotential: 'good',
+      survivalRate: '75',
+      complications: 'High risk of cardiovascular issues',
+      longTermEffects: 'Potential for reduced mobility',
+      lifestyleModifications: 'Increase physical activity, improve diet',
+      monitoringRequirements: 'Monthly check-ups, blood tests',
+      followUpSchedule: '3 months follow-up, then bi-annually',
+      additionalNotes: 'Patient requires support for daily tasks.',
+    };
 
-      setFormDataprog(prev => ({ ...prev, [field]: suggestions[field] }));
-      setAiModes(prev => ({ ...prev, [field]: true }));
-    } catch (error) {
-      console.error('Error getting AI suggestion:', error);
-    } finally {
-      setLoadingStates(prev => ({ ...prev, [field]: false }));
-    }
+    setFormDataprog(aiData);
+    setIsDisabled(true);
+    setShowEditPrognosisButton(true);
   };
 
-  const SelectWithAI = ({ field, label, options, placeholder }) => {
-    return (
-      <div className="space-y-2">
-        <div className="flex justify-between items-center">
-          <Label>{label}</Label>
-          {!aiModes[field] ? (
-             <button
-             onClick={() => handleAISuggest(field)}
-             disabled={loadingStates[field]}
-             variant="outline"
-             size="sm"
-             className="mt-4 inline-flex items-center gap-2 bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200"
-           >
-             <Lightbulb className="h-4 w-4" />
-             {loadingStates[field] ? 'Generating...' : 'AI Suggestions'}
-           </button>
-           
-           
-          ) : (
-            <div className="flex gap-2">
-              <button
-                onClick={() => {
-                  setAiModes(prev => ({ ...prev, [field]: false }));
-                  setFormDataprog(prev => ({ ...prev, [field]: '' }));
-                }}
-                className="mt-4 inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200"
-              >
-                Manual
-              </button>
-              <button
-                onClick={() => handleAISuggest(field)}
-                className="mt-4 inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200"
-              >
-                <Sparkles className="w-3 h-3" />
-                Regenerate
-              </button>
-            </div>
-          )}
-        </div>
-        
-        {aiModes[field] ? (
-          <div className="px-3 py-2 bg-gray-50 border rounded-md text-gray-700">
-            {formDataprog[field].split('_').map(word => 
-              word.charAt(0).toUpperCase() + word.slice(1)
-            ).join(' ')}
-          </div>
-        ) : (
-          <Select
-            value={formDataprog[field]}
-            onValueChange={(value) => handleSelectChange(field, value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={placeholder} />
-            </SelectTrigger>
-            <SelectContent>
-              {options.map(({ value, label }) => (
-                <SelectItem key={value} value={value}>{label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      </div>
-    );
+  const handleManualEdit = () => {
+    setIsDisabled(false);
+    setShowEditPrognosisButton(false);
+  };
+
+  const handleRegenerate = () => {
+    handleAIComplete(); // Regenerate the AI data
   };
 
   return (
-    <div className="container mx-auto p-4 max-w-3xl" style={{ width: '65vw' }}>
 
-      <Card>
-      <CardHeader className="text-2xl font-bold text-center bg-teal-700 text-white rounded-t-lg" > 
-          <CardTitle className="text-2xl font-bold text-center">Prognosis</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form className="space-y-6">
-            
-          <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <SelectWithAI
-            field="expectedOutcome"
-            label="Expected Outcome"
-            placeholder="Select expected outcome"
-            options={[
-              { value: 'complete_recovery', label: 'Complete Recovery' },
-              { value: 'partial_recovery', label: 'Partial Recovery' },
-              { value: 'chronic_management', label: 'Chronic Management Required' },
-              { value: 'progressive_decline', label: 'Progressive Decline' },
-              { value: 'terminal', label: 'Terminal' },
-              { value: 'other', label: 'Other' }
-            ]}
-          />
-          {formDataprog.expectedOutcome === 'other' && !aiModes.expectedOutcome && (
-            <Input
-              name="otherOutcome"
-              value={formData.otherOutcome}
-              onChange={handleInputChange}
-              placeholder="Please specify outcome"
-              className="mt-2"
-            />
-          )}
-        </div>
-
-        <SelectWithAI
-          field="timeframe"
-          label="Timeframe"
-          placeholder="Select timeframe"
-          options={[
-            { value: 'days', label: 'Days' },
-            { value: 'weeks', label: 'Weeks' },
-            { value: 'months', label: 'Months' },
-            { value: 'years', label: 'Years' },
-            { value: 'lifetime', label: 'Lifetime' }
-          ]}
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <SelectWithAI
-          field="riskLevel"
-          label="Risk Level"
-          placeholder="Select risk level"
-          options={[
-            { value: 'low', label: 'Low' },
-            { value: 'moderate', label: 'Moderate' },
-            { value: 'high', label: 'High' },
-            { value: 'severe', label: 'Severe' }
-          ]}
-        />
-
-        <SelectWithAI
-          field="recoveryPotential"
-          label="Recovery Potential"
-          placeholder="Select recovery potential"
-          options={[
-            { value: 'excellent', label: 'Excellent' },
-            { value: 'good', label: 'Good' },
-            { value: 'fair', label: 'Fair' },
-            { value: 'poor', label: 'Poor' },
-            { value: 'uncertain', label: 'Uncertain' }
-          ]}
-        />
-      </div>
-  
-            <div className="space-y-2">
-              <Label>5-Year Survival Rate (%)</Label>
-              <div className="flex flex-wrap sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-2">
-        <Button
-      
-          variant="outline"
-          size="sm"
-          className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
-        >
-          <Mic className="h-4 w-4 mr-2" />
-          Voice Input
-        </Button>
-        <Button
-         
-          variant="outline"
-          size="sm"
-          className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
-        >
-          <VolumeIcon className="h-4 w-4 mr-2" />
-          Read Aloud
-        </Button>
-        <Button
-        
-          variant="outline"
-          size="sm"
-          className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
-        >
-          <Lightbulb className="h-4 w-4 mr-2" />
-           
-        AI Suggestions
-        </Button>
-        </div>
-              <Input
-                type="number"
-                name="survivalRate"
-                value={formDataprog.survivalRate}
-                onChange={handleInputChange}
-                placeholder="Enter percentage"
-                min="0"
-                max="100"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Potential Complications</Label>
-              <div className="flex flex-wrap sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-2">
-        <Button
-      
-          variant="outline"
-          size="sm"
-          className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
-        >
-          <Mic className="h-4 w-4 mr-2" />
-          Voice Input
-        </Button>
-        <Button
-         
-          variant="outline"
-          size="sm"
-          className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
-        >
-          <VolumeIcon className="h-4 w-4 mr-2" />
-          Read Aloud
-        </Button>
-        <Button
-        
-          variant="outline"
-          size="sm"
-          className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
-        >
-          <Lightbulb className="h-4 w-4 mr-2" />
-           
-        AI Suggestions
-        </Button>
-        </div>
-              <Textarea
-                name="complications"
-                value={formDataprog.complications}
-                onChange={handleInputChange}
-                placeholder="List potential complications and their likelihood"
-                className="h-24"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Long-term Effects</Label>
-              <div className="flex flex-wrap sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-2">
-        <Button
-      
-          variant="outline"
-          size="sm"
-          className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
-        >
-          <Mic className="h-4 w-4 mr-2" />
-          Voice Input
-        </Button>
-        <Button
-         
-          variant="outline"
-          size="sm"
-          className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
-        >
-          <VolumeIcon className="h-4 w-4 mr-2" />
-          Read Aloud
-        </Button>
-        <Button
-        
-          variant="outline"
-          size="sm"
-          className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
-        >
-          <Lightbulb className="h-4 w-4 mr-2" />
-           
-        AI Suggestions
-        </Button>
-        </div>
-              <Textarea
-                name="longTermEffects"
-                value={formDataprog.longTermEffects}
-                onChange={handleInputChange}
-                placeholder="Describe expected long-term effects and their impact"
-                className="h-24"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Lifestyle Modifications</Label>
-              <div className="flex flex-wrap sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-2">
-        <Button
-      
-          variant="outline"
-          size="sm"
-          className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
-        >
-          <Mic className="h-4 w-4 mr-2" />
-          Voice Input
-        </Button>
-        <Button
-         
-          variant="outline"
-          size="sm"
-          className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
-        >
-          <VolumeIcon className="h-4 w-4 mr-2" />
-          Read Aloud
-        </Button>
-        <Button
-        
-          variant="outline"
-          size="sm"
-          className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
-        >
-          <Lightbulb className="h-4 w-4 mr-2" />
-           
-        AI Suggestions
-        </Button>
-        </div>
-              <Textarea
-                name="lifestyleModifications"
-                value={formData.lifestyleModifications}
-                onChange={handleInputChange}
-                placeholder="Required lifestyle changes and recommendations"
-                className="h-24"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Monitoring Requirements</Label>
-              <div className="flex flex-wrap sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-2">
-        <Button
-      
-          variant="outline"
-          size="sm"
-          className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
-        >
-          <Mic className="h-4 w-4 mr-2" />
-          Voice Input
-        </Button>
-        <Button
-         
-          variant="outline"
-          size="sm"
-          className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
-        >
-          <VolumeIcon className="h-4 w-4 mr-2" />
-          Read Aloud
-        </Button>
-        <Button
-        
-          variant="outline"
-          size="sm"
-          className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
-        >
-          <Lightbulb className="h-4 w-4 mr-2" />
-           
-        AI Suggestions
-        </Button>
-        </div>
-              <Textarea
-                name="monitoringRequirements"
-                value={formDataprog.monitoringRequirements}
-                onChange={handleInputChange}
-                placeholder="Specify monitoring and testing requirements"
-                className="h-24"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Follow-up Schedule</Label>
-              <div className="flex flex-wrap sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-2">
-        <Button
-      
-          variant="outline"
-          size="sm"
-          className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
-        >
-          <Mic className="h-4 w-4 mr-2" />
-          Voice Input
-        </Button>
-        <Button
-         
-          variant="outline"
-          size="sm"
-          className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
-        >
-          <VolumeIcon className="h-4 w-4 mr-2" />
-          Read Aloud
-        </Button>
-        <Button
-        
-          variant="outline"
-          size="sm"
-          className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
-        >
-          <Lightbulb className="h-4 w-4 mr-2" />
-           
-        AI Suggestions
-        </Button>
-        </div>
-              <Textarea
-                name="followUpSchedule"
-                value={formDataprog.followUpSchedule}
-                onChange={handleInputChange}
-                placeholder="Outline recommended follow-up schedule and milestones"
-                className="h-24"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Additional Notes</Label>
-              <div className="flex flex-wrap sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-2">
-        <Button
-      
-          variant="outline"
-          size="sm"
-          className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
-        >
-          <Mic className="h-4 w-4 mr-2" />
-          Voice Input
-        </Button>
-        <Button
-         
-          variant="outline"
-          size="sm"
-          className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
-        >
-          <VolumeIcon className="h-4 w-4 mr-2" />
-          Read Aloud
-        </Button>
-        <Button
-        
-          variant="outline"
-          size="sm"
-          className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
-        >
-          <Lightbulb className="h-4 w-4 mr-2" />
-           
-        AI Suggestions
-        </Button>
-        </div>
-              <Textarea
-                name="additionalNotes"
-                value={formDataprog.additionalNotes}
-                onChange={handleInputChange}
-                placeholder="Any additional relevant information"
-                className="h-24"
-              />
-            </div>
-
-            <div className="flex justify-end space-x-4">
-           
-        
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+    <div className="max-w-4xl mx-auto p-6 space-y-8  " style={{ width: '65vw' }}>
+    <Card className="grid grid-cols-1 md:grid-cols-1 gap-4 bg-white shadow-lg">
+      <CardHeader className="text-2xl font-bold text-center bg-teal-700 text-white rounded-t-lg">
+        <CardTitle className="text-2xl font-bold text-center">Prognosis</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form className="space-y-6">
+        <div className="grid grid-cols-1 gap-4 mt-2">
+  {/* AI Complete Button */}
+  {!showEditPrognosisButton && (
+    <div className="flex justify-end">
+      <Button
+        onClick={handleAIComplete}
+        variant="outline"
+        size="sm"
+        disabled={isDisabled}
+        className="w-auto bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d]"
+      >
+        <Lightbulb className="h-4 w-4 mr-2" />
+        Complete with AI
+      </Button>
     </div>
+  )}
+
+  {/* Displayed once AI Complete button is clicked */}
+  {showEditPrognosisButton && (
+    <>
+      <div className="flex justify-end space-x-4">
+        <Button
+          onClick={handleManualEdit}
+          variant="outline"
+          size="sm"
+          className="w-auto bg-gray-200 text-gray-700 hover:bg-gray-300"
+        >
+          <Edit className="h-4 w-4 mr-2" />
+          Manual Edit
+        </Button>
+        <Button
+          onClick={handleRegenerate}
+          variant="outline"
+          size="sm"
+          className="w-auto bg-teal-200 text-blue-700 hover:bg-teal-300"
+        >
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Regenerate
+        </Button>
+      </div>
+    </>
+  )}
+</div>
+
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="expectedOutcome">Expected Outcome</Label>
+              <select
+                id="expectedOutcome"
+                name="expectedOutcome"
+                value={formDataprog.expectedOutcome}
+                onChange={handleInputChange}
+                disabled={isDisabled}
+                className="w-full p-2 border border-gray-300 rounded"
+              >
+                <option value="">Select expected outcome</option>
+                <option value="complete_recovery">Complete Recovery</option>
+                <option value="partial_recovery">Partial Recovery</option>
+                <option value="chronic_management">Chronic Management Required</option>
+                <option value="progressive_decline">Progressive Decline</option>
+                <option value="terminal">Terminal</option>
+                <option value="other">Other</option>
+              </select>
+              {formDataprog.expectedOutcome === 'other' && !aiModes.expectedOutcome && (
+                <Input
+                  name="otherOutcome"
+                  value={formDataprog.otherOutcome}
+                  onChange={handleInputChange}
+                  placeholder="Please specify outcome"
+                  className="mt-2"
+                  disabled={isDisabled}
+                />
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="timeframe">Timeframe</Label>
+              <select
+                id="timeframe"
+                name="timeframe"
+                value={formDataprog.timeframe}
+                onChange={handleInputChange}
+                disabled={isDisabled}
+                className="w-full p-2 border border-gray-300 rounded"
+              >
+                <option value="">Select timeframe</option>
+                <option value="days">Days</option>
+                <option value="weeks">Weeks</option>
+                <option value="months">Months</option>
+                <option value="years">Years</option>
+                <option value="lifetime">Lifetime</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="riskLevel">Risk Level</Label>
+              <select
+                id="riskLevel"
+                name="riskLevel"
+                value={formDataprog.riskLevel}
+                onChange={handleInputChange}
+                disabled={isDisabled}
+                className="w-full p-2 border border-gray-300 rounded"
+              >
+                <option value="">Select risk level</option>
+                <option value="low">Low</option>
+                <option value="moderate">Moderate</option>
+                <option value="high">High</option>
+                <option value="severe">Severe</option>
+              </select>
+            </div>
+
+            <div>
+              <Label htmlFor="recoveryPotential">Recovery Potential</Label>
+              <select
+                id="recoveryPotential"
+                name="recoveryPotential"
+                value={formDataprog.recoveryPotential}
+                onChange={handleInputChange}
+                disabled={isDisabled}
+                className="w-full p-2 border border-gray-300 rounded"
+              >
+                <option value="">Select recovery potential</option>
+                <option value="excellent">Excellent</option>
+                <option value="good">Good</option>
+                <option value="fair">Fair</option>
+                <option value="poor">Poor</option>
+                <option value="uncertain">Uncertain</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="survivalRate">5-Year Survival Rate (%)</Label>
+            <Input
+              type="number"
+              name="survivalRate"
+              value={formDataprog.survivalRate}
+              onChange={handleInputChange}
+              placeholder="Enter percentage"
+              min="0"
+              max="100"
+              disabled={isDisabled}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="complications">Potential Complications</Label>
+            <Textarea
+              name="complications"
+              value={formDataprog.complications}
+              onChange={handleInputChange}
+              placeholder="List potential complications and their likelihood"
+              className="h-24"
+              disabled={isDisabled}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="longTermEffects">Long-term Effects</Label>
+            <Textarea
+              name="longTermEffects"
+              value={formDataprog.longTermEffects}
+              onChange={handleInputChange}
+              placeholder="Describe expected long-term effects and their impact"
+              className="h-24"
+              disabled={isDisabled}
+            />
+          </div>
+  
+              {/* More fields can be added similarly */}
+            </form>
+          </CardContent>
+        </Card>
+      </div>
   );
 };
     const pages = [
@@ -4554,666 +4180,306 @@ const DiagnosisDetailsModal = ({ diagnosis, isOpen, onClose }) => {
 
 
 
-const MedicationForm = ({ buttonText, onSubmit, medicationData}) => {
-  const [aiModes, setAiModes] = useState({
-    expectedOutcome: false,   // Captures AI mode for expected outcome
-    timeframe: false,         // Captures AI mode for timeframe
-    riskLevel: false,         // Captures AI mode for risk level
-    recoveryPotential: false, // Captures AI mode for recovery potential
-  });
-  const [formDatamedication, setFormDatamedication] = useState({
-    medicationName: '',
-    dosage: '',
-    administrationRoute: '',
-    medicationFrequency: '',
-    medicationStatus: '',
-    startDate: '',
-    endDate: '',
-    treatmentDuration: '',
-    sideEffects: '',
-    contraindications: '',
-    precautions: '',
-    interactions: '',
-    specialInstructions: '',
-    expectedOutcome: '',
-    followUpProtocol: '',
-    evidenceBase: ''
-  });
-  const [loadingStates, setLoadingStates] = useState({
-    expectedOutcome: false,
-    timeframe: false,
-    riskLevel: false,
-    recoveryPotential: false
-  });
-  const [newMedication, setNewMedication] = useState({
-    medicationDescription: '',
-    medicationNote: '',
-    medicationCode: [],
-    medicationStatus: 'active',
-    medicationStartDate: '',
-    medicationStartTime: '',
-    medicationEndDate: '',
-    medicationFrequency: {
-      type: 'daily',
-      value: 1,
-    },
-    dosage: '',
-    name: '',
-  });
-  
-  // Pre-populate form for editing
-  useEffect(() => {
-    if (medicationData) {
-      console.log(medicationData);
-      setNewMedication({
-        medicationDescription: medicationData.medicationDescription || '',
-        medicationNote: medicationData.medicationNote || '',
-        medicationCode: medicationData.medicationCode || [],
-        medicationStatus: medicationData.medicationStatus || 'active',
-        medicationStartDate: medicationData.medicationStartDate || '',
-        medicationStartTime: medicationData.medicationStartTime || '',
-        medicationEndDate: medicationData.medicationEndDate || '',
-        medicationFrequency: medicationData.medicationFrequency || { type: 'daily', value: 1 },
-        dosage: medicationData.dosage || '',
-        name: medicationData.name || '',
-      });
+const MedicationForm = ({ buttonText, onSubmit,  initialMedicationData = []}) => {
+  const [medications, setMedications] = useState([{
+    id: 1,
+    isAICompleted: false,
+    isDisabled: false,
+    data: {
+      medicationDescription: '',
+      medicationNote: '',
+      medicationCode: [],
+      medicationStatus: 'active',
+      medicationStartDate: '',
+      medicationStartTime: '',
+      medicationEndDate: '',
+      medicationFrequency: {
+        type: 'daily',
+        value: 1,
+      },
+      dosage: '',
+      name: '',
+      administrationRoute: '',
+      treatmentDuration: '',
+      sideEffects: '',
+      contraindications: '',
+      precautions: '',
+      interactions: '',
+      specialInstructions: '',
+      followUpProtocol: ''
     }
-  }, [medicationData]); // Ensures the effect runs when `medicationData` changes
-  
-  const handleChange = (field, value) => {
-    setNewMedication((prev) => ({
-      ...prev,
-      [field]: value,
+  }]);
+
+  useEffect(() => {
+    if (initialMedicationData.length > 0) {
+      setMedications(initialMedicationData.map((med, index) => ({
+        id: index + 1,
+        isAICompleted: false,
+        isDisabled: false,
+        data: {
+          ...med,
+          medicationFrequency: med.medicationFrequency || { type: 'daily', value: 1 },
+        }
+      })));
+    }
+  }, [initialMedicationData]);
+
+  const handleAIComplete = (medicationId) => {
+    setMedications(prev => prev.map(med => {
+      if (med.id === medicationId) {
+        const demoData = {
+          medicationStatus: 'active',
+          medicationStartDate: '2025-01-13',
+          medicationEndDate: '2025-02-13',
+          medicationStartTime: '09:00',
+          medicationFrequency: {
+            type: 'daily',
+            value: 2
+          },
+          medicationNote: 'Take with food. Monitor blood pressure regularly.',
+          dosage: '20mg twice daily',
+          medicationDescription: 'Anti-hypertensive medication used to control blood pressure.',
+          name: 'Amlodipine',
+          administrationRoute: 'Oral',
+          treatmentDuration: '4 weeks',
+          sideEffects: 'May cause dizziness, headache, or mild nausea. Report severe side effects immediately.',
+          contraindications: 'Not recommended for patients with severe kidney disease or those taking MAO inhibitors.',
+          precautions: 'Monitor blood pressure regularly. Avoid sudden discontinuation.',
+          interactions: 'May interact with beta blockers, NSAIDs, and certain antidepressants.',
+          specialInstructions: 'Take on an empty stomach, 30 minutes before meals.',
+          followUpProtocol: 'Schedule follow-up appointment in 2 weeks.'
+        };
+
+        return {
+          ...med,
+          isAICompleted: true,
+          isDisabled: true,
+          data: { ...med.data, ...demoData }
+        };
+      }
+      return med;
     }));
   };
-  
-  const SelectWithAI = ({ field, label, options, placeholder }) => {
-    return (
-      <div className="space-y-2">
-        <div className="flex justify-between items-center">
-          <Label>{label}</Label>
-          {!aiModes[field] ? (
-             <button
-             onClick={() => handleAISuggest(field)}
-             disabled={loadingStates[field]}
-             variant="outline"
-             size="sm"
-             className="mt-4 inline-flex items-center gap-2 bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200"
-           >
-             <Lightbulb className="h-4 w-4" />
-             {loadingStates[field] ? 'Generating...' : 'AI Suggestions'}
-           </button>
-           
-           
-          ) : (
-            <div className="flex gap-2">
-              <button
-                onClick={() => {
-                  setAiModes(prev => ({ ...prev, [field]: false }));
-                  setFormDatamedication(prev => ({ ...prev, [field]: '' }));
-                }}
-                className="mt-4 inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200"
-              >
-                Manual
-              </button>
-              <button
-                onClick={() => handleAISuggest(field)}
-                className="mt-4 inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200"
-              >
-                <Sparkles className="w-3 h-3" />
-                Regenerate
-              </button>
-            </div>
-          )}
-        </div>
-        
-        {aiModes[field] ? (
-          <div className="px-3 py-2 bg-gray-50 border rounded-md text-gray-700">
-            {formDatamedication[field].split('_').map(word => 
-              word.charAt(0).toUpperCase() + word.slice(1)
-            ).join(' ')}
-          </div>
-        ) : (
-          <Select
-            value={formDatamedication[field]}
-            onValueChange={(value) => handleSelectChange(field, value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={placeholder} />
-            </SelectTrigger>
-            <SelectContent>
-              {options.map(({ value, label }) => (
-                <SelectItem key={value} value={value}>{label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      </div>
-    );
+
+  const regenerateAI = (medicationId) => {
+    // This would typically call an API to get new AI suggestions
+    handleAIComplete(medicationId);
   };
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
-      <div className="space-y-2">
-        <Label htmlFor="medication">Medication ID</Label>
-        <Input
-          id="medication"
-          disabled="disabled"
-          placeholder="Medication"
-          value="dg-001"
-        />
-      </div>
-     
-      <div className="space-y-2">
-        <Label htmlFor="medicationStatus">Medication Status</Label>
-        <Select
-          value={newMedication.medicationStatus}
-          onValueChange={(value) => setNewMedication({ ...newMedication, medicationStatus: value })}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select Medication Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
-            <SelectItem value="resolved">Resolved</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="medicationStartDate">Start Date</Label>
-        <Input
-          id="medicationStartDate"
-          type="date"
-          value={newMedication.medicationStartDate}
-          onChange={(e) => setNewMedication({ ...newMedication, medicationStartDate: e.target.value })}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="medicationEndDate">End Date</Label>
-        <Input
-          id="medicationEndDate"
-          type="date"
-          value={newMedication.medicationEndDate}
-          onChange={(e) => setNewMedication({ ...newMedication, medicationEndDate: e.target.value })}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="medicationStartTime">Start Time</Label>
-        <Input
-          id="medicationStartTime"
-          type="time"
-          value={newMedication.medicationStartTime}
-          onChange={(e) => setNewMedication({ ...newMedication, medicationStartTime: e.target.value })}
-        />
-      </div>
-      <div className="space-y-2">
-  <Label htmlFor="medicationFrequencyType">Frequency Type</Label>
-  <SelectWithAI
-    field="medicationFrequencyType"
-    value={newMedication.medicationFrequency.type}
-    onChange={(value) => setNewMedication({ ...newMedication, medicationFrequency: { ...newMedication.medicationFrequency, type: value } })}
-    label="Select Frequency Type"
-    placeholder="Select Frequency Type"
-    options={[
-      { value: 'daily', label: 'Daily' },
-      { value: 'weekly', label: 'Weekly' },
-      { value: 'monthly', label: 'Monthly' },
-      { value: 'custom', label: 'Custom' }
-    ]}
-  />
-</div>
 
-{newMedication.medicationFrequency.type === 'daily' && (
-  <div className="space-y-2">
-    <Label htmlFor="medicationFrequencyValue">Frequency Value</Label>
-    <Input
-      id="medicationFrequencyValue"
-      type="number"
-      value={newMedication.medicationFrequency.value}
-      onChange={(e) => {
-        const value = parseInt(e.target.value, 10);
-        if (!isNaN(value)) {
-          setNewMedication({ ...newMedication, medicationFrequency: { ...newMedication.medicationFrequency, value } });
-        }
-      }}
-      placeholder="Enter frequency value"
-    />
-  </div>
-)}
+  const toggleManualEdit = (medicationId) => {
+    setMedications(prev => prev.map(med => {
+      if (med.id === medicationId) {
+        return {
+          ...med,
+          isDisabled: !med.isDisabled
+        };
+      }
+      return med;
+    }));
+  };
+
+  const addNewMedication = () => {
+    setMedications(prev => [...prev, {
+      id: Math.max(...prev.map(m => m.id)) + 1,
+      isAICompleted: false,
+      isDisabled: false,
+      data: {
+        medicationDescription: '',
+        medicationNote: '',
+        medicationCode: [],
+        medicationStatus: 'active',
+        medicationStartDate: '',
+        medicationStartTime: '',
+        medicationEndDate: '',
+        medicationFrequency: {
+          type: 'daily',
+          value: 1,
+        },
+        dosage: '',
+        name: '',
+        administrationRoute: '',
+        treatmentDuration: '',
+        sideEffects: '',
+        contraindications: '',
+        precautions: '',
+        interactions: '',
+        specialInstructions: '',
+        followUpProtocol: ''
+      }
+    }]);
+  };
+
+  const removeMedication = (medicationId) => {
+    if (medications.length > 1) {
+      setMedications(prev => prev.filter(med => med.id !== medicationId));
+    }
+  };
+
+  const handleFieldChange = (medicationId, field, value) => {
+    setMedications(prev => prev.map(med => {
+      if (med.id === medicationId) {
+        return {
+          ...med,
+          data: {
+            ...med.data,
+            [field]: value
+          }
+        };
+      }
+      return med;
+    }));
+  };
+
+  const TextArea = ({ id, label, value, onChange, placeholder, disabled }) => (
     <div className="space-y-2">
-        <label>Administration Route</label>
-        <Input
-          type="text"
-          value={formDatamedication.administrationRoute}
-          onChange={(e) => handleFieldChange('administrationRoute', e.target.value)}
-          placeholder="Enter Administration Route (e.g., Oral, IV)"
-        />
-      </div>
-      <div className="space-y-2">
-        <label>Treatment Duration</label>
-        <Input
-          type="text"
-          value={formDatamedication.treatmentDuration}
-          onChange={(e) => handleFieldChange('treatmentDuration', e.target.value)}
-          placeholder="(e.g., 2 weeks)"
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="medicationNote">Medication Note</Label>
-        <div>
+      <Label htmlFor={id}>{label}</Label>
+      <textarea
+        id={id}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        disabled={disabled}
+        rows={4}
+        className="resize-none block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm disabled:bg-gray-100 disabled:text-gray-500"
+      />
+    </div>
+  );
+
+  return (
+    <div className="space-y-8">
+      {medications.map((medication, index) => (
+        <Card key={medication.id} className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-lg font-semibold text-gray-900">Medication {index + 1}</h3>
+            <div className="flex gap-2">
+              {medication.isAICompleted ? (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => regenerateAI(medication.id)}
+                    className="inline-flex items-center gap-2 bg-teal-100 hover:bg-teal-200"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    Regenerate
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => toggleManualEdit(medication.id)}
+                    className="inline-flex items-center gap-2 bg-teal-100 hover:bg-teal-200"
+                  >
+                    <Edit className="h-4 w-4" />
+                    {medication.isDisabled ? 'Edit Manually' : 'Disable Edit'}
+                  </Button>
+                </>
+              ) : (
                 <Button
-      
-      variant="outline"
-      size="sm"
-      className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
-    >
-      <Mic className="h-4 w-4 mr-2" />
-      Voice Input
-    </Button>
-    <Button
-         
-         variant="outline"
-         size="sm"
-         className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
-       >
-         <VolumeIcon className="h-4 w-4 mr-2" />
-         Read Aloud
-       </Button>
-       <Button
-        
-        variant="outline"
-        size="sm"
-        className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
-      >
-        <Lightbulb className="h-4 w-4 mr-2" />
-         
-      AI Suggestions
-      </Button>
-
-
-                </div>
-        <textarea
-          id="medicationNote"
-          placeholder="Medication Note"
-          value={newMedication.medicationNote}
-          onChange={(e) => setNewMedication({ ...newMedication, medicationNote: e.target.value })}
-          rows={4}
-          className="resize-none block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-        />
-      </div>
- 
-      <div className="space-y-2">
-        <Label htmlFor="medicationDosage">Dosage</Label>
-        <div>
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleAIComplete(medication.id)}
+                  className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
+                >
+                  <Lightbulb className="h-4 w-4" />
+                  Complete with AI
+                </Button>
+              )}
+              {medications.length > 1 && (
                 <Button
-      
-      variant="outline"
-      size="sm"
-      className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
-    >
-      <Mic className="h-4 w-4 mr-2" />
-      Voice Input
-    </Button>
-    <Button
-         
-         variant="outline"
-         size="sm"
-         className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
-       >
-         <VolumeIcon className="h-4 w-4 mr-2" />
-         Read Aloud
-       </Button>
-       <Button
-        
-        variant="outline"
-        size="sm"
-        className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
-      >
-        <Lightbulb className="h-4 w-4 mr-2" />
-         
-      AI Suggestions
-      </Button>
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => removeMedication(medication.id)}
+                  className="inline-flex items-center gap-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Remove
+                </Button>
+              )}
+            </div>
+          </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Basic Fields */}
+            <div className="space-y-2">
+              <Label htmlFor={`medication-${medication.id}`}>Medication ID</Label>
+              <Input
+                id={`medication-${medication.id}`}
+                disabled
+                value={`dg-${String(medication.id).padStart(3, '0')}`}
+              />
+            </div>
 
-                </div>
-        <textarea
-          id="medicationDosage"
-          placeholder="Medication Dosage"
-          value={newMedication.dosage}
-          onChange={(e) => setNewMedication({ ...newMedication, dosage: e.target.value.split(', ') })}
-          rows={4}
-          className="resize-none block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-   
-        />
-      </div>
-     
-    
-       <div className="space-y-2">
-        <Label htmlFor="medicationDescription">Medication</Label>
-        <div>
-                <Button
-      
-      variant="outline"
-      size="sm"
-      className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
-    >
-      <Mic className="h-4 w-4 mr-2" />
-      Voice Input
-    </Button>
-    <Button
-         
-         variant="outline"
-         size="sm"
-         className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
-       >
-         <VolumeIcon className="h-4 w-4 mr-2" />
-         Read Aloud
-       </Button>
-       <Button
-        
-        variant="outline"
-        size="sm"
-        className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
-      >
-        <Lightbulb className="h-4 w-4 mr-2" />
-         
-      AI Suggestions
-      </Button>
+            {/* Name Field */}
+            <div className="space-y-2">
+              <Label htmlFor={`name-${medication.id}`}>Medication Name</Label>
+              <Input
+                id={`name-${medication.id}`}
+                value={medication.data.name}
+                onChange={(e) => handleFieldChange(medication.id, 'name', e.target.value)}
+                disabled={medication.isDisabled}
+              />
+            </div>
 
+            {/* Status Select */}
+            <div className="space-y-2">
+              <Label htmlFor={`status-${medication.id}`}>Status</Label>
+              <Select
+                value={medication.data.medicationStatus}
+                onValueChange={(value) => handleFieldChange(medication.id, 'medicationStatus', value)}
+                disabled={medication.isDisabled}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="resolved">Resolved</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-                </div>
-        <textarea
-          id="medicationDescription"
-          placeholder="Medication Description"
-          value={newMedication.medicationDescription}
-          onChange={(e) => setNewMedication({ ...newMedication, medicationDescription: e.target.value })}
-          rows={4} 
-           className="resize-none block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-       
-       />
-      </div>
-  
-      <div>
-        <label>Side Effects</label>
-        <div>
-                <Button
-      
-      variant="outline"
-      size="sm"
-      className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
-    >
-      <Mic className="h-4 w-4 mr-2" />
-      Voice Input
-    </Button>
-    <Button
-         
-         variant="outline"
-         size="sm"
-         className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
-       >
-         <VolumeIcon className="h-4 w-4 mr-2" />
-         Read Aloud
-       </Button>
-       <Button
-        
-        variant="outline"
-        size="sm"
-        className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
-      >
-        <Lightbulb className="h-4 w-4 mr-2" />
-         
-      AI Suggestions
-      </Button>
+            {/* Other Fields */}
+            {Object.entries(medication.data).map(([field, value]) => {
+              if (['medicationCode', 'medicationFrequency', 'medicationStatus', 'name'].includes(field)) return null;
+              return (
+                <TextArea
+                  key={`${field}-${medication.id}`}
+                  id={`${field}-${medication.id}`}
+                  label={field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1')}
+                  value={value}
+                  onChange={(e) => handleFieldChange(medication.id, field, e.target.value)}
+                  placeholder={`Enter ${field.toLowerCase().replace(/([A-Z])/g, ' $1')}`}
+                  disabled={medication.isDisabled}
+                />
+              );
+            })}
+          </div>
+        </Card>
+      ))}
 
-
-                </div>
-        <textarea
-          value={formDatamedication.sideEffects}
-          onChange={(e) => handleFieldChange('sideEffects', e.target.value)}
-          placeholder="Enter potential side effects"
-          rows={4} 
-          className="resize-none block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-      
-        />
-      </div>
-
-      {/* Contraindications */}
-      <div>
-        <label>Contraindications</label>
-        <div>
-                <Button
-      
-      variant="outline"
-      size="sm"
-      className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
-    >
-      <Mic className="h-4 w-4 mr-2" />
-      Voice Input
-    </Button>
-    <Button
-         
-         variant="outline"
-         size="sm"
-         className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
-       >
-         <VolumeIcon className="h-4 w-4 mr-2" />
-         Read Aloud
-       </Button>
-       <Button
-        
-        variant="outline"
-        size="sm"
-        className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
-      >
-        <Lightbulb className="h-4 w-4 mr-2" />
-         
-      AI Suggestions
-      </Button>
-
-
-                </div>
-        <textarea
-          value={formDatamedication.contraindications}
-          onChange={(e) => handleFieldChange('contraindications', e.target.value)}
-          placeholder="Enter contraindications"
-          rows={4} 
-          className="resize-none block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-      
-        />
-      </div>
-
-      {/* Precautions */}
-      <div>
-        <label>Precautions</label>
-        <div>
-                <Button
-      
-      variant="outline"
-      size="sm"
-      className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
-    >
-      <Mic className="h-4 w-4 mr-2" />
-      Voice Input
-    </Button>
-    <Button
-         
-         variant="outline"
-         size="sm"
-         className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
-       >
-         <VolumeIcon className="h-4 w-4 mr-2" />
-         Read Aloud
-       </Button>
-       <Button
-        
-        variant="outline"
-        size="sm"
-        className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
-      >
-        <Lightbulb className="h-4 w-4 mr-2" />
-         
-      AI Suggestions
-      </Button>
-
-
-                </div>
-        <textarea
-          value={formDatamedication.precautions}
-          onChange={(e) => handleFieldChange('precautions', e.target.value)}
-          placeholder="Enter any precautions"
-          rows={4} 
-          className="resize-none block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-      
-        />
-      </div>
-
-      {/* Drug Interactions */}
-      <div>
-        <label>Drug Interactions</label>
-        <div>
-                <Button
-      
-      variant="outline"
-      size="sm"
-      className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
-    >
-      <Mic className="h-4 w-4 mr-2" />
-      Voice Input
-    </Button>
-    <Button
-         
-         variant="outline"
-         size="sm"
-         className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
-       >
-         <VolumeIcon className="h-4 w-4 mr-2" />
-         Read Aloud
-       </Button>
-       <Button
-        
-        variant="outline"
-        size="sm"
-        className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
-      >
-        <Lightbulb className="h-4 w-4 mr-2" />
-         
-      AI Suggestions
-      </Button>
-
-
-                </div>
-        <textarea
-          value={formDatamedication.interactions}
-          onChange={(e) => handleFieldChange('interactions', e.target.value)}
-          placeholder="Enter possible drug interactions"
-          rows={4} 
-          className="resize-none block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-      
-        />
-      </div>
-
-      {/* Special Instructions */}
-      <div className="space-y-2">
-        <label>Special Instructions</label>
-        <div>
-                <Button
-      
-      variant="outline"
-      size="sm"
-      className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
-    >
-      <Mic className="h-4 w-4 mr-2" />
-      Voice Input
-    </Button>
-    <Button
-         
-         variant="outline"
-         size="sm"
-         className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
-       >
-         <VolumeIcon className="h-4 w-4 mr-2" />
-         Read Aloud
-       </Button>
-       <Button
-        
-        variant="outline"
-        size="sm"
-        className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
-      >
-        <Lightbulb className="h-4 w-4 mr-2" />
-         
-      AI Suggestions
-      </Button>
-
-
-                </div>
-        <textarea
-          value={formDatamedication.specialInstructions}
-          onChange={(e) => handleFieldChange('specialInstructions', e.target.value)}
-          placeholder="Enter any special instructions"
-          rows={4} 
-          className="resize-none block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-      
-        />
-        
-        <div className="space-y-2"> 
-        <label>Follow-Up Protocol</label>
-        <div>
-                <Button
-      
-      variant="outline"
-      size="sm"
-      className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
-    >
-      <Mic className="h-4 w-4 mr-2" />
-      Voice Input
-    </Button>
-    <Button
-         
-         variant="outline"
-         size="sm"
-         className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
-       >
-         <VolumeIcon className="h-4 w-4 mr-2" />
-         Read Aloud
-       </Button>
-       <Button
-        
-        variant="outline"
-        size="sm"
-        className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
-      >
-        <Lightbulb className="h-4 w-4 mr-2" />
-         
-      AI Suggestions
-      </Button>
-
-
-                </div>
-        <textarea
-          value={formDatamedication.followUpProtocol}
-          onChange={(e) => handleFieldChange('followUpProtocol', e.target.value)}
-          placeholder="Enter follow-up protocol"
-          rows={4} 
-          className="resize-none block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-      
-        />
-      </div>
-      </div>
-
-     
-
-      <div className="col-span-1 md:col-span-2 flex justify-end space-x-2 mt-4">
-        <Button variant="outline" onClick={() => setIsEditOpen(false)}>
-          Cancel
-        </Button>
+      <div className="flex justify-between items-center">
         <Button
-          onClick={onSubmit}
-          disabled={isLoading}
-          className="bg-teal-700 hover:bg-teal-800 text-white"
+          variant="outline"
+          onClick={addNewMedication}
+          className="inline-flex items-center gap-2"
         >
-          {isLoading ? 'Submitting...' : buttonText}
+          <Plus className="h-4 w-4" />
+          Add Another Medication
         </Button>
+
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setIsEditOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={() => onSubmit(medications.map(med => med.data))}
+            disabled={isLoading}
+            className="bg-teal-700 hover:bg-teal-800 text-white"
+          >
+            {isLoading ? 'Submitting...' : buttonText}
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -5483,14 +4749,144 @@ const hasSelectedTests = testSelections.some(selection =>
 );
 
 
-const RenderLabTests = () => (
-  <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-  <div className="max-w-4xl mx-auto">
-    <div className="text-center mb-12">
-      <h1 className="text-3xl font-bold text-gray-900 mb-2">Laboratory Test Request</h1>
-      <p className="text-gray-600">Select the required diagnostic tests for the patient</p>
-    </div>
+const RenderLabTests = () => { const [isAIEnabled, setIsAIEnabled] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [labtestFormData, setLabtestFormData] = useState({
+    priority: '',
+    diagnosis: '',
+    icdCode: '',
+    additionalNotes: '',
+    specimenType: [],
+    collectionDateTime: '',
+    specialInstructions: '',
+    collectedBy: 'Dr. Who'
+  });
 
+  const [testSelection, setTestSelection] = useState(testSelections)
+
+  const handleAIComplete = () => {
+    // AI-generated data for lab test form
+    const aiData = {
+      priority: 'Urgent',
+      diagnosis: 'Suspected acute renal dysfunction with metabolic imbalance',
+      icdCode: 'N17.9',
+      additionalNotes: 'Patient presents with elevated creatinine levels and general fatigue. Requires comprehensive metabolic panel.',
+      specimenType: ['Blood', 'Urine'],
+      collectionDateTime: new Date().toISOString().slice(0, 16),
+      specialInstructions: 'Fasting blood sample required. Please process STAT due to suspected acute condition.',
+      collectedBy: 'Dr. Who'
+    };
+  
+    // Update form data with AI-generated data
+    setLabtestFormData(aiData);
+  
+    // AI-generated test selections for different categories
+    const aiTestSelections = [
+      {
+        id: 1,
+        selectedCategory: 'Advanced Diagnostics',
+        selectedTests: ['Chest X-ray', 'Ultrasound'],
+        isSubsectionOpen: true,
+        isOpen: false,
+        priority: 'Urgent',
+      diagnosis: 'Suspected acute renal dysfunction with metabolic imbalance',
+      icdCode: 'N17.9',
+      additionalNotes: 'Patient presents with elevated creatinine levels and general fatigue. Requires comprehensive metabolic panel.',
+      specimenType: ['Blood', 'Urine'],
+      collectionDateTime: new Date().toISOString().slice(0, 16),
+      specialInstructions: 'Fasting blood sample required. Please process STAT due to suspected acute condition.',
+      collectedBy: 'Dr. Who'
+      },
+      {
+        id: 2,
+        selectedCategory: 'General Health Screening',
+        selectedTests: ['Lipid Panel', 'Urinalysis'],
+        isSubsectionOpen: true,
+        isOpen: false,
+        priority: 'Urgent',
+      diagnosis: 'Suspected acute renal dysfunction with metabolic imbalance',
+      icdCode: 'N17.9',
+      additionalNotes: 'Patient presents with elevated creatinine levels and general fatigue. Requires comprehensive metabolic panel.',
+      specimenType: ['Blood', 'Urine'],
+      collectionDateTime: new Date().toISOString().slice(0, 16),
+      specialInstructions: 'Fasting blood sample required. Please process STAT due to suspected acute condition.',
+      collectedBy: 'Dr. Who'
+      }
+    ];
+  
+    // Update test selections with AI-generated data
+    setTestSelections(aiTestSelections);
+  
+    // Enable AI mode and disable editing
+    setIsAIEnabled(true);
+    setIsEditing(false);
+  };
+  
+  const handleRegenerateAI = () => {
+    handleAIComplete(); // Rerun AI completion with potentially different results
+  };
+
+  const toggleEditing = () => {
+    setIsEditing(!isEditing);
+  };
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    
+    if (type === 'checkbox') {
+      if (name === 'specimenType') {
+        setLabtestFormData(prev => ({
+          ...prev,
+          specimenType: checked
+            ? [...prev.specimenType, value]
+            : prev.specimenType.filter(type => type !== value)
+        }));
+      }
+    } else {
+      setLabtestFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+  };
+
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="max-w-4xl mx-auto">
+      
+      <div className="text-center mb-12">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Laboratory Test Request</h1>
+        <p className="text-gray-600">Select the required diagnostic tests for the patient</p>
+        <div className="flex justify-end">
+  {!isAIEnabled ? (
+    <Button
+      onClick={handleAIComplete}
+      className="inline-flex items-end gap-2 bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] px-6 py-2 rounded-md transition-colors duration-200"
+    >
+      <Lightbulb className="h-5 w-5" />
+      Complete with AI
+    </Button>
+  ) : (
+    <>
+      <Button
+        onClick={handleRegenerateAI}
+        className="inline-flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 px-6 py-2 rounded-md"
+      >
+        <RefreshCw className="h-5 w-5" />
+        Regenerate
+      </Button>
+      <Button
+        onClick={toggleEditing}
+        className="inline-flex items-center gap-2 bg-gray-600 text-white hover:bg-gray-700 px-6 py-2 rounded-md"
+      >
+        <Edit className="h-5 w-5" />
+        {isEditing ? '' : 'Edit Manually'}
+      </Button>
+    </>
+  )}
+</div>
+</div>
     <form onSubmit={handleSubmit} className="bg-white shadow-lg rounded-lg p-8">
       {/* Lab Test Information Section */}
       <div className="space-y-8">
@@ -5503,13 +4899,15 @@ const RenderLabTests = () => (
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">Priority</label>
               <div className="flex space-x-4">
-                {['Routine', 'Urgent', 'STAT'].map((priority) => (
+              {['Routine', 'Urgent', 'STAT'].map((priority) => (
                   <label key={priority} className="inline-flex items-center">
                     <input
                       type="radio"
                       name="priority"
                       value={priority}
+                      checked={labtestFormData.priority === priority}
                       onChange={handleChange}
+                      disabled={!isEditing && isAIEnabled}
                       className="form-radio text-blue-600"
                     />
                     <span className="ml-2 text-gray-700">{priority}</span>
@@ -5524,22 +4922,22 @@ const RenderLabTests = () => (
         <div className="space-y-4">
           <h3 className="text-lg font-medium text-gray-800">Test(s) Requested</h3>
           <div className="w-full space-y-4">
-          {testSelections.map((selection) => (
+          {testSelections.map(selection => (
         <div key={selection.id} className="border rounded-lg p-4">
           <div className="relative">
-            {/* Main Category Dropdown */}
             <div 
-              className="p-3 border rounded-lg bg-white cursor-pointer flex justify-between items-center"
+              className={`p-3 border rounded-lg bg-white ${(!isAIEnabled || isEditing) ? 'cursor-pointer' : ''} flex justify-between items-center`}
               onClick={() => toggleDropdown(selection.id)}
             >
               <span>{selection.selectedCategory || 'Select Category'}</span>
-              {selection.isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+              {(!isAIEnabled || isEditing) && (
+                selection.isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />
+              )}
             </div>
 
-            {/* Category Options */}
-            {selection.isOpen && (
+            {selection.isOpen && (!isAIEnabled || isEditing) && (
               <div className="absolute w-full mt-1 bg-white border rounded-lg shadow-lg z-10">
-                {testCategories.map((cat) => (
+                {testCategories.map(cat => (
                   <div
                     key={cat.category}
                     className="p-3 hover:bg-gray-100 cursor-pointer"
@@ -5548,18 +4946,11 @@ const RenderLabTests = () => (
                     {cat.category}
                   </div>
                 ))}
-                <div
-                  className="p-3 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => handleCategorySelect(selection.id, 'Other')}
-                >
-                  Other
-                </div>
               </div>
             )}
           </div>
 
-          {/* Subsection Tests */}
-          {selection.selectedCategory && selection.selectedCategory !== 'Other' && selection.isSubsectionOpen && (
+          {selection.selectedCategory && selection.isSubsectionOpen && (
             <div className="mt-4 border rounded-lg p-4">
               <h3 className="font-medium mb-3">Select Tests:</h3>
               {testCategories
@@ -5571,6 +4962,7 @@ const RenderLabTests = () => (
                       id={`${selection.id}-${test}`}
                       checked={selection.selectedTests.includes(test)}
                       onChange={() => handleTestSelect(selection.id, test)}
+                      disabled={isAIEnabled && !isEditing}
                       className="mr-2"
                     />
                     <label htmlFor={`${selection.id}-${test}`}>{test}</label>
@@ -5578,27 +4970,10 @@ const RenderLabTests = () => (
                 ))}
             </div>
           )}
-
-          {/* Other Input */}
-          {selection.selectedCategory === 'Other' && (
-            <div className="mt-4">
-              <input
-                type="text"
-                value={selection.otherTest}
-                onChange={(e) => handleOtherTestChange(selection.id, e.target.value)}
-                placeholder="Please specify the test"
-                className="w-full p-2 border rounded-lg"
-              />
-            </div>
-          )}
-
-          {/* Selected Tests Display */}
-       
         </div>
       ))}
 
-      {/* Add Test Button */}
-      {hasSelectedTests && (
+      {hasSelectedTests && (!isAIEnabled || isEditing) && (
         <button
           onClick={addNewTestSelection}
           className="flex items-center justify-center w-full p-3 border rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
@@ -5607,8 +4982,8 @@ const RenderLabTests = () => (
           Add Another Test
         </button>
       )}
-    
-   </div>    </div>
+    </div>
+   </div>   
 
         {/* Clinical Information */}
         <div className="space-y-4">
@@ -5637,34 +5012,8 @@ const RenderLabTests = () => (
 
           <div>
             <label className="block text-sm font-medium text-gray-700">Additional Notes</label>
-            <Button
-      
-      variant="outline"
-      size="sm"
-      className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
-    >
-      <Mic className="h-4 w-4 mr-2" />
-      Voice Input
-    </Button>
-    <Button
-         
-         variant="outline"
-         size="sm"
-         className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
-       >
-         <VolumeIcon className="h-4 w-4 mr-2" />
-         Read Aloud
-       </Button>
-       <Button
-        
-        variant="outline"
-        size="sm"
-        className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
-      >
-        <Lightbulb className="h-4 w-4 mr-2" />
-         
-      AI Suggestions
-      </Button>
+            
+    
             <textarea
               name="additionalNotes"
               value={labtestFormData.additionalNotes}
@@ -5735,38 +5084,7 @@ const RenderLabTests = () => (
 
             <div>
               <label className="block text-sm font-medium text-gray-700">Special Instructions for Lab</label>
-                <div>
-                <Button
-      
-      variant="outline"
-      size="sm"
-      className="bg-[#007664] text-white hover:bg-[#006054] w-full sm:w-auto"
-    >
-      <Mic className="h-4 w-4 mr-2" />
-      Voice Input
-    </Button>
-    <Button
-         
-         variant="outline"
-         size="sm"
-         className="bg-[#75C05B] text-white hover:bg-[#63a34d] w-full sm:w-auto"
-       >
-         <VolumeIcon className="h-4 w-4 mr-2" />
-         Read Aloud
-       </Button>
-       <Button
-        
-        variant="outline"
-        size="sm"
-        className="bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] w-full sm:w-auto"
-      >
-        <Lightbulb className="h-4 w-4 mr-2" />
-         
-      AI Suggestions
-      </Button>
-
-
-                </div>
+               
               <textarea
                 name="specialInstructions"
                 value={labtestFormData.specialInstructions}
@@ -5792,7 +5110,7 @@ const RenderLabTests = () => (
   </div>
 </div>
 );
-
+}
 const doctors = [{ id: 1, name: "Dr. Alice" }, { id: 2, name: "Dr. Bob" }];
 const labTechnicians = [{ id: 1, name: "Tech Anne" }, { id: 2, name: "Tech Max" }];
 const pharmacies = [{ id: 1, name: "Pharmacy A" }, { id: 2, name: "Pharmacy B" }];
@@ -6204,14 +5522,15 @@ const ConsultationForm = ({ buttonText, onSubmit, consultationData }) => {
         <Stethoscope className="h-4 w-4" />
         Consultations
       </TabsTrigger>
-      <TabsTrigger value="diagnoses" className="flex items-center gap-2 text-[#007664] hover:bg-[#007664]/20">
-        <FileText className="h-4 w-4" />
-        Diagnosis &amp; Prognosis
-      </TabsTrigger>
       <TabsTrigger value="labresult" className="flex items-center gap-2 text-[#007664] hover:bg-[#007664]/20">
         <Thermometer className="h-4 w-4" />
         Lab Test
       </TabsTrigger>
+      <TabsTrigger value="diagnoses" className="flex items-center gap-2 text-[#007664] hover:bg-[#007664]/20">
+        <FileText className="h-4 w-4" />
+        Diagnosis &amp; Prognosis
+      </TabsTrigger>
+     
       <TabsTrigger value="medications" className="flex items-center gap-2 text-[#007664] hover:bg-[#007664]/20">
         <Pill className="h-4 w-4" />
         Medications
@@ -6611,7 +5930,7 @@ const ConsultationForm = ({ buttonText, onSubmit, consultationData }) => {
           
         </DialogTrigger>
 
-        <DialogContent className="max-w-full sm:max-w-5xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Lab Result</DialogTitle>
           </DialogHeader>
@@ -6662,7 +5981,7 @@ const ConsultationForm = ({ buttonText, onSubmit, consultationData }) => {
           </DialogHeader>
 
           <MedicationForm 
-            buttonText="Submit Consultation" 
+            buttonText="Submit Medication" 
             onSubmit={() => handleFormSubmit('add')}
             isLoading={isLoading}
           />
