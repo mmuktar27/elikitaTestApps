@@ -142,12 +142,21 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-
-
-import { ViewMedication,NewMedicationForm } from "../../components/shared";
-import { NewDiagnosisForm ,ViewDiagnosis,EditDiagnosisForm} from "../../components/shared";
-import { NewLabTestForm, ViewLabTest } from "../../components/shared";
-import {NewExamination,EditExamination,ViewExamination} from "../../components/shared";
+import {
+  ViewMedication,
+  NewMedicationForm,
+} from "../shared";
+import {
+  NewDiagnosisForm,
+  ViewDiagnosis,
+  EditDiagnosisForm,
+} from "../shared";
+import { NewLabTestForm, ViewLabTest } from "../shared";
+import {
+  NewExamination,
+  EditExamination,
+  ViewExamination,
+} from "../shared";
 
 import Image from "next/image";
 import eye from "./eye.png";
@@ -423,7 +432,6 @@ const PatientDetailsView = ({ patient, onClose, SelectedPatient }) => {
     );
   };
 
-
   const [newexamination, setNewexamination] = useState({
     id: "", // Unique identifier for the examination
     status: "", // examination status
@@ -476,128 +484,6 @@ const PatientDetailsView = ({ patient, onClose, SelectedPatient }) => {
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
     transition: { duration: 0.5 },
-  };
-
-  const examinationDetailsModal = ({ consult, isOpen, onClose }) => {
-    return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto bg-[#F7F7F7] p-0">
-          <DialogHeader className="rounded-t-lg bg-[#007664] p-6 text-white">
-            <DialogTitle className="text-2xl font-bold">
-              examination Details
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className="space-y-8 p-6">
-            {/* Basic Information */}
-            <motion.div {...fadeIn} className="space-y-4">
-              <div className="mb-4 flex items-center gap-2">
-                <div className="h-8 w-2 rounded-full bg-[#75C05B]" />
-                <h2 className="text-xl font-bold text-[#007664]">
-                  Basic Information
-                </h2>
-              </div>
-
-              <Card className="border-none bg-white shadow-lg">
-                <CardContent className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
-                  <InfoItem label="Status" value={consult.status} />
-                  <InfoItem
-                    label="Category"
-                    value={consult.category.join(", ")}
-                  />
-                  <InfoItem
-                    label="Service Type"
-                    value={consult.serviceType.join(", ")}
-                  />
-                  <InfoItem label="Patient" value={consult.subject.display} />
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Participant Details */}
-            <motion.div {...fadeIn} className="space-y-4">
-              <div className="mb-4 flex items-center gap-2">
-                <div className="h-8 w-2 rounded-full bg-[#B24531]" />
-                <h2 className="text-xl font-bold text-[#007664]">
-                  Participant Details
-                </h2>
-              </div>
-
-              <Card className="border-none bg-white shadow-lg">
-                <CardContent className="divide-y divide-gray-100">
-                  {consult.participant.map((participant, index) => (
-                    <div
-                      key={index}
-                      className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2"
-                    >
-                      <InfoItem
-                        label="Type"
-                        value={participant.type.join(", ")}
-                      />
-                      <InfoItem
-                        label="Name"
-                        value={participant.individual.display}
-                      />
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Timing Information */}
-            <motion.div {...fadeIn} className="space-y-4">
-              <div className="mb-4 flex items-center gap-2">
-                <div className="h-8 w-2 rounded-full bg-[#53FDFD]" />
-                <h2 className="text-xl font-bold text-[#007664]">
-                  Timing Information
-                </h2>
-              </div>
-
-              <Card className="border-none bg-white shadow-lg">
-                <CardContent className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
-                  <InfoItem
-                    label="Occurrence Date/Time"
-                    value={consult.occurrenceDateTime}
-                  />
-                  <InfoItem label="Created" value={consult.created} />
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Additional Details */}
-            <motion.div {...fadeIn} className="space-y-4">
-              <div className="mb-4 flex items-center gap-2">
-                <div className="h-8 w-2 rounded-full bg-[#75C05B]" />
-                <h2 className="text-xl font-bold text-[#007664]">
-                  Additional Information
-                </h2>
-              </div>
-
-              <Card className="border-none bg-white shadow-lg">
-                <CardContent className="space-y-6 p-6">
-                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    <InfoItem
-                      label="Reason Code"
-                      value={consult.reasonCode.join(", ")}
-                    />
-                    <InfoItem
-                      label="Diagnosis"
-                      value={consult.diagnosis.join(", ")}
-                    />
-                  </div>
-                  <div>
-                    <h4 className="mb-2 text-sm font-medium">Summary</h4>
-                    <p className="rounded-lg bg-gray-50 p-4 text-sm leading-relaxed text-gray-700">
-                      {consult.summary}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
   };
 
   const InfoItem = ({ label, value }) => (
@@ -668,9 +554,6 @@ const PatientDetailsView = ({ patient, onClose, SelectedPatient }) => {
       value: 1,
     },
   });
-
-
-
 
   const MedicationForm = ({
     buttonText,
@@ -1032,8 +915,6 @@ const PatientDetailsView = ({ patient, onClose, SelectedPatient }) => {
     );
   };
 
-
-
   const testCategories = [
     {
       category: "General Health Screening",
@@ -1198,7 +1079,6 @@ const PatientDetailsView = ({ patient, onClose, SelectedPatient }) => {
     ]);
   };
 
-
   const [isAIEnabled, setIsAIEnabled] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -1216,7 +1096,6 @@ const PatientDetailsView = ({ patient, onClose, SelectedPatient }) => {
     { id: 1, name: "Pharmacy A" },
     { id: 2, name: "Pharmacy B" },
   ];
-
 
   const visitHistory = [
     {
@@ -1284,6 +1163,9 @@ const PatientDetailsView = ({ patient, onClose, SelectedPatient }) => {
                 <p className="text-lg font-semibold text-[#007664]">
                   Alice Johnson
                 </p>
+                <p id="patient-id" className="text-sm text-gray-500">
+                  ID: PT-001
+                </p>
                 <div className="mt-1 flex items-center">
                   <span className="text-sm text-gray-600">
                     35 years, Female
@@ -1344,7 +1226,7 @@ const PatientDetailsView = ({ patient, onClose, SelectedPatient }) => {
     setIsAddlabtestOpen(false);
     setIsAddmOpen(false);
     setIsAddOpen(false);
-    setIsAddDOpen(false)
+    setIsAddDOpen(false);
   };
 
   return (
@@ -1709,7 +1591,9 @@ const PatientDetailsView = ({ patient, onClose, SelectedPatient }) => {
                             </div>
                           </DialogHeader>
 
-                          <NewExamination onTabChange={handleTabtriggerChange} />
+                          <NewExamination
+                            onTabChange={handleTabtriggerChange}
+                          />
                         </DialogContent>
                       </Dialog>
                     </div>
@@ -2191,7 +2075,6 @@ const PatientDetailsView = ({ patient, onClose, SelectedPatient }) => {
           />
         </div>
       )}
-     
     </div>
   );
 };

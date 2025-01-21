@@ -1,4 +1,4 @@
-
+"use client";
 import React, { useState, useEffect } from "react";
 
 // Lucide Icons
@@ -152,7 +152,7 @@ import main from "./main.png";
 // Third-party Modal
 import Modal from "react-modal";
 import { motion } from "framer-motion";
-export function NewDiagnosisForm ({ onTabChange }) {
+export function NewDiagnosisForm({ onTabChange }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [formData, setFormData] = useState({});
   const [selectedComplaints, setSelectedComplaints] = useState([]);
@@ -1508,8 +1508,7 @@ export function NewDiagnosisForm ({ onTabChange }) {
               conditions: {
                 Yes: {
                   type: "select",
-                  label:
-                    "Have you planned the timing of your next pregnancy?",
+                  label: "Have you planned the timing of your next pregnancy?",
                   options: ["Yes", "No", "Others"],
                 },
               },
@@ -1824,8 +1823,7 @@ export function NewDiagnosisForm ({ onTabChange }) {
     };
 
     const renderField = (field, mainSection, subsectionKey) => {
-      const value =
-        formData[mainSection]?.[subsectionKey]?.[field.name] || "";
+      const value = formData[mainSection]?.[subsectionKey]?.[field.name] || "";
 
       const baseInputStyles =
         "w-full p-2 border rounded-md focus:ring-2 focus:ring-[#53FDFD] focus:border-[#007664] bg-white";
@@ -2322,9 +2320,7 @@ export function NewDiagnosisForm ({ onTabChange }) {
                                   size={14}
                                   className="text-yellow-500"
                                 />
-                                <span className="text-gray-700">
-                                  {factor}
-                                </span>
+                                <span className="text-gray-700">{factor}</span>
                               </div>
                             ))}
                           </div>
@@ -2354,8 +2350,7 @@ export function NewDiagnosisForm ({ onTabChange }) {
     symptoms: "",
   });
   const [isDisabled, setIsDisabled] = useState(false);
-  const [showEditdiagnosisButton, setShowEditdiagnosisButton] =
-    useState(false);
+  const [showEditdiagnosisButton, setShowEditdiagnosisButton] = useState(false);
 
   const [isClient, setIsClient] = useState(false);
 
@@ -2597,16 +2592,11 @@ export function NewDiagnosisForm ({ onTabChange }) {
                       className="w-full rounded-md border border-gray-300 p-2"
                     >
                       <option value="">Select Specific Diagnosis</option>
-                      {icdSubcategories[primaryCategory]?.map(
-                        (subcategory) => (
-                          <option
-                            key={subcategory.code}
-                            value={subcategory.code}
-                          >
-                            {subcategory.code} - {subcategory.description}
-                          </option>
-                        ),
-                      )}
+                      {icdSubcategories[primaryCategory]?.map((subcategory) => (
+                        <option key={subcategory.code} value={subcategory.code}>
+                          {subcategory.code} - {subcategory.description}
+                        </option>
+                      ))}
                     </select>
                   )}
                 </div>
@@ -2631,10 +2621,7 @@ export function NewDiagnosisForm ({ onTabChange }) {
                 </div>
 
                 {additionalDiagnoses.map((diagnosis, index) => (
-                  <div
-                    key={index}
-                    className="space-y-2 rounded-md border p-4"
-                  >
+                  <div key={index} className="space-y-2 rounded-md border p-4">
                     <div className="mb-2 flex items-center justify-between">
                       <span className="text-sm font-medium text-[#007664]">
                         Additional Diagnosis {index + 1}
@@ -2653,11 +2640,7 @@ export function NewDiagnosisForm ({ onTabChange }) {
                     <select
                       value={diagnosis.type}
                       onChange={(e) =>
-                        updateAdditionalDiagnosis(
-                          index,
-                          "type",
-                          e.target.value,
-                        )
+                        updateAdditionalDiagnosis(index, "type", e.target.value)
                       }
                       className="mb-2 w-full rounded-md border border-gray-300 p-2"
                     >
@@ -2895,8 +2878,7 @@ export function NewDiagnosisForm ({ onTabChange }) {
     recoveryPotential: false,
   });
 
-  const [showEditPrognosisButton, setShowEditPrognosisButton] =
-    useState(false); // Initially false
+  const [showEditPrognosisButton, setShowEditPrognosisButton] = useState(false); // Initially false
 
   const renderPrognosisForm = () => {
     const handleInputChange = (e) => {
@@ -3007,9 +2989,7 @@ export function NewDiagnosisForm ({ onTabChange }) {
                     className="w-full rounded border border-gray-300 p-2"
                   >
                     <option value="">Select expected outcome</option>
-                    <option value="complete_recovery">
-                      Complete Recovery
-                    </option>
+                    <option value="complete_recovery">Complete Recovery</option>
                     <option value="partial_recovery">Partial Recovery</option>
                     <option value="chronic_management">
                       Chronic Management Required
@@ -3077,10 +3057,7 @@ export function NewDiagnosisForm ({ onTabChange }) {
                 </div>
 
                 <div>
-                  <Label
-                    htmlFor="recoveryPotential"
-                    className="text-[#007664]"
-                  >
+                  <Label htmlFor="recoveryPotential" className="text-[#007664]">
                     Recovery Potential
                   </Label>
                   <select
@@ -3226,9 +3203,7 @@ export function NewDiagnosisForm ({ onTabChange }) {
           <div className="mx-auto max-w-6xl px-6 py-4">
             <div className="flex items-center justify-between">
               <button
-                onClick={() =>
-                  setCurrentPage((prev) => Math.max(1, prev - 1))
-                }
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
                 className="flex items-center rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-teal-600 disabled:opacity-50 disabled:hover:bg-teal-500"
               >
@@ -3244,9 +3219,7 @@ export function NewDiagnosisForm ({ onTabChange }) {
                 <div className="flex items-center gap-4">
                   <button
                     onClick={() =>
-                      setCurrentPage((prev) =>
-                        Math.min(pages.length, prev + 1),
-                      )
+                      setCurrentPage((prev) => Math.min(pages.length, prev + 1))
                     }
                     className="flex items-center rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-teal-600"
                   >
@@ -3279,10 +3252,14 @@ export function NewDiagnosisForm ({ onTabChange }) {
       </div>
     </>
   );
-};
+}
 
-export function ViewDiagnosis ({ diagnosis, isOpen, onClose }) {
-
+export function ViewDiagnosis({ diagnosis, isOpen, onClose }) {
+  const fadeIn = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.5 },
+  };
 
   const getStatusColor = (status) => {
     const statusColors = {
@@ -3317,7 +3294,7 @@ export function ViewDiagnosis ({ diagnosis, isOpen, onClose }) {
         <DialogHeader className="rounded-t-lg bg-[#007664] p-6 text-white">
           <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
             <Stethoscope className="size-6" />
-            Diagnosis & Prognosis Details
+            Diagnosis Details
           </DialogTitle>
         </DialogHeader>
 
@@ -3457,9 +3434,9 @@ export function ViewDiagnosis ({ diagnosis, isOpen, onClose }) {
       </DialogContent>
     </Dialog>
   );
-};
+}
 
-export function EditDiagnosisForm ({ buttonText, onSubmit, diagnosesData }) {
+export function EditDiagnosisForm({ buttonText, onSubmit, diagnosesData }) {
   const [newDiagnosis, setNewDiagnosis] = useState({
     id: "", // Unique identifier for the Diagnosis
     status: "", // Diagnosis status
@@ -3601,9 +3578,7 @@ export function EditDiagnosisForm ({ buttonText, onSubmit, diagnosesData }) {
           id="patientDisplay"
           placeholder="Patient Name"
           value={newDiagnosis.patient.display}
-          onChange={(e) =>
-            updateNestedState("patient.display", e.target.value)
-          }
+          onChange={(e) => updateNestedState("patient.display", e.target.value)}
         />
       </div>
 
@@ -3700,4 +3675,4 @@ export function EditDiagnosisForm ({ buttonText, onSubmit, diagnosesData }) {
       </div>
     </div>
   );
-};
+}

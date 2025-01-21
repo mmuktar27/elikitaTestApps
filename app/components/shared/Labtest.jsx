@@ -180,7 +180,165 @@ export function NewLabTestForm({ onTabChange }) {
       isSubsectionOpen: false,
     },
   ]);
+  const testCategories = [
+    {
+      category: "General Health Screening",
+      tests: [
+        "Complete Blood Count (CBC)",
+        "Basic Metabolic Panel (BMP)",
+        "Comprehensive Metabolic Panel (CMP)",
+        "Lipid Panel",
+        "Urinalysis",
+      ],
+    },
+    {
+      category: "Diabetes and Endocrine Function",
+      tests: [
+        "Fasting Blood Glucose",
+        "Hemoglobin A1c (HbA1c)",
+        "Thyroid Function Tests (TSH, T3, T4)",
+      ],
+    },
+    {
+      category: "Cardiovascular Health",
+      tests: ["Electrocardiogram (ECG)", "Troponin Test"],
+    },
+    {
+      category: "Advanced Diagnostics",
+      tests: ["Chest X-ray", "MRI Scan", "CT Scan", "Ultrasound"],
+    },
+    {
+      category: "Infectious Diseases",
+      tests: [
+        "Rapid Strep Test",
+        "Influenza Test",
+        "HIV Test",
+        "Hepatitis Panel",
+        "Tuberculosis (TB) Test",
+      ],
+    },
+    {
+      category: "Kidney Function",
+      tests: ["Serum Creatinine", "Blood Urea Nitrogen (BUN)"],
+    },
+    {
+      category: "Liver Function",
+      tests: ["Liver Function Tests (LFTs)"],
+    },
+    {
+      category: "Reproductive Health",
+      tests: [
+        "Sexually Transmitted Infection (STI) Tests",
+        "Pap Smear",
+        "Pregnancy Test",
+      ],
+    },
+    {
+      category: "Respiratory Health",
+      tests: ["Chest X-ray", "Sputum Culture"],
+    },
+    {
+      category: "Gastrointestinal Health",
+      tests: ["Stool Culture", "Helicobacter pylori Test"],
+    },
+    {
+      category: "Nutritional Status",
+      tests: ["Iron Studies", "Vitamin B12 and Folate Levels"],
+    },
+    {
+      category: "Inflammatory and Autoimmune Conditions",
+      tests: ["Erythrocyte Sedimentation Rate (ESR)", "Reactive Protein (CRP)"],
+    },
+  ];
 
+  const specimenOptions = ["Blood", "Urine", "Stool", "Saliva"];
+
+  const handleCheckboxChange = (category, test) => {
+    setlabtestFormData((prevData) => {
+      const updatedTests = { ...prevData.testsRequested };
+      if (!updatedTests[category]) {
+        updatedTests[category] = [];
+      }
+      if (updatedTests[category].includes(test)) {
+        updatedTests[category] = updatedTests[category].filter(
+          (t) => t !== test,
+        );
+      } else {
+        updatedTests[category].push(test);
+      }
+      return { ...prevData, testsRequested: updatedTests };
+    });
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setlabtestFormData((prevData) => ({ ...prevData, [name]: value }));
+  };
+
+
+
+  const handleCategorySelect = (id, category) => {
+    setTestSelections((prev) =>
+      prev.map((selection) =>
+        selection.id === id
+          ? {
+              ...selection,
+              selectedCategory: category,
+              isSubsectionOpen: true,
+              isOpen: false,
+            }
+          : selection,
+      ),
+    );
+  };
+
+  const handleTestSelect = (id, test) => {
+    setTestSelections((prev) =>
+      prev.map((selection) =>
+        selection.id === id
+          ? {
+              ...selection,
+              selectedTests: selection.selectedTests.includes(test)
+                ? selection.selectedTests.filter((t) => t !== test)
+                : [...selection.selectedTests, test],
+            }
+          : selection,
+      ),
+    );
+  };
+
+  const handleOtherTestChange = (id, value) => {
+    setTestSelections((prev) =>
+      prev.map((selection) =>
+        selection.id === id ? { ...selection, otherTest: value } : selection,
+      ),
+    );
+  };
+
+  const toggleDropdown = (id) => {
+    setTestSelections((prev) =>
+      prev.map((selection) =>
+        selection.id === id
+          ? { ...selection, isOpen: !selection.isOpen }
+          : selection,
+      ),
+    );
+  };
+
+  const addNewTestSelection = () => {
+    const newId = Math.max(...testSelections.map((s) => s.id)) + 1;
+    setTestSelections((prev) => [
+      ...prev,
+      {
+        id: newId,
+        selectedCategory: "",
+        selectedTests: [],
+        otherTest: "",
+        isOpen: false,
+        isSubsectionOpen: false,
+      },
+    ]);
+  };
   const [testSelection, setTestSelection] = useState(testSelections);
   const hasSelectedTests = testSelections.some(
     (selection) =>
@@ -355,6 +513,8 @@ export function NewLabTestForm({ onTabChange }) {
       </div>
     );
   };
+  const currentDateTime = new Date().toISOString().slice(0, 16); // Get the current date and time
+
   const [labtestFormData, setlabtestFormData] = useState({
     dateOfRequest: "",
     priority: "",
@@ -363,7 +523,7 @@ export function NewLabTestForm({ onTabChange }) {
     icdCode: "",
     additionalNotes: "",
     specimenType: [],
-    collectionDateTime: "",
+    collectionDateTime: currentDateTime,
     collectedBy: "",
     specialInstructions: "",
   });
@@ -663,7 +823,7 @@ export function NewLabTestForm({ onTabChange }) {
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                       <div>
                         <label className="block text-sm font-medium text-gray-700">
-                          Collection Date & Time
+                          Request Date & Time
                         </label>
                         <input
                           type="datetime-local"
@@ -677,7 +837,7 @@ export function NewLabTestForm({ onTabChange }) {
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700">
-                          Collected By
+                          Requested By
                         </label>
                         <input
                           type="text"
@@ -806,6 +966,12 @@ export function NewLabTestForm({ onTabChange }) {
   );
 }
 export function ViewLabTest({ result, isOpen, onClose }) {
+  const fadeIn = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.5 },
+  };
+
   const InfoItem = ({ label, value, icon, highlight }) => (
     <div className="space-y-1">
       <div className="flex items-center gap-2">
@@ -827,7 +993,7 @@ export function ViewLabTest({ result, isOpen, onClose }) {
   const isAbnormal = result.flags && result.flags.length > 0;
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto bg-[#F7F7F7] p-0">
+      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto bg-[#F7F7F7] p-0">
         <DialogHeader className="rounded-t-lg bg-[#007664] p-6 text-white">
           <DialogTitle className="text-2xl font-bold">
             Lab Result Details

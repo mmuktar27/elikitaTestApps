@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect } from "react";
 import {
   ChevronLeft,
@@ -139,9 +140,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-
-
-export  function NewMedicationForm() {
+export function NewMedicationForm() {
   const [currentPage, setCurrentPage] = useState(1);
   const [formData, setFormData] = useState({});
   const [selectedComplaints, setSelectedComplaints] = useState([]);
@@ -319,9 +318,7 @@ export  function NewMedicationForm() {
 
                         {/* Medication Dosage */}
                         <div className="space-y-2">
-                          <h4 className="font-medium text-teal-800">
-                            Dosage
-                          </h4>
+                          <h4 className="font-medium text-teal-800">Dosage</h4>
                           <p className="rounded bg-white p-2 text-sm text-gray-700">
                             {medication.dosage}
                           </p>
@@ -493,6 +490,28 @@ export  function NewMedicationForm() {
         });
       }
     };
+    const contraindications = {
+      aspirin: ["Bleeding disorders", "Asthma"],
+      ibuprofen: ["Kidney disease", "Stomach ulcers"],
+      warfarin: ["Pregnancy", "Liver disease"],
+    };
+    const handleContradictionCheck = () => {
+      const medName = medformData.medicationName.toLowerCase();
+
+      if (contraindications[medName]) {
+        setInteractionAlert({
+          type: "warning",
+          title: "Potential Contraindications Detected",
+          message: `${medformData.medicationName} may be contraindicated for: ${contraindications[medName].join(", ")}`,
+        });
+      } else {
+        setInteractionAlert({
+          type: "success",
+          title: "No Known Contraindications",
+          message: "No known contraindications found in database.",
+        });
+      }
+    };
 
     return (
       <div
@@ -631,13 +650,23 @@ export  function NewMedicationForm() {
               </div>
 
               <div className="space-y-4">
-                <button
-                  type="button"
-                  onClick={checkInteractions}
-                  className="w-full rounded-md bg-teal-600 p-2 text-white transition-colors hover:bg-teal-700 focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
-                >
-                  Check Drug Interactions
-                </button>
+                <div className="flex items-center justify-start gap-4 ">
+                  <button
+                    type="button"
+                    onClick={checkInteractions}
+                    className="w-auto rounded-md bg-teal-600 px-4 py-2 text-white transition-colors hover:bg-teal-700 focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+                  >
+                    Check Drug Interactions
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleContradictionCheck} // Add this function for contradiction checking
+                    className="w-auto rounded-md bg-amber-600 px-4 py-2 text-white transition-colors hover:bg-amber-700 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+                  >
+                    Check Contradictions
+                  </button>
+                </div>
 
                 {interactionAlert && (
                   <Alert
@@ -666,8 +695,6 @@ export  function NewMedicationForm() {
     );
   };
 
-  
-
   const pages = [RenderMedicationHistory, MedicationForm];
 
   const [isAddDOpen, setIsAddDOpen] = useState(false);
@@ -685,15 +712,15 @@ export  function NewMedicationForm() {
   };
   return (
     <>
-    <div className="mx-auto flex min-h-screen max-w-6xl flex-col p-6">
-      {/* Page number circles at the top */}
-      <div className="mb-8 flex justify-center gap-2">
-        {Array.from({ length: pages.length }, (_, i) => i + 1).map(
-          (pageNum) => (
-            <button
-              key={pageNum}
-              onClick={() => setCurrentPage(pageNum)}
-              className={`
+      <div className="mx-auto flex min-h-screen max-w-6xl flex-col p-6">
+        {/* Page number circles at the top */}
+        <div className="mb-8 flex justify-center gap-2">
+          {Array.from({ length: pages.length }, (_, i) => i + 1).map(
+            (pageNum) => (
+              <button
+                key={pageNum}
+                onClick={() => setCurrentPage(pageNum)}
+                className={`
           flex h-10 w-10 items-center justify-center rounded-full
           border-2 border-teal-500 text-sm font-medium
           ${
@@ -703,41 +730,49 @@ export  function NewMedicationForm() {
           }
           transition-colors duration-200
         `}
-            >
-              {pageNum}
-            </button>
-          ),
-        )}
-      </div>
+              >
+                {pageNum}
+              </button>
+            ),
+          )}
+        </div>
 
-      {/* Content area */}
-      <div className="mb-8 flex-1 overflow-auto">
-        {" "}
-        {/* This makes the content take the available space */}
-        {pages[currentPage - 1]()}
-      </div>
+        {/* Content area */}
+        <div className="mb-8 flex-1 overflow-auto">
+          {" "}
+          {/* This makes the content take the available space */}
+          {pages[currentPage - 1]()}
+        </div>
 
-      {/* Navigation footer */}
-      <div className="border-t bg-white shadow-lg">
-        <div className="mx-auto max-w-6xl px-6 py-4">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.max(1, prev - 1))
-              }
-              disabled={currentPage === 1}
-              className="flex items-center rounded-lg bg-[#007664] px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#007664]/80 hover:bg-teal-600 disabled:opacity-50 disabled:hover:bg-teal-500"
-            >
-              <ChevronLeft className="mr-2 size-5" />
-              Previous
-            </button>
+        {/* Navigation footer */}
+        <div className="border-t bg-white shadow-lg">
+          <div className="mx-auto max-w-6xl px-6 py-4">
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="flex items-center rounded-lg bg-[#007664] px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#007664]/80 hover:bg-teal-600 disabled:opacity-50 disabled:hover:bg-teal-500"
+              >
+                <ChevronLeft className="mr-2 size-5" />
+                Previous
+              </button>
 
-            <span className="text-sm font-medium text-gray-500">
-              Page {currentPage} of {pages.length}
-            </span>
+              <span className="text-sm font-medium text-gray-500">
+                Page {currentPage} of {pages.length}
+              </span>
 
-            {currentPage === 2 ? (
-              <div className="flex items-center gap-4">
+              {currentPage === 2 ? (
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => {
+                      // Submit logic here
+                    }}
+                    className="flex items-center rounded-lg bg-[#007664] px-6 py-3 text-sm font-medium text-white transition-colors  duration-200 hover:bg-[#007664]/80"
+                  >
+                    Submit
+                  </button>
+                </div>
+              ) : currentPage === 3 ? (
                 <button
                   onClick={() => {
                     // Submit logic here
@@ -746,38 +781,26 @@ export  function NewMedicationForm() {
                 >
                   Submit
                 </button>
-              </div>
-            ) : currentPage === 3 ? (
-              <button
-                onClick={() => {
-                  // Submit logic here
-                }}
-                className="flex items-center rounded-lg bg-[#007664] px-6 py-3 text-sm font-medium text-white transition-colors  duration-200 hover:bg-[#007664]/80"
-              >
-                Submit
-              </button>
-            ) : (
-              <button
-                onClick={() =>
-                  setCurrentPage((prev) => Math.min(pages.length, prev + 1))
-                }
-                className="flex items-center rounded-lg bg-[#007664] px-6 py-3 text-sm font-medium text-white transition-colors  duration-200 hover:bg-[#007664]/80"
-              >
-                Next
-                <ChevronRight className="ml-2 size-5" />
-              </button>
-            )}
+              ) : (
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(pages.length, prev + 1))
+                  }
+                  className="flex items-center rounded-lg bg-[#007664] px-6 py-3 text-sm font-medium text-white transition-colors  duration-200 hover:bg-[#007664]/80"
+                >
+                  Next
+                  <ChevronRight className="ml-2 size-5" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </>
-  )
+    </>
+  );
 }
 
-
-
-export  function ViewMedication({ medic, isOpen, onClose }) {
+export function ViewMedication({ medic, isOpen, onClose }) {
   const fadeIn = {
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
@@ -804,120 +827,155 @@ export  function ViewMedication({ medic, isOpen, onClose }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-    <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto bg-[#F7F7F7] p-0">
-      <DialogHeader className="rounded-t-lg bg-[#007664] p-6 text-white">
-        <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
-          <Pill className="size-6" />
-          Medication Details
-        </DialogTitle>
-      </DialogHeader>
+      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto bg-[#F7F7F7] p-0">
+        <DialogHeader className="rounded-t-lg bg-[#007664] p-6 text-white">
+          <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
+            <Pill className="size-6" />
+            Medication Details
+          </DialogTitle>
+        </DialogHeader>
 
-      <div className="space-y-8 p-6">
-        {/* Status Banner */}
-        <motion.div
-          {...fadeIn}
-          className={`flex items-center gap-3 rounded-lg p-4 ${
-            isActive
-              ? "bg-green-50 text-green-700"
-              : "bg-yellow-50 text-yellow-700"
-          }`}
-        >
-          <AlertCircle className="size-5" />
-          <span className="font-medium">
-            Status: {medic.medicationStatus}
-          </span>
-        </motion.div>
+        <div className="space-y-8 p-6">
+          {/* Status Banner */}
+          <motion.div
+            {...fadeIn}
+            className={`flex items-center gap-3 rounded-lg p-4 ${
+              isActive
+                ? "bg-green-50 text-green-700"
+                : "bg-yellow-50 text-yellow-700"
+            }`}
+          >
+            <AlertCircle className="size-5" />
+            <span className="font-medium">
+              Status: {medic.medicationStatus}
+            </span>
+          </motion.div>
 
-        {/* Basic Information */}
-        <motion.div {...fadeIn} className="space-y-4">
-          <div className="mb-4 flex items-center gap-2">
-            <div className="h-8 w-2 rounded-full bg-[#75C05B]" />
-            <h2 className="text-xl font-bold text-[#007664]">
-              Basic Information
-            </h2>
-          </div>
-          <Card className="border-none bg-white shadow-lg">
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <InfoItem
-                  label="Medication Name"
-                  value={medic.name}
-                  highlight
-                />
-                <InfoItem label="Dosage" value={medic.dosage} highlight />
-                <InfoItem
-                  label="Frequency"
-                  value={medic.frequency}
-                  icon={<Clock className="size-4 text-[#007664]" />}
-                />
-                <InfoItem
-                  label="Description"
-                  value={medic.medicationDescription}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Timing Details */}
-        <motion.div {...fadeIn} className="space-y-4">
-          <div className="mb-4 flex items-center gap-2">
-            <div className="h-8 w-2 rounded-full bg-[#53FDFD]" />
-            <h2 className="text-xl font-bold text-[#007664]">
-              Timing Details
-            </h2>
-          </div>
-          <Card className="border-none bg-white shadow-lg">
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                <InfoItem
-                  label="Start Date"
-                  value={medic.startDate}
-                  icon={<Calendar className="size-4 text-[#007664]" />}
-                />
-                <InfoItem
-                  label="End Date"
-                  value={medic.endDate}
-                  icon={<Calendar className="size-4 text-[#007664]" />}
-                />
-                <InfoItem
-                  label="Start Time"
-                  value={medic.medicationStartTime}
-                  icon={<Clock className="size-4 text-[#007664]" />}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Frequency Details */}
-        <motion.div {...fadeIn} className="space-y-4">
-          <div className="mb-4 flex items-center gap-2">
-            <div className="h-8 w-2 rounded-full bg-[#B24531]" />
-            <h2 className="text-xl font-bold text-[#007664]">
-              Frequency Details
-            </h2>
-          </div>
-          <Card className="border-none bg-white shadow-lg">
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <InfoItem
-                  label="Frequency Type"
-                  value={medic.medicationFrequency.type}
-                />
-                {medic.medicationFrequency.type === "daily" && (
+          {/* Basic Information */}
+          <motion.div {...fadeIn} className="space-y-4">
+            <div className="mb-4 flex items-center gap-2">
+              <div className="h-8 w-2 rounded-full bg-[#75C05B]" />
+              <h2 className="text-xl font-bold text-[#007664]">
+                Basic Information
+              </h2>
+            </div>
+            <Card className="border-none bg-white shadow-lg">
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <InfoItem
-                    label="Times Per Day"
-                    value={`${medic.medicationFrequency.value} times`}
+                    label="Medication Name"
+                    value={medic.name}
+                    highlight
                   />
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-    </DialogContent>
-  </Dialog>
-  )
-}
+                  <InfoItem label="Dosage" value={medic.dosage} highlight />
+                  <InfoItem
+                    label="Frequency"
+                    value={medic.frequency}
+                    icon={<Clock className="size-4 text-[#007664]" />}
+                  />
+                  <InfoItem
+                    label="Description"
+                    value={medic.medicationDescription}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
 
+          {/* Timing Details */}
+          <motion.div {...fadeIn} className="space-y-4">
+            <div className="mb-4 flex items-center gap-2">
+              <div className="h-8 w-2 rounded-full bg-[#53FDFD]" />
+              <h2 className="text-xl font-bold text-[#007664]">
+                Timing Details
+              </h2>
+            </div>
+            <Card className="border-none bg-white shadow-lg">
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                  <InfoItem
+                    label="Start Date"
+                    value={medic.startDate}
+                    icon={<Calendar className="size-4 text-[#007664]" />}
+                  />
+                  <InfoItem
+                    label="End Date"
+                    value={medic.endDate}
+                    icon={<Calendar className="size-4 text-[#007664]" />}
+                  />
+                  <InfoItem
+                    label="Start Time"
+                    value={medic.medicationStartTime}
+                    icon={<Clock className="size-4 text-[#007664]" />}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Frequency Details */}
+          <motion.div {...fadeIn} className="space-y-4">
+            <div className="mb-4 flex items-center gap-2">
+              <div className="h-8 w-2 rounded-full bg-[#B24531]" />
+              <h2 className="text-xl font-bold text-[#007664]">
+                Frequency Details
+              </h2>
+            </div>
+            <Card className="border-none bg-white shadow-lg">
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <InfoItem
+                    label="Frequency Type"
+                    value={medic.medicationFrequency.type}
+                  />
+                  {medic.medicationFrequency.type === "daily" && (
+                    <InfoItem
+                      label="Times Per Day"
+                      value={`${medic.medicationFrequency.value} times`}
+                    />
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+          <motion.div {...fadeIn} className="space-y-4">
+            <div className="mb-4 flex items-center gap-2">
+              <div className="h-8 w-2 rounded-full bg-[#B24531]" />
+              <h2 className="text-xl font-bold text-[#007664]">
+                Follow Up Protocol
+              </h2>
+            </div>
+            <Card className="border-none bg-white shadow-lg">
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <InfoItem
+                    label="Follow Up Protocol"
+                    value="This a Follow Up Protocol"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+          <motion.div {...fadeIn} className="space-y-4">
+            <div className="mb-4 flex items-center gap-2">
+              <div className="h-8 w-2 rounded-full bg-[#007669]" />
+              <h2 className="text-xl font-bold text-[#007664]">
+                Additional Notes
+              </h2>
+            </div>
+            <Card className="border-none bg-white shadow-lg">
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <InfoItem
+                    label="Adiitional Notes"
+                    value="This is an Adiitional notes"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

@@ -3053,6 +3053,12 @@ export function NewExamination ({ onTabChange }) {
   };
 
 export function ViewExamination  ({ consult, isOpen, onClose }) {
+  const fadeIn = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.5 },
+  };
+
   const InfoItem = ({ label, value }) => (
     <div className="space-y-1">
       <h4 className="text-sm font-medium text-gray-600">{label}</h4>

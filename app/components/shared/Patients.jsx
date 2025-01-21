@@ -1,5 +1,5 @@
 
-
+'use client'
 import React, { useState, useEffect } from 'react';
 
 // Lucide Icons
@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import {
   PatientDetailsView
-  } from "../../components/shared";
+  } from "../shared";;
 // UI Components
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
