@@ -162,7 +162,7 @@ const Patients = ({setSelectedUser = () => {}}) => {
     comments: 'Levels are within the normal range.'
   }
     ],
-    consultations: [
+    examinations: [
       {
         id: "2",                        // Unique consultation identifier
         status: "completed",            // Status of the consultation
