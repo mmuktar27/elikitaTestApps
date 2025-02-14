@@ -2249,12 +2249,12 @@ return (
   // Function to categorize staff
   const categorizeStaff = (allStaff) => {
     Object.values(allStaff).forEach((staff) => {
-      if (staff.roles.includes("Doctor")) {
+      if (staff.roles.includes("doctor")) {
         doctors.push({ 
           id: staff.id, 
           name: `Dr. ${staff.firstName} ${staff.lastName}` // Append "Dr." to doctors
         });
-      } else if (staff.roles.includes("LabTechnician")) {
+      } else if (staff.roles.includes("lab technician")) {
         labTechnicians.push({ 
           id: staff.id, 
           name: `${staff.firstName} ${staff.lastName}` 
@@ -2267,7 +2267,6 @@ return (
       }
     });
   };
-  
   categorizeStaff(allStaff);
 
   console.log("Doctors:", doctors);
