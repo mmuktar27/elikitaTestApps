@@ -1,6 +1,6 @@
 "use client";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Urbanist, Poppins } from "next/font/google";
 import { ThemeModeScript } from "flowbite-react";
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import { QueryClient } from "@tanstack/react-query";
@@ -8,13 +8,25 @@ import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import SessionProviderComponent from "@/providers/SessionProvider";
+import LoadingProvider from "@/components/shared/AppLoader";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
 
-/* export const metadata: Metadata = {
-  title: "E-likita",
-  description: "e-likita",
-}; */
+const urbanist = Urbanist({
+  subsets: ["latin"],
+  display: "auto",
+  variable: "--font-urbanist",
+});
+
+const poppins = Poppins({
+  subsets: ["devanagari", "latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-poppins",
+});
 
 export default function RootLayout({
   children,
@@ -42,16 +54,20 @@ export default function RootLayout({
       persistOptions={{ persister }}
     >
       <SessionProviderComponent>
-        <html lang="en">
-          <head>
-            <ThemeModeScript />
-          </head>
-          <body className={inter.className}>
-            {children}
+        <LoadingProvider>
+          <html lang="en">
+            <head>
+              <ThemeModeScript />
+            </head>
+            <body
+              className={`${urbanist.variable}  ${inter.variable} ${poppins.variable}`}
+            >
+              {children}
 
-            <Toaster />
-          </body>
-        </html>
+              <Toaster />
+            </body>
+          </html>
+        </LoadingProvider>
       </SessionProviderComponent>
     </PersistQueryClientProvider>
   );

@@ -1,29 +1,33 @@
 import axios from "axios";
+import { getSession } from "next-auth/react";
 
-const API = axios.create({
-  baseURL: `https://elikitawebservices-crdpgafxekayhkbe.southafricanorth-01.azurewebsites.net/api/v2/`,
-  timeout: 15000,
+ const API = axios.create({
+  baseURL:
+    "https://elikitawebservices-crdpgafxekayhkbe.southafricanorth-01.azurewebsites.net/api/v2",
+  timeout: 30000,
 });
 
-/* API.interceptors.request.use((req) => {
-  if (Cookies.get("elktoken")) {
-    const token = Cookies.get("elktoken").replace(/"/g, "").replace(/\\/g, "");
-    console.log("Outgoing Token:", token);
-    req.headers.Authorization = `Bearer ${token}`;
-  }
-  return req;
-}); */
 
-API.interceptors.response.use(
-  (response) => {
-    return response;
+
+API.interceptors.request.use(
+  async (config) => {
+    try {
+      const session = await getSession();
+
+      if (session) {
+        config.headers.Authorization = `Bearer ${session?.idToken}`;
+        config.headers.userCred = session?.user;
+        config.headers.userid = session?.user?.id;
+        config.headers.userroles = session?.user?.roles;
+      }
+    } catch (error) {
+      console.error("Error retrieving session:", error);
+    }
+
+    return config;
   },
   (error) => {
-    // Handle error responses
-    console.error("An error occurred:", error);
-    if (error?.response?.status === 401) {
-      // window.location.href = `/auth/login?from=${window.location.pathname}`;
-    }
+    // Handle errors before the request is sent
     return Promise.reject(error);
   },
 );

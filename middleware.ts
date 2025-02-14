@@ -51,7 +51,8 @@ export const config = {
     "/admin/utilities",
     "/receptionist",
     "/healthcare",
-    "/doctor",
+   
     "/remote-doctor",
   ],
 };
+//"/doctor",

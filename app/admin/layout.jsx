@@ -18,7 +18,7 @@ import {
 import { useEffect, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 
-import { LogoutConfirmation } from "../components/shared";
+import { Logout } from "@/components/shared";
 import Time from "../../components/ui/Time";
 import TeamSwitcher from "../../components/ui/team-switcher";
 
@@ -80,13 +80,6 @@ const Dialog = ({ isOpen, onClose, children }) => {
 
 function DashboardPage({ children }) {
   const { formattedDate, formattedTime } = useDateTime();
-  const logout = async () => {
-    console.log("logging out");
-    await signOut({
-      callbackUrl: "/login",
-      redirect: true,
-    });
-  };
 
   const session = useSession();
 
@@ -177,7 +170,7 @@ function DashboardPage({ children }) {
 
           <button
             className={`flex w-full items-center gap-2 space-x-2 rounded   p-2 text-sm font-bold text-white hover:bg-[#75C05B]/20 hover:text-white`}
-            onClick={() => signOut()}
+            onClick={() => setIsLogoutConfirmationOpen(true)}
           >
             <LogOut size={18} /> Logout
           </button>
@@ -188,7 +181,7 @@ function DashboardPage({ children }) {
             <TeamSwitcher roles={session?.data?.user?.roles} />
             <Separator />
             {session?.data && (
-              <div className="text-2xl font-bold">
+              <div className="text-xl font-bold">
                 <p>{formattedDate}</p>
                 <p>{formattedTime}</p>
               </div>
@@ -228,10 +221,10 @@ function DashboardPage({ children }) {
         </div>
         {children}
 
-        <LogoutConfirmation
+        <Logout
           isOpen={isLogoutConfirmationOpen}
           onClose={() => setIsLogoutConfirmationOpen(false)}
-          onConfirm={logout}
+          onConfirm={async () => await signOut}
         />
       </main>
     </div>

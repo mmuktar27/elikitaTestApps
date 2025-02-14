@@ -39,7 +39,7 @@ export default function UserComponent() {
   });
 
   const [showPassword, setShowPassword] = useState(false);
-  const [orgName, setOrgName] = useState("<Org>");
+  const [organization, setOrganization] = useState("e-likita");
   const [showAddUserModal, setShowAddUserModal] = useState(false);
 
   const [editingUser, setEditingUser] = useState(null);
@@ -53,6 +53,8 @@ export default function UserComponent() {
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  //const [organization, setOrga] = useState("");
 
   const {
     mutate: createUser,
@@ -77,6 +79,25 @@ export default function UserComponent() {
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm]);
+
+  useEffect(() => {
+    let generatedDisplayName = "";
+
+    if (newUser.firstName && newUser.lastName) {
+      generatedDisplayName = `${newUser.firstName} ${newUser.lastName}`;
+
+      if (organization) {
+        generatedDisplayName += ` (${organization})`;
+      }
+    } else if (newUser.firstName) {
+      generatedDisplayName = newUser.firstName;
+    } else if (newUser.lastName) {
+      generatedDisplayName = newUser.lastName;
+    }
+
+    setDisplayName(generatedDisplayName.trim());
+    setNewUser((prev) => ({ ...prev, displayName: generatedDisplayName }));
+  }, [newUser.firstName, newUser.lastName, organization]);
 
   const filteredUsers = users.filter((user) => {
     const lowerSearchTerm = searchTerm.toLowerCase();
@@ -211,7 +232,7 @@ export default function UserComponent() {
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white">
-            <thead className="bg-[#B24531] text-white">
+            <thead className="bg-[#007664] text-white">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                   Name
@@ -349,6 +370,7 @@ export default function UserComponent() {
                 <label
                   htmlFor="displayName"
                   className="block text-sm font-medium text-gray-700"
+                  temp
                 >
                   Display Name
                 </label>
