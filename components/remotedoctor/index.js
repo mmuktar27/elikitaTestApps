@@ -1,5 +1,5 @@
 export { default as Dashboard } from "./dashboard";
-export { default as PatientsPage } from "./Patients";
+export { default as PatientsPage } from "./patients";
 export { default as PatientDetailsView } from "./PatientDetailsView.jsx";
 
 export { default as SettingsPage } from "./SettingsComponent";

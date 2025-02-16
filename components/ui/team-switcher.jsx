@@ -80,6 +80,7 @@ export default function TeamSwitcher({ roles }) {
   const handleTeamSelect = React.useCallback(
     (team) => {
       //startLoading();
+    //  console.log(team.value)
       setSelectedTeam(team);
       setOpen(false);
       const route = ROLE_ROUTES[team.label];

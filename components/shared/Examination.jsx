@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
+import {useSession } from "next-auth/react";
 
 // Lucide Icons
 import {
@@ -465,6 +466,7 @@ export function NewExamination({
 }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [touchedFields, setTouchedFields] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const [formData, setFormData] = useState(() => {
     if (initialExamination !== null) {
@@ -480,6 +482,8 @@ export function NewExamination({
   const [conditionValue, setConditionValue] = useState("");
   const [selectedValue, setSelectedValue] = useState(""); // Manage state for selected value
   const [currentmultisimPage, setCurrenmultisimtPage] = useState(0);
+     const session = useSession();
+  
   const [errors, setErrors] = useState();
 
   const validatePreCheckAndVitalsForm = (formData = {}) => {
@@ -3174,6 +3178,12 @@ export function NewExamination({
                 </h3>
                 {Object.keys(section.subsections).map((subsectionKey) => {
                   const subsection = section.subsections[subsectionKey];
+
+                  const hasData =
+                  formData?.chiefComplain?.[sectionKey]?.[subsectionKey] &&
+    Object.values(formData?.chiefComplain[sectionKey][subsectionKey]).some(
+      (value) => value !== null && value !== undefined && value !== "" && !(Array.isArray(value) && value.length === 0)
+    );
                   return (
                     <div key={subsectionKey} className="space-y-3">
                       <h4 className="font-semibold text-[#007664]"></h4>
@@ -3183,7 +3193,9 @@ export function NewExamination({
                         <input
                           type="checkbox"
                           id={`${sectionKey}-${subsectionKey}`}
+                          checked={hasData} 
                           className="peer cursor-pointer appearance-none rounded border-2 border-[#75C05B] text-[#007664] transition-colors duration-200 checked:bg-[#007664] focus:ring-[#007664] focus:ring-offset-2"
+                          
                           onChange={(e) =>
                             handleChangeChiefcomplain(
                               sectionKey,
@@ -3350,13 +3362,14 @@ export function NewExamination({
                             key={option}
                             className="flex cursor-pointer items-center space-x-3 rounded-lg bg-gray-50 p-3 transition-colors hover:bg-gray-100"
                           >
-                            <input
-                              type="radio"
-                              name={`${area.title}-${section.name}`}
-                              value={option}
-                              className="size-4 text-blue-600"
-                              onChange={handleChange}
-                            />
+                           <input
+      type="radio"
+      name={`${area.title}-${section.name}`} 
+      checked={formData?.physicalExam?.[area.title]?.[section.name] === option}
+      value={option}
+      className="size-4 text-blue-600"
+      onChange={handleChange}
+    />
                             <span className="text-gray-700">{option}</span>
                           </label>
                         ))}
@@ -3609,25 +3622,50 @@ export function NewExamination({
   const [manualUpdateTrigger, setManualUpdateTrigger] = useState(false);
 
   useEffect(() => {
+    const handleExamination = async () => {
+      if (!buttonText) return; // Ensure buttonText is available
+  
+      setIsLoading(true); // Start loading
+  
+      if (buttonText === "Submit") {
+        await createExamination(formData, onSubmit, onTabChange);
+      } else if (buttonText === "Update") {
+        await updateExam(formData, onSubmit, onTabChange);
+      }
+  
+      setIsLoading(false); // Stop loading after completion
+    };
+  
     if (manualUpdateTrigger) {
-      // console.log("Updated formData:", formData);
-      createExamination(formData, onSubmit, onTabChange);
+      handleExamination();
       setManualUpdateTrigger(false); // Reset trigger
     }
-  }, [manualUpdateTrigger, formData, createExamination]);
-
+  }, [manualUpdateTrigger, formData, createExamination, updateExam, buttonText]);
+  
+  
   const handleSubmitExamination = () => {
-    setFormData((prevData) => ({
-      ...prevData,
-      patient: patient,
-      examinedBy: "Dr. Smith",
-      examinationID: examinationID,
-      examinedAt: "Gembu Center",
-    }));
-
-    // console.log(formData)
+    if (buttonText === "Submit") {
+      setFormData((prevData) => ({
+        ...prevData,
+        patient: patient,
+        examinedBy: session?.data?.user?.id,
+        examinationID: examinationID,
+        examinedAt: "Gembu Center",
+      }));
+    }
+  
+    if (buttonText === "Update") {
+      setFormData((prevData) => ({
+        ...prevData,
+        patient: patient,
+        examinedBy: session?.data?.user?.id,
+        examinedAt: "Gembu Center",
+      }));
+    }
+  
     setManualUpdateTrigger(true);
   };
+  
 
   return (
     <div className="flex min-h-screen w-full flex-col">
@@ -3682,38 +3720,44 @@ export function NewExamination({
                 ? `Page ${currentPage} (${currentInnerPage + 1}/${selectedComplaints.length})`
                 : `Page ${currentPage} of ${pages.length}`}
             </span>
-            <button
-                  onClick={() => {
+            <button 
+                 disabled={isLoading}
+  onClick={() => {
+    let isValid = true;
 
-                    // console.log(handleSubmitmulti())
-                    // console.log(selectedComplaints)
-          
-                   let isValid = true;
-                     if (currentPage === 2) {
-                       isValid = validatePrechecks();
-                     } else if (currentPage === 3) {
-                       isValid = validateChiefComplaints();
-                       console.log(validateChiefComplaints())
-                     } else if (currentPage === 5) {
-                       isValid = validatePhysicalExam();
-                     }
-                     
-                     if (isValid) {
-                       if (currentPage === pages.length) {
-                         handleSubmitExamination();
-                        //console.log(formData)
-                       } else {
-                         handleNavigation('next');
-                       }
-                 
-                     }
-     
-                   }}
-              className="flex items-center rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-teal-600 disabled:opacity-50 disabled:hover:bg-teal-500"
-            >
-              {currentPage === pages.length ? "Complete" : "Next"}
-              <ChevronRight className="ml-2 size-5" />
-            </button>
+    if (currentPage === 2) {
+      isValid = validatePrechecks();
+    } else if (currentPage === 3) {
+      isValid = validateChiefComplaints();
+      console.log(isValid); // Logging validation result
+    } else if (currentPage === 5) {
+      isValid = validatePhysicalExam();
+    }
+
+    if (!isValid) return; // Stop execution if validation fails
+
+    if (currentPage === pages.length) {
+      handleSubmitExamination(); // No need for setIsLoading since it's in useEffect
+    } else {
+      handleNavigation("next");
+    }
+  }}
+  className="flex items-center rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-teal-600 disabled:opacity-50 disabled:hover:bg-teal-500"
+>
+  {isLoading ? (
+    <>
+      <Loader2 className="h-4 w-4 animate-spin" />
+      {currentPage === pages.length ? (buttonText === "Update" ? "Updating..." : "Submitting...") : "Next"}
+    </>
+  ) : (
+    <>
+      {currentPage === pages.length ? (buttonText === "Update" ? "Update" : "Submit") : "Next"}
+      <ChevronRight className="ml-2 size-5" />
+    </>
+  )}
+</button>
+
+
           </div>
         </div>
       </div>

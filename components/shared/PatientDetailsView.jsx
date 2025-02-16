@@ -99,6 +99,12 @@ import {
   ResponsiveContainer,
 } from "recharts";
 // UI Components
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -167,7 +173,13 @@ import { fetchPatientData
 } from "../shared/api";
 import {createReferral  } from "../shared/api";
 import {getAllStaff } from "../shared/api";
-import {useSession } from "next-auth/react";
+
+import { getCurrentBookingUrlConfig } from "../shared/api"
+
+
+
+
+//import {useSession } from "next-auth/react";
 
 import { motion } from "framer-motion";
 const examinationSteps = [
@@ -252,14 +264,13 @@ const PatientDetailsView = ({ patient, onClose, SelectedPatient,currentUser }) =
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isInCall, setIsInCall] = useState(false);
   const [isvisithistory, setIsvisithistory] = useState({});
-  const [mergedVisitHistory, setmergedVisitHistory,] = useState({});
-  const session = useSession();
+  const [mergedVisitHistory, setmergedVisitHistory] = useState({});
+ // const session = useSession();
+ const [bookingUrls, setBookingUrls] = useState({});
 
-  const [allStaff, setAllStaff,] = useState({});
+  const [allStaff, setAllStaff] = useState({});
 
-  console.log('session?.data?.user')
-console.log(session?.data?.user)
-console.log('session?.data?.user')
+
   useEffect(() => {
     const fetchallStaff = async () => {
         try {
@@ -274,6 +285,24 @@ console.log('session?.data?.user')
     console.log(allStaff)
 }, []);
 
+
+useEffect(() => {
+  const fetchUrls = async () => {
+    try {
+      const urls = await getCurrentBookingUrlConfig();
+      
+      if (urls) {
+        setBookingUrls({ internal: urls.internalBookingUrl, external: urls.externalBookingUrl });
+      } else {
+        console.warn("No existing configuration found.");
+      }
+    } catch (error) {
+      console.error("Error fetching booking URLs:", error);
+    }
+  };
+
+  fetchUrls();
+}, []);
 
 
 
@@ -371,7 +400,36 @@ console.log('session?.data?.user')
               <div className="rounded-xl bg-gradient-to-br from-[#00a98e] to-[#007664] p-4 text-white shadow-md">
                 <User className="mb-2 size-6" />
                 <h3 className="text-lg font-semibold">Attended By</h3>
-                <p className="text-sm opacity-80">  {visit.details.examinedBy || visit.details.requestedBy || visit.details.diagnosedBy}
+                <p className="text-sm opacity-80">  <p className="text-sm opacity-80">
+         
+  
+                <p className="text-sm opacity-80">
+  {(() => {
+    const staff = visit.details.examinedBy || visit.details.requestedBy || visit.details.diagnosedBy;
+    
+    // If no staff data, return default message
+    if (!staff) return 'Not specified';
+    
+    // If staff is a string, return it directly (for backward compatibility)
+    if (typeof staff === 'string') return staff;
+    
+    // If staff is an array, map through it and combine names
+    if (Array.isArray(staff)) {
+      return staff
+        .filter(person => person?.firstName && person?.lastName)
+        .map(person => `${person.firstName} ${person.lastName}`)
+        .join(', ') || 'Not specified';
+    }
+    
+    // If staff is a single user object
+    if (staff?.firstName && staff?.lastName) {
+      return `${staff.firstName} ${staff.lastName}`;
+    }
+    
+    return 'Not specified';
+  })()}
+</p>
+</p>
                 </p>
               </div>
               <div className="rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 p-4 text-white shadow-md">
@@ -764,7 +822,11 @@ console.log('session?.data?.user')
                        <div className="grid grid-cols-2 gap-4">
                          <div>
                            <p className="text-sm font-medium text-gray-500">Requested By</p>
-                           <p className="text-gray-700">{visit.details.requestedBy}</p>
+  <p className="text-gray-700">
+    {typeof visit.details.requestedBy === 'object' && visit.details.requestedBy !== null
+      ? `${visit.details.requestedBy.firstName} ${visit.details.requestedBy.lastName}`
+      : visit.details.requestedBy || 'Not specified'}
+  </p>
                          </div>
                          <div>
                            <p className="text-sm font-medium text-gray-500">Requested At</p>
@@ -2339,25 +2401,27 @@ return (
 
           {/* Contact Information Card */}
           <div className="rounded-lg bg-white p-4 shadow-sm transition-shadow duration-200 hover:shadow-md">
-            <div className="flex flex-col items-center space-y-4 sm:flex-row sm:items-start sm:space-x-4 sm:space-y-0">
-              <div className="flex size-12 items-center justify-center rounded-full bg-[#007664]/10">
-                <Phone className="size-6 text-[#007664]" />
-              </div>
-              <div className="flex-1 text-center sm:text-left">
-                <p className="text-sm font-medium text-gray-500">Contact</p>
-                <p className="max-w-full break-words text-lg font-semibold text-[#007664]">
-                  {SelectedPatient.phone}
-                  <br />
-                  <span className="text-base">{SelectedPatient.email}</span>
-                </p>
-                <p className="mt-1 text-sm text-gray-600">
-                  <span className="inline-block rounded-full bg-[#B24531]/10 px-2 py-0.5 text-xs text-[#B24531]">
-                    {SelectedPatient.emergencyContact}
-                  </span>
-                </p>
-              </div>
-            </div>
+      <div className="flex flex-col items-center space-y-4 sm:flex-row sm:items-start sm:space-x-4 sm:space-y-0">
+        <div className="flex size-12 items-center justify-center rounded-full bg-[#007664]/10">
+          <Phone className="size-6 text-[#007664]" />
+        </div>
+        <div className="flex-1 text-center sm:text-left">
+          <p className="text-sm font-medium text-gray-500">Contact</p>
+          <div className="w-full break-words text-lg font-semibold text-[#007664]">
+            <p className="mb-1">{SelectedPatient.phone}</p>
+           
           </div>
+          <p className="text-base text-[#007664]">
+              {SelectedPatient.email}
+            </p>
+          <p className="mt-2 text-sm text-gray-600">
+            <span className="inline-block rounded-full bg-[#B24531]/10 px-2 py-0.5 text-xs text-[#B24531]">
+              {SelectedPatient.emergencyContact}
+            </span>
+          </p>
+        </div>
+      </div>
+    </div>
 
           {/* Address Card */}
           <div className="rounded-lg bg-white p-4 shadow-sm transition-shadow duration-200 hover:shadow-md">
@@ -2672,7 +2736,110 @@ const patientvisitHistory = (filterByVisitHistory(mergedVisitHistory,isvisithist
     submitReferral()
   };
   const capitalize = (str) => str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : "";
+ 
+ //diagnosis table pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 10;
+  
+  // Calculate pagination indices
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = diagnoses?.slice(indexOfFirstRecord, indexOfLastRecord);
+  
+  // Calculate total pages
+  const totalPages = Math.ceil((diagnoses?.length || 0) / recordsPerPage);
 
+ 
+ //examination table pagination
+  const [examCurrentPage, setExamCurrentPage] = useState(1);
+const examRecordsPerPage = 10;
+
+// Calculate index range for slicing the data
+const examIndexOfLastRecord = examCurrentPage * examRecordsPerPage;
+const examIndexOfFirstRecord = examIndexOfLastRecord - examRecordsPerPage;
+const examCurrentRecords = examinations.slice(examIndexOfFirstRecord, examIndexOfLastRecord);
+
+// Calculate total pages
+const examTotalPages = Math.ceil(examinations.length / examRecordsPerPage);
+
+
+//labtest table paginations
+const [labTestCurrentPage, setLabTestCurrentPage] = useState(1);
+const labTestRecordsPerPage = 10;
+
+// Calculate index range for slicing the data
+const labTestIndexOfLastRecord = labTestCurrentPage * labTestRecordsPerPage;
+const labTestIndexOfFirstRecord = labTestIndexOfLastRecord - labTestRecordsPerPage;
+const labTestCurrentRecords = labTests.slice(labTestIndexOfFirstRecord, labTestIndexOfLastRecord);
+
+// Calculate total pages
+const labTestTotalPages = Math.ceil(labTests.length / labTestRecordsPerPage);
+
+//medication table pagination
+
+const [medCurrentPage, setMedCurrentPage] = useState(1);
+const medRecordsPerPage = 10;
+
+// Calculate index range for slicing the data
+const medIndexOfLastRecord = medCurrentPage * medRecordsPerPage;
+const medIndexOfFirstRecord = medIndexOfLastRecord - medRecordsPerPage;
+const medCurrentRecords = medications.slice(medIndexOfFirstRecord, medIndexOfLastRecord);
+
+// Calculate total pages
+const medTotalPages = Math.ceil(medications.length / medRecordsPerPage);
+
+
+
+
+const BookingButton = ({ onBookingSelect, internalUrl, externalUrl }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const openUrl = (url) => {
+    if (!url) return;
+    
+    const formattedUrl = url.startsWith("http") ? url : `https://${url}`;
+    window.open(formattedUrl, "_blank");
+    setIsOpen(false);
+  };
+  
+  const handleInternalBooking = () => openUrl(internalUrl);
+  const handleExternalBooking = () => openUrl(externalUrl);
+
+  return (
+    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+      <DropdownMenuTrigger asChild>
+        <Button 
+          className="flex w-full items-center justify-center gap-2 bg-[#007664] text-white hover:bg-[#007664]/90 sm:w-40 transition-all duration-300"
+        >
+          <Calendar className="size-4" />
+          <span>Book Now</span>
+          <ChevronDown className="size-4 ml-1" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-48">
+        <DropdownMenuItem
+          onClick={handleInternalBooking}
+          className="flex items-center gap-2 cursor-pointer hover:bg-[#007664] hover:text-white transition-colors duration-200"
+        >
+          <Calendar className="size-4" />
+          <span>Internal Booking</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={handleExternalBooking}
+          className="flex items-center gap-2 cursor-pointer hover:bg-[#007664] hover:text-white transition-colors duration-200"
+        >
+          <Calendar className="size-4" />
+          <span>External Booking</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
+
+console.log('urls')
+console.log(bookingUrls)
+console.log('urls')
   return (
     <div>
       {activeTab === "summary" && (
@@ -2698,13 +2865,13 @@ const patientvisitHistory = (filterByVisitHistory(mergedVisitHistory,isvisithist
               {/* Action Buttons Group */}
               <div className="flex flex-col items-center gap-3 sm:flex-row sm:gap-4">
       {!isInCall && (
-        <Button 
-          onClick={handleStartCall}
-          className="flex w-full items-center justify-center gap-2 bg-[#00686A] text-white hover:bg-[#00686A]/80 sm:w-40"
-        >
-          <Phone className="size-4" />
-          <span>Start Call</span>
-        </Button>
+        <>
+        
+        <BookingButton 
+        
+        internalUrl={bookingUrls.internal}
+        externalUrl ={bookingUrls.external}
+        /></>
       )}
       <Button
         onClick={handlePrintReport}
@@ -3015,146 +3182,87 @@ const patientvisitHistory = (filterByVisitHistory(mergedVisitHistory,isvisithist
                         </tr>
                       </thead>
                       <tbody className="divide-y">
-                        {examinations?.map((examination) => {
-                          // Extract the doctor from the participants
+  {examCurrentRecords?.map((examination) => {
+    const formatDateTime = (dateTimeString) => {
+      const dateObj = new Date(dateTimeString);
+      const date = dateObj.toISOString().split("T")[0];
+      let hours = dateObj.getHours();
+      let minutes = dateObj.getMinutes();
+      const amPm = hours >= 12 ? "PM" : "AM";
+      hours = hours % 12 || 12;
+      minutes = minutes.toString().padStart(2, "0");
+      const time = `${hours}:${minutes} ${amPm}`;
+      return { date, time };
+    };
 
-                          const formatDateTime = (dateTimeString) => {
-                            const dateObj = new Date(dateTimeString);
+    const formatted = formatDateTime(examination.createdAt);
 
-                            // Extract Date (YYYY-MM-DD)
-                            const date = dateObj.toISOString().split("T")[0];
+    return (
+      <tr key={examination._id}>
+        <td className="px-4 py-2">{examination.examinationID}</td>
+        <td className="px-4 py-2">{formatted.date}</td>
+        <td className="px-4 py-2">{formatted.time}</td>
+        <td className="px-4 py-2">
+          {examination.examinedBy && examination.examinedBy.firstName && examination.examinedBy.lastName
+            ? `${examination.examinedBy.firstName} ${examination.examinedBy.lastName}`
+            : "Not Available"}
+        </td>
+        <td className="px-4 py-2">{examination.examinedAt}</td>
+        <td className="px-4 py-2">
+          <div className="flex space-x-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-blue-600 hover:text-blue-700"
+              onClick={() => handleViewExam(examination)}
+            >
+              <Eye className="size-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-[#007664] hover:text-[#007664]/80"
+              onClick={() => handleEditExam(examination)}
+            >
+              <Edit className="size-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-red-700 hover:text-red-800"
+              onClick={() => startDelete(examination._id, "Examination")}
+            >
+              <Trash2 className="size-4" />
+            </Button>
+          </div>
+        </td>
+      </tr>
+    );
+  })}
+</tbody>
 
-                            // Extract Hours, Minutes & Format Time in AM/PM
-                            let hours = dateObj.getHours();
-                            let minutes = dateObj.getMinutes();
-                            const amPm = hours >= 12 ? "PM" : "AM";
-
-                            // Convert to 12-hour format
-                            hours = hours % 12 || 12; // Converts 0 to 12
-                            minutes = minutes.toString().padStart(2, "0"); // Ensure two digits
-
-                            const time = `${hours}:${minutes} ${amPm}`;
-
-                            return { date, time };
-                          };
-
-                          const formatted = formatDateTime(
-                            examination.createdAt,
-                          );
-                          return (
-                            <tr key={examination._id}>
-                              <td className="px-4 py-2">
-                                {examination.examinationID}
-                              </td>
-                              <td className="px-4 py-2">{formatted.date}</td>
-                              <td className="px-4 py-2">{formatted.time}</td>
-                              <td className="px-4 py-2">
-                                {examination.examinedBy}
-                              </td>
-                              <td className="px-4 py-2">
-                                {examination.examinedAt}
-                              </td>
-                              <td className="px-4 py-2">
-                                <div className="flex space-x-2">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="text-blue-600 hover:text-blue-700"
-                                    onClick={() => handleViewExam(examination)}
-                                  >
-                                    <Eye className="size-4" />
-                                  </Button>
-                                  <Dialog
-                                    open={viewExamState.isOpen}
-                                    onOpenChange={(isOpen) =>
-                                      !isOpen && handleDialogClose()
-                                    }
-                                  >
-                                    <DialogTrigger asChild></DialogTrigger>
-
-                                    <DialogContent className="max-h-[90vh] max-w-full overflow-y-auto sm:max-w-2xl">
-                                      <DialogHeader>
-                                        <DialogTitle>
-                                          Examination Details
-                                        </DialogTitle>
-                                      </DialogHeader>
-
-                                      <ViewExamination
-                                        examination={
-                                          viewExamState.selectedExamination
-                                        }
-                                        isOpen={viewExamState.isOpen}
-                                        onClose={handleDialogClose}
-                                      />
-                                    </DialogContent>
-                                  </Dialog>
-
-                                  <Dialog
-                                    open={editExamState.isOpen}
-                                    onOpenChange={(isOpen) =>
-                                      !isOpen && handleDialogClose()
-                                    }
-                                  >
-                                    <DialogTrigger asChild>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="text-[#007664] hover:text-[#007664]/80"
-                                        onClick={() =>
-                                          handleEditExam(examination)
-                                        }
-                                      >
-                                        <Edit className="size-4" />
-                                      </Button>
-                                    </DialogTrigger>
-
-                                    <DialogContent className="max-h-[90vh] max-w-full overflow-y-auto sm:max-w-5xl">
-                                      <DialogHeader>
-                                        <div className="flex items-center justify-center ">
-                                          <DialogTitle className="text-teal-800">
-                                            <div className="mb-0 text-center">
-                                              <h2 className="bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-3xl font-bold text-transparent">
-                                                Edit Examination
-                                              </h2>
-                                            </div>
-                                          </DialogTitle>
-                                        </div>
-                                      </DialogHeader>
-
-                                      <NewExamination
-                                        onTabChange={handleTabtriggerChange}
-                                        patient={patient._id}
-                                        initialExamination={
-                                          editExamState.selectedExamination
-                                        }
-                                        onClose={handleDialogClose}
-                                        onSubmit={(status, message) =>
-                                          handleExamSubmit(status, message)
-                                        }
-                                         buttonText="Update"
-                                      />
-                                    </DialogContent>
-                                  </Dialog>
-
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="text-red-700 hover:text-red-800"
-                                    onClick={() =>
-                                      startDelete(
-                                        examination._id,
-                                        "Examination",
-                                      )
-                                    }
-                                  >
-                                    <Trash2 className="size-4" />
-                                  </Button>
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
+{/* Pagination Controls */}
+{examinations.length > 10 && (
+  <div className="flex justify-between items-center mt-4">
+    <button
+      onClick={() => setExamCurrentPage((prev) => Math.max(prev - 1, 1))}
+      disabled={examCurrentPage === 1}
+      className="px-4 py-2 bg-teal-500 text-white rounded disabled:opacity-50"
+    >
+      Previous
+    </button>
+    <span className="text-gray-700">
+      Page {examCurrentPage} of {examTotalPages}
+    </span>
+    <button
+      onClick={() => setExamCurrentPage((prev) => Math.min(prev + 1, examTotalPages))}
+      disabled={examCurrentPage === examTotalPages}
+      className="px-4 py-2 bg-teal-500 text-white rounded disabled:opacity-50"
+    >
+      Next
+    </button>
+  </div>
+)}
                     </table>
                   </div>
                 </TabsContent>
@@ -3224,151 +3332,96 @@ const patientvisitHistory = (filterByVisitHistory(mergedVisitHistory,isvisithist
                         </tr>
                       </thead>
                       <tbody className="divide-y">
-                        {diagnoses?.map((diagnosis) => {
-                          if (!diagnosis) return null;
-                          const formatDateTime = (dateTimeString) => {
-                            if (!dateTimeString)
-                              return { date: "N/A", time: "N/A" }; // Handle missing date
+  {currentRecords?.map((diagnosis) => {
+    if (!diagnosis) return null;
 
-                            const dateObj = new Date(dateTimeString);
+    const formatDateTime = (dateTimeString) => {
+      if (!dateTimeString) return { date: "N/A", time: "N/A" };
+      const dateObj = new Date(dateTimeString);
+      if (isNaN(dateObj.getTime())) return { date: "Invalid Date", time: "Invalid Time" };
 
-                            if (isNaN(dateObj.getTime()))
-                              return {
-                                date: "Invalid Date",
-                                time: "Invalid Time",
-                              }; // Handle invalid date
+      const date = dateObj.toISOString().split("T")[0];
+      let hours = dateObj.getUTCHours();
+      let minutes = dateObj.getUTCMinutes();
+      const amPm = hours >= 12 ? "PM" : "AM";
+      hours = hours % 12 || 12;
+      minutes = minutes.toString().padStart(2, "0");
+      const time = `${hours}:${minutes} ${amPm}`;
 
-                            // Extract Date (YYYY-MM-DD)
-                            const date = dateObj.toISOString().split("T")[0];
+      return { date, time };
+    };
 
-                            // Extract Hours, Minutes & Format Time in AM/PM
-                            let hours = dateObj.getUTCHours(); // Use getUTCHours() for consistent time conversion
-                            let minutes = dateObj.getUTCMinutes();
-                            const amPm = hours >= 12 ? "PM" : "AM";
+    const formatted = formatDateTime(diagnosis?.createdAt || "");
 
-                            // Convert to 12-hour format
-                            hours = hours % 12 || 12; // Converts 0 to 12
-                            minutes = minutes.toString().padStart(2, "0"); // Ensure two digits
+    return (
+      <tr key={diagnosis.id}>
+        <td className="px-4 py-2">{diagnosis.diagnosisId}</td>
+        <td className="px-4 py-2">{formatted.date}</td>
+        <td className="px-4 py-2">{diagnosis.status}</td>
+        <td className="px-4 py-2">{diagnosis.severity}</td>
+        <td className="px-4 py-2">
+        {diagnosis.diagnosedBy && diagnosis.diagnosedBy.firstName && diagnosis.diagnosedBy.lastName
+  ? `${diagnosis.diagnosedBy.firstName} ${diagnosis.diagnosedBy.lastName}`
+  : "Not Available"}
 
-                            const time = `${hours}:${minutes} ${amPm}`;
+        </td>
+        <td className="px-4 py-2">
+          <div className="flex space-x-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-blue-600 hover:text-blue-700"
+              onClick={() => handleViewDiag(diagnosis)}
+            >
+              <Eye className="size-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-[#007664] hover:text-[#007664]/80"
+              onClick={() => handleEditDiag(diagnosis)}
+            >
+              <Edit className="size-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-red-700 hover:text-red-800"
+              onClick={() => startDelete(diagnosis._id, "Diagnoses")}
+            >
+              <Trash2 className="size-4" />
+            </Button>
+          </div>
+        </td>
+      </tr>
+    );
+  })}
+</tbody>
 
-                            return { date, time };
-                          };
-                          // console.log(labTests);
-                          // Ensure that labTests is not undefined before accessing createdAt
-                          const formatted = formatDateTime(
-                            diagnosis?.createdAt || "",
-                          );
+{/* Pagination Controls */}
+{totalPages > 1 && (
+  <div className="flex items-center justify-between p-4">
+    <button
+      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+      disabled={currentPage === 1}
+      className="rounded-lg bg-teal-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-teal-600 disabled:opacity-50"
+    >
+      Previous
+    </button>
 
-                          return (
-                            <tr key={diagnosis.id}>
-                              <td className="px-4 py-2">
-                                {" "}
-                                {diagnosis.diagnosisId}
-                              </td>
-                              <td className="px-4 py-2">{formatted.date}</td>
-                              <td className="px-4 py-2">{diagnosis.status}</td>
-                              <td className="px-4 py-2">
-                                {diagnosis.severity}
-                              </td>
-                              <td className="px-4 py-2">
-                                {diagnosis.diagnosedBy}
-                              </td>
-                              <td className="px-4 py-2">
-                                <div className="flex space-x-2">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="text-blue-600 hover:text-blue-700"
-                                    onClick={() => handleViewDiag(diagnosis)}
-                                  >
-                                    <Eye className="size-4" />
-                                  </Button>
-                                  <Dialog
-                                    open={viewDiagState.isOpen}
-                                    onOpenChange={(isOpen) =>
-                                      !isOpen && handleDialogClose()
-                                    }
-                                  >
-                                    <DialogTrigger asChild></DialogTrigger>
+    <span className="text-sm font-medium text-gray-700">
+      Page {currentPage} of {totalPages}
+    </span>
 
-                                    <DialogContent className="max-h-[90vh] max-w-full overflow-y-auto sm:max-w-2xl">
-                                      <DialogHeader>
-                                        <DialogTitle>
-                                          Diagnosis Details
-                                        </DialogTitle>
-                                      </DialogHeader>
-
-                                      <ViewDiagnosis
-                                        diagnosis={
-                                          viewDiagState.selectedDiagnoses
-                                        }
-                                        isOpen={viewDiagState.isOpen}
-                                        onClose={handleDialogClose}
-                                      />
-                                    </DialogContent>
-                                  </Dialog>
-
-                                  <Dialog
-                                    open={editDiagState.isOpen}
-                                    onOpenChange={(isOpen) =>
-                                      !isOpen && handleDialogClose()
-                                    }
-                                  >
-                                    <DialogTrigger asChild>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="text-[#007664] hover:text-[#007664]/80"
-                                        onClick={() =>
-                                          handleEditDiag(diagnosis)
-                                        }
-                                      >
-                                        <Edit className="size-4" />
-                                      </Button>
-                                    </DialogTrigger>
-
-                                    <DialogContent className="max-h-[90vh] max-w-full overflow-y-auto sm:max-w-5xl">
-                                      <DialogHeader>
-                                        <DialogTitle>
-                                          <div className="mb-0 text-center">
-                                            <h2 className="bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-3xl font-bold text-transparent">
-                                              Edit Diagnosis
-                                            </h2>
-                                          </div>
-                                        </DialogTitle>
-                                      </DialogHeader>
-
-                                      <NewDiagnosisForm
-                                        onTabChange={handleTabtriggerChange}
-                                        diagnoses={diagnoses}
-                                        patient={patient._id}
-                                        onSubmit={(status, message) =>
-                                          handleDiagnosisSubmit(status, message)
-                                        }
-                                        initialDiagnosis={
-                                          editDiagState.selectedDiagnoses
-                                        }
-                                        buttonText="Update"
-                                      />
-                                    </DialogContent>
-                                  </Dialog>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="text-red-700 hover:text-red-800"
-                                    onClick={() =>
-                                      startDelete(diagnosis._id, "Diagnoses")
-                                    }
-                                  >
-                                    <Trash2 className="size-4" />
-                                  </Button>
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
+    <button
+      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+      disabled={currentPage === totalPages}
+      className="rounded-lg bg-teal-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-teal-600 disabled:opacity-50"
+    >
+      Next
+    </button>
+  </div>
+)}
                     </table>
                   </div>
                 </TabsContent>
@@ -3426,150 +3479,106 @@ const patientvisitHistory = (filterByVisitHistory(mergedVisitHistory,isvisithist
                   </div>
 
                   <div className="overflow-x-auto rounded-lg border">
-                    <table className="w-full table-auto border-collapse">
-                      <thead className="bg-[#007664] text-white">
-                        <tr>
-                          <th className="px-4 py-2 text-left">ID</th>
-                          <th className="px-4 py-2 text-left">Date</th>
-                          <th className="px-4 py-2 text-left">Time</th>
-                          <th className="px-4 py-2 text-left">Priority</th>
-                          <th className="px-4 py-2 text-left">Requested By</th>
-                          <th className="px-4 py-2 text-left">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y">
-                        {labTests?.map((test) => {
-                          if (!test) return null;
-                          const formatDateTime = (dateTimeString) => {
-                            if (!dateTimeString)
-                              return { date: "N/A", time: "N/A" }; // Handle missing date
+                  <table className="w-full table-auto border-collapse">
+  <thead className="bg-[#007664] text-white">
+    <tr>
+      <th className="px-4 py-2 text-left">ID</th>
+      <th className="px-4 py-2 text-left">Date</th>
+      <th className="px-4 py-2 text-left">Time</th>
+      <th className="px-4 py-2 text-left">Priority</th>
+      <th className="px-4 py-2 text-left">Requested By</th>
+      <th className="px-4 py-2 text-left">Action</th>
+    </tr>
+  </thead>
+  <tbody className="divide-y">
+    {labTestCurrentRecords?.map((test) => {
+      if (!test) return null;
 
-                            const dateObj = new Date(dateTimeString);
+      const formatDateTime = (dateTimeString) => {
+        if (!dateTimeString) return { date: "N/A", time: "N/A" };
 
-                            if (isNaN(dateObj.getTime()))
-                              return {
-                                date: "Invalid Date",
-                                time: "Invalid Time",
-                              }; // Handle invalid date
+        const dateObj = new Date(dateTimeString);
+        if (isNaN(dateObj.getTime())) return { date: "Invalid Date", time: "Invalid Time" };
 
-                            // Extract Date (YYYY-MM-DD)
-                            const date = dateObj.toISOString().split("T")[0];
+        const date = dateObj.toISOString().split("T")[0];
+        let hours = dateObj.getUTCHours();
+        let minutes = dateObj.getUTCMinutes();
+        const amPm = hours >= 12 ? "PM" : "AM";
+        hours = hours % 12 || 12;
+        minutes = minutes.toString().padStart(2, "0");
 
-                            // Extract Hours, Minutes & Format Time in AM/PM
-                            let hours = dateObj.getUTCHours(); // Use getUTCHours() for consistent time conversion
-                            let minutes = dateObj.getUTCMinutes();
-                            const amPm = hours >= 12 ? "PM" : "AM";
+        return { date, time: `${hours}:${minutes} ${amPm}` };
+      };
 
-                            // Convert to 12-hour format
-                            hours = hours % 12 || 12; // Converts 0 to 12
-                            minutes = minutes.toString().padStart(2, "0"); // Ensure two digits
+      const formatted = formatDateTime(test?.createdAt || "");
 
-                            const time = `${hours}:${minutes} ${amPm}`;
+      return (
+        <tr key={test?._id}>
+          <td className="px-4 py-2">{test.labtestID}</td>
+          <td className="px-4 py-2">{formatted.date}</td>
+          <td className="px-4 py-2">{formatted.time}</td>
+          <td className="px-4 py-2">{test.priority}</td>
+          <td className="px-4 py-2">
+            {test.requestedBy
+              ? `${test.requestedBy.firstName || ""} ${test.requestedBy.lastName || ""}`.trim() || "N/A"
+              : "N/A"}
+          </td>
+          <td>
+            <div className="flex space-x-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-blue-600 hover:text-blue-700"
+                onClick={() => handleViewLab(test)}
+              >
+                <Eye className="size-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-[#007664] hover:text-[#007664]/80"
+                onClick={() => handleEditLab(test)}
+              >
+                <Edit className="size-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-red-700 hover:text-red-800"
+                onClick={() => startDelete(test._id, "LabTest")}
+              >
+                <Trash2 className="size-4" />
+              </Button>
+            </div>
+          </td>
+        </tr>
+      );
+    })}
+  </tbody>
+</table>
 
-                            return { date, time };
-                          };
-                          // console.log(labTests);
-                          // Ensure that labTests is not undefined before accessing createdAt
-                          const formatted = formatDateTime(
-                            test?.createdAt || "",
-                          );
-
-                          return (
-                            <tr key={test?._id}>
-                              <td className="px-4 py-2">{test.labtestID}</td>
-                              <td className="px-4 py-2">{formatted.date}</td>
-                              <td className="px-4 py-2">{formatted.time}</td>
-                              <td className="px-4 py-2">{test.priority}</td>
-                              <td className="px-4 py-2">{test.requestedBy}</td>
-                              <td>
-                                <div className="flex space-x-2">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="text-blue-600 hover:text-blue-700"
-                                    onClick={() => handleViewLab(test)}
-                                  >
-                                    <Eye className="size-4" />
-                                  </Button>
-                                  <Dialog
-                                    open={viewLabState.isOpen}
-                                    onOpenChange={(isOpen) =>
-                                      !isOpen && handleDialogClose()
-                                    }
-                                  >
-                                    <DialogTrigger asChild></DialogTrigger>
-
-                                    <DialogContent className="max-h-[90vh] max-w-full overflow-y-auto sm:max-w-2xl">
-                                      <DialogHeader>
-                                        <DialogTitle>Lab Test</DialogTitle>
-                                      </DialogHeader>
-
-                                      <ViewLabTest
-                                        labtest={viewLabState.selectedLabtest}
-                                        isOpen={viewLabState.isOpen}
-                                        onClose={handleDialogClose}
-                                      />
-                                    </DialogContent>
-                                  </Dialog>
-
-                                  <Dialog
-                                    open={editLabState.isOpen}
-                                    onOpenChange={(isOpen) =>
-                                      !isOpen && handleDialogClose()
-                                    }
-                                  >
-                                    <DialogTrigger asChild>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="text-[#007664] hover:text-[#007664]/80"
-                                        onClick={() => handleEditLab(test)}
-                                      >
-                                        <Edit className="size-4" />
-                                      </Button>
-                                    </DialogTrigger>
-
-                                    <DialogContent className="max-h-[90vh] max-w-full overflow-y-auto sm:max-w-5xl">
-                                      <DialogHeader>
-                                        <DialogTitle>
-                                          <div className="mb-0 text-center">
-                                            <h2 className="bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-3xl font-bold text-transparent">
-                                              Edit Lab Test
-                                            </h2>
-                                          </div>
-                                        </DialogTitle>
-                                      </DialogHeader>
-                                      <NewLabTestForm
-                                        onTabChange={handleTabtriggerChange}
-                                        patient={patient._id}
-                                        onSubmit={(status, message) =>
-                                          handleDiagnosisSubmit(status, message)
-                                        }
-                                        initialLabtest={
-                                          editLabState.selectedLabtest
-                                        }
-                                        buttonText="Update"
-                                        labTests={labTests}
-                                      />
-                                    </DialogContent>
-                                  </Dialog>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="text-red-700 hover:text-red-800"
-                                    onClick={() =>
-                                      startDelete(test._id, "LabTest")
-                                    }
-                                  >
-                                    <Trash2 className="size-4" />
-                                  </Button>
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+{/* Pagination Controls */}
+{labTests.length > 10 && (
+  <div className="flex justify-between items-center mt-4">
+    <button
+      onClick={() => setLabTestCurrentPage((prev) => Math.max(prev - 1, 1))}
+      disabled={labTestCurrentPage === 1}
+      className="px-4 py-2 bg-teal-500 text-white rounded disabled:opacity-50"
+    >
+      Previous
+    </button>
+    <span className="text-gray-700">
+      Page {labTestCurrentPage} of {labTestTotalPages}
+    </span>
+    <button
+      onClick={() => setLabTestCurrentPage((prev) => Math.min(prev + 1, labTestTotalPages))}
+      disabled={labTestCurrentPage === labTestTotalPages}
+      className="px-4 py-2 bg-teal-500 text-white rounded disabled:opacity-50"
+    >
+      Next
+    </button>
+  </div>
+)}
                   </div>
                 </TabsContent>
                 <TabsContent value="medications" className="mt-32 sm:mt-6">
@@ -3630,150 +3639,89 @@ const patientvisitHistory = (filterByVisitHistory(mergedVisitHistory,isvisithist
                         </tr>
                       </thead>
                       <tbody className="divide-y">
-                        {medications?.map((medication) => {
-                          if (!medication) return null;
-                          const formatDateTime = (dateTimeString) => {
-                            if (!dateTimeString)
-                              return { date: "N/A", time: "N/A" }; // Handle missing date
+  {medCurrentRecords?.map((medication) => {
+    if (!medication) return null;
 
-                            const dateObj = new Date(dateTimeString);
+    const formatDateTime = (dateTimeString) => {
+      if (!dateTimeString) return { date: "N/A", time: "N/A" };
 
-                            if (isNaN(dateObj.getTime()))
-                              return {
-                                date: "Invalid Date",
-                                time: "Invalid Time",
-                              }; // Handle invalid date
+      const dateObj = new Date(dateTimeString);
+      if (isNaN(dateObj.getTime())) return { date: "Invalid Date", time: "Invalid Time" };
 
-                            // Extract Date (YYYY-MM-DD)
-                            const date = dateObj.toISOString().split("T")[0];
+      const date = dateObj.toISOString().split("T")[0];
+      let hours = dateObj.getUTCHours();
+      let minutes = dateObj.getUTCMinutes();
+      const amPm = hours >= 12 ? "PM" : "AM";
+      hours = hours % 12 || 12;
+      minutes = minutes.toString().padStart(2, "0");
 
-                            // Extract Hours, Minutes & Format Time in AM/PM
-                            let hours = dateObj.getUTCHours(); // Use getUTCHours() for consistent time conversion
-                            let minutes = dateObj.getUTCMinutes();
-                            const amPm = hours >= 12 ? "PM" : "AM";
+      return { date, time: `${hours}:${minutes} ${amPm}` };
+    };
 
-                            // Convert to 12-hour format
-                            hours = hours % 12 || 12; // Converts 0 to 12
-                            minutes = minutes.toString().padStart(2, "0"); // Ensure two digits
+    const formatted = formatDateTime(medication?.createdAt || "");
 
-                            const time = `${hours}:${minutes} ${amPm}`;
+    return (
+      <tr key={medication.id}>
+        <td className="px-4 py-2">{medication.medicationId}</td>
+        <td className="px-4 py-2">{formatted.date}</td>
+        <td className="px-4 py-2">{medication.medicationName}</td>
+        <td className="px-4 py-2">{medication.treatmentDuration}</td>
+        <td className="px-4 py-2">{medication.requestedBy}</td>
+        <td>
+          <div className="flex space-x-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-blue-600 hover:text-blue-700"
+              onClick={() => handleViewMed(medication)}
+            >
+              <Eye className="size-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-[#007664] hover:text-[#007664]/80"
+              onClick={() => handleEditMed(medication)}
+            >
+              <Edit className="size-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-red-700 hover:text-red-800"
+              onClick={() => startDelete(medication._id, "Medication")}
+            >
+              <Trash2 className="size-4" />
+            </Button>
+          </div>
+        </td>
+      </tr>
+    );
+  })}
+</tbody>
 
-                            return { date, time };
-                          };
-                          // console.log(labTests);
-                          // Ensure that labTests is not undefined before accessing createdAt
-                          const formatted = formatDateTime(
-                            medication?.createdAt || "",
-                          );
-
-                          return (
-                            <tr key={medication.id}>
-                              <td className="px-4 py-2">
-                                {medication.medicationId}
-                              </td>
-                              <td className="px-4 py-2">{formatted.date}</td>
-                              <td className="px-4 py-2">
-                                {medication.medicationName}
-                              </td>
-                              <td className="px-4 py-2">
-                                {medication.treatmentDuration}
-                              </td>
-                              <td className="px-4 py-2">
-                                {medication.requestedBy}
-                              </td>
-
-                              <td>
-                                <div className="flex space-x-2">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="text-blue-600 hover:text-blue-700"
-                                    onClick={() => handleViewMed(medication)}
-                                  >
-                                    <Eye className="size-4" />
-                                  </Button>
-                                  <Dialog
-                                    open={viewMedState.isOpen}
-                                    onOpenChange={(isOpen) =>
-                                      !isOpen && handleDialogClose()
-                                    }
-                                  >
-                                    <DialogTrigger asChild></DialogTrigger>
-
-                                    <DialogContent className="max-h-[90vh] max-w-full overflow-y-auto sm:max-w-2xl">
-                                      <DialogHeader>
-                                        <DialogTitle>
-                                          Medication Details
-                                        </DialogTitle>
-                                      </DialogHeader>
-
-                                      <ViewMedication
-                                        medic={viewMedState.selectedMedication}
-                                        isOpen={viewMedState.isOpen}
-                                        onClose={handleDialogClose}
-                                      />
-                                    </DialogContent>
-                                  </Dialog>
-
-                                  <Dialog
-                                    open={editMedState.isOpen}
-                                    onOpenChange={(isOpen) =>
-                                      !isOpen && handleDialogClose()
-                                    }
-                                  >
-                                    <DialogTrigger asChild>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="text-[#007664] hover:text-[#007664]/80"
-                                        onClick={() =>
-                                          handleEditMed(medication)
-                                        }
-                                      >
-                                        <Edit className="size-4" />
-                                      </Button>
-                                    </DialogTrigger>
-
-                                    <DialogContent className="max-h-[90vh] max-w-full overflow-y-auto sm:max-w-5xl">
-                                      <DialogHeader>
-                                        <DialogTitle>
-                                          <div className="mb-0 text-center">
-                                            <h2 className="bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-3xl font-bold text-transparent">
-                                              Edit Medication
-                                            </h2>
-                                          </div>
-                                        </DialogTitle>
-                                      </DialogHeader>
-
-                                      <NewMedicationForm
-                                        medications={medications}
-                                        patient={patient._id}
-                                        onClose={handleDialogClose}
-                                        onSubmit={(status, message) =>
-                                          handleMedSubmit(status, message)
-                                        }
-                                        initialMedication={
-                                          editMedState.selectedMedication
-                                        }
-                                      />
-                                    </DialogContent>
-                                  </Dialog>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="text-red-700 hover:text-red-800"
-                                    onClick={() =>
-                                      startDelete(medication._id, "Medication")
-                                    }
-                                  >
-                                    <Trash2 className="size-4" />
-                                  </Button>
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
+{/* Pagination Controls */}
+{medications.length > 10 && (
+  <div className="flex justify-between items-center mt-4">
+    <button
+      onClick={() => setMedCurrentPage((prev) => Math.max(prev - 1, 1))}
+      disabled={medCurrentPage === 1}
+      className="px-4 py-2 bg-teal-500 text-white rounded disabled:opacity-50"
+    >
+      Previous
+    </button>
+    <span className="text-gray-700">
+      Page {medCurrentPage} of {medTotalPages}
+    </span>
+    <button
+      onClick={() => setMedCurrentPage((prev) => Math.min(prev + 1, medTotalPages))}
+      disabled={medCurrentPage === medTotalPages}
+      className="px-4 py-2 bg-teal-500 text-white rounded disabled:opacity-50"
+    >
+      Next
+    </button>
+  </div>
+)}
                     </table>
                   </div>
                 </TabsContent>

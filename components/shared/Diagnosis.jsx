@@ -140,27 +140,36 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { updateDiagnosisData,createDiagnosis } from '../shared/api'
+import { updateDiagnosisData, createDiagnosis } from "../shared/api";
 
 // Third-party Modal
-import axios from 'axios';
+import axios from "axios";
 import Modal from "react-modal";
 import { motion } from "framer-motion";
+import { useSession } from "next-auth/react";
 
-export function NewDiagnosisForm({ onTabChange,diagnoses,patient ,diagnosesid=null, onSubmit, initialDiagnosis= null, buttonText}) {
+export function NewDiagnosisForm({
+  onTabChange,
+  diagnoses,
+  patient,
+  diagnosesid = null,
+  onSubmit,
+  initialDiagnosis = null,
+  buttonText,
+}) {
   const [currentPage, setCurrentPage] = useState(1);
   const [formData, setFormData] = useState(initialDiagnosis || {});
   const [errors, setErrors] = useState({});
-
-  
+  const session = useSession();
   const [selectedComplaints, setSelectedComplaints] = useState([]);
   const [selectedSymptoms, setSelectedSymptoms] = useState([]);
   const [filteredComplaints, setFilteredComplaints] = useState({});
   const [expandedVisit, setExpandedVisit] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+  
   const [expandedDiagnosis, setExpandedDiagnosis] = React.useState(null);
 
   const [manualUpdateTrigger, setManualUpdateTrigger] = useState(false);
-
 
   const resetForm = () => {
     setFormData([
@@ -184,96 +193,133 @@ export function NewDiagnosisForm({ onTabChange,diagnoses,patient ,diagnosesid=nu
         appointmentDate: "",
         appointmentTime: "",
         prognosisadditionalNotes: "",
-      }]);
-  
+      },
+    ]);
+
     setAdditionalDiagnoses([]);
   };
 
+  const handleDiagnosisData = async () => {
+    if (!formData) {
+      console.warn("No form data available. Exiting function.");
+      return;
+    }
+  
+    console.log("Handling diagnosis data:", formData);
+    setIsLoading(true); // Set loading state at the start
+  
+    try {
+      if (formData._id) {
+        console.log("Existing diagnosis found. Updating...");
+        await updateDiagnosisData(formData, resetForm, onTabChange, onSubmit);
+        console.log("Diagnosis update process completed.");
+      } else {
+        console.log("No existing diagnosis found. Creating new diagnosis...");
+  
+        if (!patient) {
+          console.error("Error: patient is undefined before calling createDiagnosis!");
+          return;
+        }
+  
+        console.log("Patient data before sending:", patient);
+        await createDiagnosis(formData, resetForm, onTabChange, onSubmit, patient);
+        console.log("Diagnosis creation process completed.");
+      }
+    } catch (error) {
+      console.error("Error handling diagnosis data:", error);
+    } finally {
+      setIsLoading(false); // Ensure loading state resets after operation
+    }
+  };
+  
 
+  const generateDiagnosisId = () => {
+    const now = new Date();
+    const year = now.getFullYear();
 
-const handleDiagnosisData = async () => {
-  if (!formData) return;
+    // Get unix timestamp and take last 4 digits
+    const timestamp = Math.floor(Date.now() / 1000)
+      .toString()
+      .slice(-4);
 
-  if (formData._id) {
-    await updateDiagnosisData(formData, resetForm, onTabChange, onSubmit);
-  } else {
-   
-    await createDiagnosis(formData, resetForm, onTabChange, onSubmit);
-  }
-};
+    // Combine elements with prefix
+    const diagnosisId = `DIA-${year}-${timestamp}`;
 
+    return diagnosisId;
+  };
 
-const generateDiagnosisId = () => {
-  const now = new Date();
-  const year = now.getFullYear();
-
-  // Get unix timestamp and take last 4 digits
-  const timestamp = Math.floor(Date.now() / 1000)
-    .toString()
-    .slice(-4);
-
-  // Combine elements with prefix
-  const diagnosisId = `DIA-${year}-${timestamp}`;
-
-  return diagnosisId;
-};
-
-
-useEffect(() => {
-  if (manualUpdateTrigger) {  // Only run if trigger is true
-    handleDiagnosisData();
-    setManualUpdateTrigger(false);
-  }
-}, [manualUpdateTrigger]);
-
+  useEffect(() => {
+    if (manualUpdateTrigger) {
+      // Only run if trigger is true
+      handleDiagnosisData();
+      setManualUpdateTrigger(false);
+    }
+  }, [manualUpdateTrigger]);
 
   const handlesubmitDiagnosis = () => {
-
-    if (buttonText ==="Update"){
+    if (buttonText === "Update") {
       setFormData((prevData) => ({
         ...prevData,
         patient: patient,
-        _id:initialDiagnosis._id,
-        diagnosisId:initialDiagnosis.diagnosisId,
-        diagnosedBy: "Dr. Smith",
+        _id: initialDiagnosis._id,
+        diagnosisId: initialDiagnosis.diagnosisId,
+        diagnosedBy: session?.data?.user?.id,
         diagnosedAt: "Gembu Center",
-        additionalDiagnoses: additionalDiagnoses
+        additionalDiagnoses: additionalDiagnoses,
       }));
     }
-    
-    if(buttonText=="Submit") {
+
+    if (buttonText == "Submit") {
       setFormData((prevData) => ({
         ...prevData,
         patient: patient,
-        diagnosisId:generateDiagnosisId(),
-        diagnosedBy: "Dr. Smith",
+        diagnosisId: generateDiagnosisId(),
+        diagnosedBy: session?.data?.user?.id,
         diagnosedAt: "Gembu Center",
-        additionalDiagnoses: additionalDiagnoses
+        additionalDiagnoses: additionalDiagnoses,
       }));
     }
-setManualUpdateTrigger(true); // Tr
+    setManualUpdateTrigger(true); // Tr
 
-//
-    
+    //
   };
 
 
 
+
+  const handleSubmitClick = async () => {
+    const isValid = validatePrognosisForm();
+    console.log("Validation Result:", isValid);
+
+    if (!isValid) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      handlesubmitDiagnosis();
+    } catch (error) {
+      console.error('Error submitting medication:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const validatePrognosisForm = () => {
     let newErrors = {};
-  
+
     // Validate Severity (must be selected)
- 
+
     // Validate Expected Outcome
     if (!formData?.expectedOutcome?.trim()) {
       newErrors.expectedOutcome = "Expected outcome is required.";
     }
-  
+
     // Validate Risk Level
     if (!formData?.riskLevel?.trim()) {
       newErrors.riskLevel = "Risk level is required.";
     }
-  
+
     // Validate Recovery Potential
     if (!formData?.recoveryPotential?.trim()) {
       newErrors.recoveryPotential = "Recovery potential is required.";
@@ -281,104 +327,103 @@ setManualUpdateTrigger(true); // Tr
     if (!formData?.timeframe?.trim()) {
       newErrors.timeframe = "TimeFrame is required.";
     }
-  
+
     // Validate Appointment Type
-    if (!formData?.appointmentType?.trim() && (formData?.appointmentDate || formData?.appointmentTime)) {
-      newErrors.appointmentType = "Appointment type is required if date or time is set.";
+    if (
+      !formData?.appointmentType?.trim() &&
+      (formData?.appointmentDate || formData?.appointmentTime)
+    ) {
+      newErrors.appointmentType =
+        "Appointment type is required if date or time is set.";
     }
-    
-  
+
     // Validate Appointment Date (must be in YYYY-MM-DD format)
     const now = new Date();
-const today = now.toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
+    const today = now.toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
 
-// Validate Appointment Date (Optional, but must be in the future or today)
-if (formData?.appointmentDate) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(formData.appointmentDate)) {
-    newErrors.appointmentDate = "Invalid date format (YYYY-MM-DD).";
-  } else if (new Date(formData.appointmentDate) < now.setHours(0, 0, 0, 0)) {
-    newErrors.appointmentDate = "Appointment date cannot be in the past.";
-
-  }
-}
-
-// Validate Appointment Time (Optional, but must be in the future if set)
-if (formData?.appointmentTime) {
-  if (!/^\d{2}:\d{2}$/.test(formData.appointmentTime)) {
-    newErrors.appointmentTime = "Invalid time format (HH:MM).";
-  } else if (formData.appointmentDate === today) {
-    const [hours, minutes] = formData.appointmentTime.split(":").map(Number);
-    const appointmentDateTime = new Date();
-    appointmentDateTime.setHours(hours, minutes, 0, 0);
-
-    if (appointmentDateTime < now) {
-      newErrors.appointmentTime = "Appointment time cannot be in the past.";
+    // Validate Appointment Date (Optional, but must be in the future or today)
+    if (formData?.appointmentDate) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(formData.appointmentDate)) {
+        newErrors.appointmentDate = "Invalid date format (YYYY-MM-DD).";
+      } else if (
+        new Date(formData.appointmentDate) < now.setHours(0, 0, 0, 0)
+      ) {
+        newErrors.appointmentDate = "Appointment date cannot be in the past.";
+      }
     }
-  } else if (!formData.appointmentDate) {
-    newErrors.appointmentTime = "Appointment date must be set if specifying time.";
-  }
-}
 
-    
-  
+    // Validate Appointment Time (Optional, but must be in the future if set)
+    if (formData?.appointmentTime) {
+      if (!/^\d{2}:\d{2}$/.test(formData.appointmentTime)) {
+        newErrors.appointmentTime = "Invalid time format (HH:MM).";
+      } else if (formData.appointmentDate === today) {
+        const [hours, minutes] = formData.appointmentTime
+          .split(":")
+          .map(Number);
+        const appointmentDateTime = new Date();
+        appointmentDateTime.setHours(hours, minutes, 0, 0);
+
+        if (appointmentDateTime < now) {
+          newErrors.appointmentTime = "Appointment time cannot be in the past.";
+        }
+      } else if (!formData.appointmentDate) {
+        newErrors.appointmentTime =
+          "Appointment date must be set if specifying time.";
+      }
+    }
+
     // Debugging output
     console.log("Validation Errors:", newErrors);
-  
+
     // Set errors in state
     setErrors(newErrors);
-  
+
     // Return false if there are validation errors
     return Object.keys(newErrors).length === 0;
   };
-  
-
 
   const validateDiagnosisForm = () => {
     let newErrors = {};
-  
+
     // Validate Severity (must be selected)
     if (!formData?.severity) {
       newErrors.severity = "Severity selection is required.";
     }
-  
+
     // Validate Category (must not be empty)
     if (!formData?.category?.trim()) {
       newErrors.category = "Diagnosis category is required.";
     }
-  
+
     // Validate Priority (must be selected)
     if (!formData?.priority) {
       newErrors.priority = "Priority selection is required.";
     }
-  
+
     // Validate Chronicity Status
     if (!formData?.chronicityStatus?.trim()) {
       newErrors.chronicityStatus = "Chronicity status is required.";
     }
-  
-   
+
     // Validate Status
     if (!formData?.status?.trim()) {
       newErrors.status = "Status is required.";
     }
-  
-  
+
     // Validate Verification Status
     if (!formData?.verificationStatus?.trim()) {
       newErrors.verificationStatus = "Verification status is required.";
     }
-  
-  
+
     // Debugging output
     console.log("Validation Errors:", newErrors);
-  
+
     // Set errors in state
     setErrors(newErrors);
-  
+
     // Return false if there are validation errors
     return Object.keys(newErrors).length === 0;
   };
-  
 
   const [sicknessSections, setSicknessSection] = useState({
     generalSymptoms: {
@@ -1989,10 +2034,8 @@ if (formData?.appointmentTime) {
     }));
   };
 
-
   const renderDiagnosisHistory = () => {
     // Updated sample data structure focused on diagnosis and prognosis
-   
 
     const toggleDiagnosis = (id) => {
       setExpandedDiagnosis(expandedDiagnosis === id ? null : id);
@@ -2010,9 +2053,12 @@ if (formData?.appointmentTime) {
           return "text-gray-600";
       }
     };
-console.log(diagnoses)
+    console.log(diagnoses);
     return (
-      <div className="mx-auto max-w-4xl space-y-8 p-6" style={{ width: "65vw" }}>
+      <div
+        className="mx-auto max-w-4xl space-y-8 p-6"
+        style={{ width: "65vw" }}
+      >
         <Card className="grid grid-cols-1 gap-4 bg-white shadow-lg md:grid-cols-1">
           <CardHeader className="rounded-t-lg bg-teal-700 text-white">
             <CardTitle className="text-2xl">Diagnosis History</CardTitle>
@@ -2023,7 +2069,10 @@ console.log(diagnoses)
           <CardContent className="p-6">
             <div className="space-y-4">
               {diagnoses.map((diagnosis) => (
-                <div key={diagnosis._id} className="overflow-hidden rounded-lg border shadow-sm">
+                <div
+                  key={diagnosis._id}
+                  className="overflow-hidden rounded-lg border shadow-sm"
+                >
                   <button
                     onClick={() => toggleDiagnosis(diagnosis._id)}
                     className="flex w-full items-center justify-between p-4 transition-colors hover:bg-gray-50"
@@ -2031,8 +2080,12 @@ console.log(diagnoses)
                     <div className="flex items-center space-x-4">
                       <Activity className="text-teal-800" size={20} />
                       <div className="text-left">
-                        <div className="font-medium text-teal-800">{diagnosis.condition}</div>
-                        <div className={`text-sm ${getSeverityColor(diagnosis.severity)}`}>
+                        <div className="font-medium text-teal-800">
+                          {diagnosis.condition}
+                        </div>
+                        <div
+                          className={`text-sm ${getSeverityColor(diagnosis.severity)}`}
+                        >
                           {diagnosis.severity} Severity
                         </div>
                       </div>
@@ -2048,60 +2101,91 @@ console.log(diagnoses)
                       )}
                     </div>
                   </button>
-    
+
                   {expandedDiagnosis === diagnosis._id && (
                     <div className="border-t bg-gray-50 p-4">
                       <div className="grid gap-4">
                         <div className="space-y-2">
-                          <h4 className="font-medium text-teal-800">Diagnosis Status</h4>
-                          <p className="rounded bg-white p-2 text-sm text-gray-700">{diagnosis.status}</p>
-                        </div>
-    
-                        <div className="space-y-2">
-                          <h4 className="font-medium text-teal-800">Category</h4>
-                          <p className="rounded bg-white p-2 text-sm text-gray-700">{diagnosis.category}</p>
-                        </div>
-    
-                        <div className="space-y-2">
-                          <h4 className="font-medium text-teal-800">Chronicity Status
+                          <h4 className="font-medium text-teal-800">
+                            Diagnosis Status
                           </h4>
-                          <p className="rounded bg-white p-2 text-sm text-gray-700">{diagnosis.chronicityStatus}</p>
+                          <p className="rounded bg-white p-2 text-sm text-gray-700">
+                            {diagnosis.status}
+                          </p>
                         </div>
+
                         <div className="space-y-2">
-                          <h4 className="font-medium text-teal-800">Priority
+                          <h4 className="font-medium text-teal-800">
+                            Category
                           </h4>
-                          <p className="rounded bg-white p-2 text-sm text-gray-700">{diagnosis.priority}</p>
+                          <p className="rounded bg-white p-2 text-sm text-gray-700">
+                            {diagnosis.category}
+                          </p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <h4 className="font-medium text-teal-800">
+                            Chronicity Status
+                          </h4>
+                          <p className="rounded bg-white p-2 text-sm text-gray-700">
+                            {diagnosis.chronicityStatus}
+                          </p>
                         </div>
                         <div className="space-y-2">
-                          <h4 className="font-medium text-teal-800">Expected Outcome</h4>
+                          <h4 className="font-medium text-teal-800">
+                            Priority
+                          </h4>
+                          <p className="rounded bg-white p-2 text-sm text-gray-700">
+                            {diagnosis.priority}
+                          </p>
+                        </div>
+                        <div className="space-y-2">
+                          <h4 className="font-medium text-teal-800">
+                            Expected Outcome
+                          </h4>
                           <div className="flex items-center space-x-2 rounded bg-white p-2">
                             <TrendingUp className="text-teal-500" size={16} />
-                            <span className="text-sm text-gray-700">{diagnosis.expectedOutcome}</span>
+                            <span className="text-sm text-gray-700">
+                              {diagnosis.expectedOutcome}
+                            </span>
                           </div>
                         </div>
-    
+
                         <div className="space-y-2">
-                          <h4 className="font-medium text-teal-800">Verification Status</h4>
-                          <p className="rounded bg-white p-2 text-sm text-gray-700">{diagnosis.verificationStatus
-                          }</p>
+                          <h4 className="font-medium text-teal-800">
+                            Verification Status
+                          </h4>
+                          <p className="rounded bg-white p-2 text-sm text-gray-700">
+                            {diagnosis.verificationStatus}
+                          </p>
                         </div>
-    
+
                         <div className="space-y-2">
-                          <h4 className="font-medium text-teal-800">Timeframe</h4>
-                          <p className="rounded bg-white p-2 text-sm text-gray-700">{diagnosis.timeframe}</p>
+                          <h4 className="font-medium text-teal-800">
+                            Timeframe
+                          </h4>
+                          <p className="rounded bg-white p-2 text-sm text-gray-700">
+                            {diagnosis.timeframe}
+                          </p>
                         </div>
-    
+
                         <div className="space-y-2">
-                          <h4 className="font-medium text-teal-800">Additional Note</h4>
-                          <p className="rounded bg-white p-2 text-sm text-gray-700">{diagnosis.diagnosesisadditionalNotes}</p>
+                          <h4 className="font-medium text-teal-800">
+                            Additional Note
+                          </h4>
+                          <p className="rounded bg-white p-2 text-sm text-gray-700">
+                            {diagnosis.diagnosesisadditionalNotes}
+                          </p>
                         </div>
-    
+
                         <div className="space-y-2">
-                          <h4 className="font-medium text-teal-800">Recovery Potential</h4>
-                          <p className="rounded bg-white p-2 text-sm text-gray-700">{diagnosis.recoveryPotential}</p>
+                          <h4 className="font-medium text-teal-800">
+                            Recovery Potential
+                          </h4>
+                          <p className="rounded bg-white p-2 text-sm text-gray-700">
+                            {diagnosis.recoveryPotential}
+                          </p>
                         </div>
-    
-                        
                       </div>
                     </div>
                   )}
@@ -2112,10 +2196,8 @@ console.log(diagnoses)
         </Card>
       </div>
     );
-    
   };
 
- 
   const [isDisabled, setIsDisabled] = useState(false);
   const [showEditdiagnosisButton, setShowEditdiagnosisButton] = useState(false);
 
@@ -2158,15 +2240,16 @@ console.log(diagnoses)
     const handleInputChange = (field, value) => {
       setFormData((prevData) => ({
         ...prevData,
-        [field]: value,  // Either updates the existing field or adds the new one
-    }));
-    if (errors[field]) {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        [field]: "", // Clear the error message
-      }))}
+        [field]: value, // Either updates the existing field or adds the new one
+      }));
+      if (errors[field]) {
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          [field]: "", // Clear the error message
+        }));
+      }
     };
-    
+
     const icdCategories = {
       1: "Certain Infectious or Parasitic Diseases",
       2: "Neoplasms",
@@ -2257,7 +2340,7 @@ console.log(diagnoses)
       ]);
     };
 
-  /*  const updateAdditionalDiagnosis = (index, field, value) => {
+    /*  const updateAdditionalDiagnosis = (index, field, value) => {
       
       setAdditionalDiagnoses((prev) => {
         const updated = [...prev];
@@ -2271,35 +2354,35 @@ console.log(diagnoses)
     };
 */
 
-const updateAdditionalDiagnosis = (index, field, value) => { 
-  setAdditionalDiagnoses((prev) => {
-    const updated = [...prev];
+    const updateAdditionalDiagnosis = (index, field, value) => {
+      setAdditionalDiagnoses((prev) => {
+        const updated = [...prev];
 
-    if (field === "category") {
-      updated[index] = { 
-        ...updated[index], 
-        category: value, 
-        categoryDescription: icdCategories[value] || "Unknown Category", // Fetch category description
-        code: "", 
-        codeDescription: ""  // Reset code and its description when category changes
-      };
-    } else if (field === "code") {
-      const category = updated[index].category; 
-      const subcategoryList = icdSubcategories[category] || [];  // Get the list of codes for the category
-      const codeData = subcategoryList.find(item => item.code === value); // Find matching code description
+        if (field === "category") {
+          updated[index] = {
+            ...updated[index],
+            category: value,
+            categoryDescription: icdCategories[value] || "Unknown Category", // Fetch category description
+            code: "",
+            codeDescription: "", // Reset code and its description when category changes
+          };
+        } else if (field === "code") {
+          const category = updated[index].category;
+          const subcategoryList = icdSubcategories[category] || []; // Get the list of codes for the category
+          const codeData = subcategoryList.find((item) => item.code === value); // Find matching code description
 
-      updated[index] = { 
-        ...updated[index], 
-        code: value, 
-        codeDescription: codeData ? codeData.description : "Unknown Code"  // Store code description
-      };
-    } else {
-      updated[index] = { ...updated[index], [field]: value };
-    }
-    
-    return updated;
-  });
-};
+          updated[index] = {
+            ...updated[index],
+            code: value,
+            codeDescription: codeData ? codeData.description : "Unknown Code", // Store code description
+          };
+        } else {
+          updated[index] = { ...updated[index], [field]: value };
+        }
+
+        return updated;
+      });
+    };
 
     const handlePrimaryCategoryChange = (category) => {
       setPrimaryCategory(category);
@@ -2316,12 +2399,8 @@ const updateAdditionalDiagnosis = (index, field, value) => {
       return null;
     }
 
-
     return (
-      <div
-        className="mx-auto max-w-4xl p-6  "
-        style={{ width: "65vw" }}
-      >
+      <div className="mx-auto max-w-4xl p-6  " style={{ width: "65vw" }}>
         <Card className="grid grid-cols-1 gap-4 bg-white shadow-lg md:grid-cols-1">
           <CardHeader className="rounded-t-lg bg-teal-700 text-center text-2xl font-bold text-white">
             <CardTitle className="text-center text-2xl font-bold">
@@ -2376,20 +2455,19 @@ const updateAdditionalDiagnosis = (index, field, value) => {
                   Primary Diagnosis
                 </label>
                 <div className="space-y-2">
-                  <select
-                    value={primaryCategory}
-                    onChange={(e) =>
-                      handlePrimaryCategoryChange(e.target.value)
-                    }
-                    className="w-full rounded-md border border-gray-300 p-2"
-                  >
-                    <option value="">Select Category</option>
-                    {Object.entries(icdCategories).map(([key, value]) => (
-                      <option key={key} value={key}>
-                        {value}
-                      </option>
-                    ))}
-                  </select>
+                <select
+  value={primaryCategory}
+  onChange={(e) => handlePrimaryCategoryChange(e.target.value)}
+  className="w-full rounded-md border border-gray-300 p-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-600 peer"
+>
+  <option value="">Select Category</option>
+  {Object.entries(icdCategories).map(([key, value]) => (
+    <option key={key} value={key} className="peer-hover:bg-teal-700">
+      {value}
+    </option>
+  ))}
+</select>
+
 
                   {primaryCategory && (
                     <select
@@ -2408,7 +2486,7 @@ const updateAdditionalDiagnosis = (index, field, value) => {
                 </div>
 
                 {errors.category && (
-                  <p className="text-red-500 text-sm">{errors.category}</p>
+                  <p className="text-sm text-red-500">{errors.category}</p>
                 )}
               </div>
 
@@ -2521,7 +2599,7 @@ const updateAdditionalDiagnosis = (index, field, value) => {
                     onChange={(e) =>
                       handleInputChange("severity", e.target.value)
                     }
-                    className="w-full rounded-md border bg-white p-2 focus:border-[#007664] focus:ring-2 focus:ring-[#53FDFD]"
+                    className="w-full rounded-md border bg-white p-2 focus:border-[#007664]"
                   >
                     <option value="">Select severity</option>
                     <option value="mild">Mild</option>
@@ -2530,8 +2608,8 @@ const updateAdditionalDiagnosis = (index, field, value) => {
                     <option value="critical">Critical</option>
                   </select>
                   {errors.category && (
-                  <p className="text-red-500 text-sm">{errors.severity}</p>
-                )}
+                    <p className="text-sm text-red-500">{errors.severity}</p>
+                  )}
                 </div>
 
                 {/* Diagnosis Category */}
@@ -2546,7 +2624,7 @@ const updateAdditionalDiagnosis = (index, field, value) => {
                     onChange={(e) =>
                       handleInputChange("category", e.target.value)
                     }
-                    className="w-full rounded-md border bg-white p-2 focus:border-[#007664] focus:ring-2 focus:ring-[#53FDFD]"
+                    className="w-full rounded-md border bg-white p-2 focus:border-[#007664]"
                   >
                     <option value="">Select category</option>
                     <option value="cardiovascular">Cardiovascular</option>
@@ -2559,8 +2637,8 @@ const updateAdditionalDiagnosis = (index, field, value) => {
                     <option value="other">Other</option>
                   </select>
                   {errors.category && (
-                  <p className="text-red-500 text-sm">{errors.category}</p>
-                )}
+                    <p className="text-sm text-red-500">{errors.category}</p>
+                  )}
                 </div>
 
                 {/* Priority Level */}
@@ -2575,7 +2653,7 @@ const updateAdditionalDiagnosis = (index, field, value) => {
                     onChange={(e) =>
                       handleInputChange("priority", e.target.value)
                     }
-                    className="w-full rounded-md border bg-white p-2 focus:border-[#007664] focus:ring-2 focus:ring-[#53FDFD]"
+                    className="w-full rounded-md border bg-white p-2 focus:border-[#007664] "
                   >
                     <option value="">Select priority</option>
                     <option value="emergency">Emergency</option>
@@ -2584,8 +2662,8 @@ const updateAdditionalDiagnosis = (index, field, value) => {
                     <option value="non-urgent">Non-Urgent</option>
                   </select>
                   {errors.priority && (
-                  <p className="text-red-500 text-sm">{errors.priority}</p>
-                )}
+                    <p className="text-sm text-red-500">{errors.priority}</p>
+                  )}
                 </div>
 
                 {/* Chronicity Status */}
@@ -2600,7 +2678,7 @@ const updateAdditionalDiagnosis = (index, field, value) => {
                     onChange={(e) =>
                       handleInputChange("chronicityStatus", e.target.value)
                     }
-                    className="w-full rounded-md border bg-white p-2 focus:border-[#007664] focus:ring-2 focus:ring-[#53FDFD]"
+                    className="w-full rounded-md border bg-white p-2 focus:border-[#007664] "
                   >
                     <option value="">Select status</option>
                     <option value="acute">Acute</option>
@@ -2609,27 +2687,22 @@ const updateAdditionalDiagnosis = (index, field, value) => {
                     <option value="recurrent">Recurrent</option>
                   </select>
                   {errors.chronicityStatus && (
-                  <p className="text-red-500 text-sm">{errors.chronicityStatus}</p>
-                )}
+                    <p className="text-sm text-red-500">
+                      {errors.chronicityStatus}
+                    </p>
+                  )}
                 </div>
-                
               </div>
               {/* Diagnosis Status (FHIR: Condition.status) */}
               <div className="space-y-2">
-              <Label className="block text-sm font-medium text-[#007664]">
-                    Diagnosis Status
-                  </Label>
+                <Label className="block text-sm font-medium text-[#007664]">
+                  Diagnosis Status
+                </Label>
                 <select
                   name="status"
                   value={formData.status}
-                  className="w-full rounded-md border bg-white p-2 focus:border-[#007664] focus:ring-2 focus:ring-[#53FDFD]"
-                  onChange={(e) =>
-                    handleInputChange(
-
-                      "status",
-                      e.target.value,
-                    )
-                  }
+                  className="w-full rounded-md border bg-white p-2 focus:border-[#007664]"
+                  onChange={(e) => handleInputChange("status", e.target.value)}
                 >
                   <option value="">Select status</option>
                   <option value="active">Active</option>
@@ -2639,24 +2712,20 @@ const updateAdditionalDiagnosis = (index, field, value) => {
                   <option value="unknown">Unknown</option>
                 </select>
                 {errors.status && (
-                  <p className="text-red-500 text-sm">{errors.status}</p>
+                  <p className="text-sm text-red-500">{errors.status}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-              <Label className="block text-sm font-medium text-[#007664]">
-                    Verification Status
-                  </Label>
+                <Label className="block text-sm font-medium text-[#007664]">
+                  Verification Status
+                </Label>
                 <select
                   name="verificationStatus"
                   value={formData.verificationStatus}
-                  className="w-full rounded-md border bg-white p-2 focus:border-[#007664] focus:ring-2 focus:ring-[#53FDFD]"
+                  className="w-full rounded-md border bg-white p-2 focus:border-[#007664]"
                   onChange={(e) =>
-                    handleInputChange(
-                     
-                      "verificationStatus",
-                      e.target.value,
-                    )
+                    handleInputChange("verificationStatus", e.target.value)
                   }
                 >
                   <option value="">Select verification status</option>
@@ -2667,7 +2736,9 @@ const updateAdditionalDiagnosis = (index, field, value) => {
                   <option value="entered-in-error">Entered in Error</option>
                 </select>
                 {errors.verificationStatus && (
-                  <p className="text-red-500 text-sm">{errors.verificationStatus}</p>
+                  <p className="text-sm text-red-500">
+                    {errors.verificationStatus}
+                  </p>
                 )}
               </div>
 
@@ -2685,12 +2756,12 @@ const updateAdditionalDiagnosis = (index, field, value) => {
                   value={formData.diagnosesisadditionalNotes}
                   onChange={(e) =>
                     handleInputChange(
-                     "diagnosesisadditionalNotes",
+                      "diagnosesisadditionalNotes",
                       e.target.value,
                     )
                   }
                   placeholder="Addition Details"
-                  className="h-24 w-full rounded-md border bg-white p-2 focus:border-[#007664] focus:ring-2 focus:ring-[#53FDFD]"
+                  className="h-24 w-full rounded-md border bg-white p-2 focus:border-[#007664]"
                 />
               </div>
 
@@ -2719,9 +2790,7 @@ const updateAdditionalDiagnosis = (index, field, value) => {
   const [showEditPrognosisButton, setShowEditPrognosisButton] = useState(false); // Initially false
 
   const renderPrognosisForm = () => {
-
-const handleInputChange = (field, value) => {
-     
+    const handleInputChange = (field, value) => {
       setFormData((prev) => ({
         ...prev,
         [field]: value,
@@ -2731,13 +2800,9 @@ const handleInputChange = (field, value) => {
         setErrors((prevErrors) => ({
           ...prevErrors,
           [field]: "", // Clear the error message
-        }))}
+        }));
+      }
     };
-
-
-    
-
-
 
     const handleAIComplete = () => {
       const aiData = {
@@ -2865,9 +2930,11 @@ const handleInputChange = (field, value) => {
                         disabled={isDisabled}
                       />
                     )}
-                      {errors.expectedOutcome && (
-                  <p className="text-red-500 text-sm">{errors.expectedOutcome}</p>
-                )}
+                  {errors.expectedOutcome && (
+                    <p className="text-sm text-red-500">
+                      {errors.expectedOutcome}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -2892,10 +2959,9 @@ const handleInputChange = (field, value) => {
                     <option value="lifetime">Lifetime</option>
                   </select>
                   {errors.timeframe && (
-                  <p className="text-red-500 text-sm">{errors.timeframe}</p>
-                )}
+                    <p className="text-sm text-red-500">{errors.timeframe}</p>
+                  )}
                 </div>
-
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -2920,8 +2986,8 @@ const handleInputChange = (field, value) => {
                     <option value="severe">Severe</option>
                   </select>
                   {errors.riskLevel && (
-                  <p className="text-red-500 text-sm">{errors.riskLevel}</p>
-                )}
+                    <p className="text-sm text-red-500">{errors.riskLevel}</p>
+                  )}
                 </div>
 
                 <div>
@@ -2946,8 +3012,10 @@ const handleInputChange = (field, value) => {
                     <option value="uncertain">Uncertain</option>
                   </select>
                   {errors.recoveryPotential && (
-                  <p className="text-red-500 text-sm">{errors.recoveryPotential}</p>
-                )}
+                    <p className="text-sm text-red-500">
+                      {errors.recoveryPotential}
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="space-y-2">
@@ -2962,10 +3030,13 @@ const handleInputChange = (field, value) => {
                   name="additionalNotes"
                   value={formData.prognosisadditionalNotes}
                   onChange={(e) =>
-                    handleInputChange("prognosisadditionalNotes", e.target.value)
+                    handleInputChange(
+                      "prognosisadditionalNotes",
+                      e.target.value,
+                    )
                   }
                   placeholder="Addition Details"
-                  className="h-24 w-full rounded-md border bg-white p-2 focus:border-[#007664] focus:ring-2 focus:ring-[#53FDFD]"
+                  className="h-24 w-full rounded-md border bg-white p-2 focus:border-[#007664] "
                 />
               </div>
               <div className="mt-6 border-t pt-6">
@@ -2993,9 +3064,11 @@ const handleInputChange = (field, value) => {
                         className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-500 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 disabled:cursor-not-allowed disabled:bg-gray-100"
                       />
 
-{errors.appointmentDate && (
-                  <p className="text-red-500 text-sm">{errors.appointmentDate}</p>
-                )}
+                      {errors.appointmentDate && (
+                        <p className="text-sm text-red-500">
+                          {errors.appointmentDate}
+                        </p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label
@@ -3016,9 +3089,11 @@ const handleInputChange = (field, value) => {
                         className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-500 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 disabled:cursor-not-allowed disabled:bg-gray-100"
                       />
 
-{errors.appointmentTime && (
-                  <p className="text-red-500 text-sm">{errors.appointmentTime}</p>
-                )}
+                      {errors.appointmentTime && (
+                        <p className="text-sm text-red-500">
+                          {errors.appointmentTime}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -3031,7 +3106,6 @@ const handleInputChange = (field, value) => {
                     id="appointmentType"
                     name="appointmentType"
                     value={formData.appointmentType}
-
                     onChange={(e) =>
                       handleInputChange("appointmentType", e.target.value)
                     }
@@ -3045,8 +3119,10 @@ const handleInputChange = (field, value) => {
                     <option value="consultation">Consultation</option>
                   </select>
                   {errors.appointmentType && (
-                  <p className="text-red-500 text-sm">{errors.appointmentType}</p>
-                )}
+                    <p className="text-sm text-red-500">
+                      {errors.appointmentType}
+                    </p>
+                  )}
                 </div>
               </div>
               {/* More fields can be added similarly */}
@@ -3072,7 +3148,7 @@ const handleInputChange = (field, value) => {
             (pageNum) => (
               <button
                 key={pageNum}
-               // onClick={() => setCurrentPage(pageNum)}
+                // onClick={() => setCurrentPage(pageNum)}
                 className={`
             flex h-10 w-10 items-center justify-center rounded-full
             border-2 border-teal-500 text-sm font-medium
@@ -3100,74 +3176,67 @@ const handleInputChange = (field, value) => {
         {/* Navigation footer */}
         <div className="border-t bg-white shadow-lg">
           <div className="mx-auto max-w-6xl px-6 py-4">
-            <div className="flex items-center justify-between">
-              <button
-                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-                className="flex items-center rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-teal-600 disabled:opacity-50 disabled:hover:bg-teal-500"
-              >
-                <ChevronLeft className="mr-2 size-5" />
-                Previous
-              </button>
+          <div className="flex items-center justify-between">
+  <button
+    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+    disabled={currentPage === 1}
+    className="flex items-center justify-center rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-teal-600 disabled:opacity-50 disabled:hover:bg-teal-500 min-w-[120px]"
+  >
+    <ChevronLeft className="mr-2 size-5" />
+    Previous
+  </button>
 
-              <span className="text-sm font-medium text-gray-500">
-                Page {currentPage} of {pages.length}
-              </span>
+  <span className="text-sm font-medium text-gray-500">
+    Page {currentPage} of {pages.length}
+  </span>
 
-              {currentPage === 2 ? (
-                <div className="flex items-center gap-4">
-                  <button
-                   
-                   onClick={() => {
-                    const isValid = validateDiagnosisForm();
-                    console.log("Validation Result:", isValid); // Debugging output
-                  
-                    if (!isValid) {
-                      console.warn("Form validation failed. Submission blocked.");
-                      return; // Stop execution if validation fails
-                    }
-                  
-                    console.log("Form validation passed. Proceeding to next page...");
-                    setCurrentPage((prev) => Math.min(pages.length, prev + 1))
-                  }}
-                  
-                    className="flex items-center rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-teal-600"
-                  >
-                    Next
-                    <ChevronRight className="ml-2 size-5" />
-                  </button>
-                </div>
-              ) : currentPage === 3 ? (
-                <button
-                onClick={() => {
-                  const isValid = validatePrognosisForm();
-                  console.log("Validation Result:", isValid); // Debugging output
-                
-                  if (!isValid) {
-                    console.warn("Form validation failed. Submission blocked.");
-                    return; // Stop execution if validation fails
-                  }
-                
-                  console.log("Form validation passed. Proceeding to next page...");
-                  handlesubmitDiagnosis();
-                }}
-                  className="flex items-center rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-teal-600"
-                >
-                 {buttonText}
-                  <ChevronRight className="ml-2 size-5" />
-                </button>
-              ) : (
-                <button
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.min(pages.length, prev + 1))
-                  }
-                  className="flex items-center rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-teal-600"
-                >
-                  Next
-                  <ChevronRight className="ml-2 size-5" />
-                </button>
-              )}
-            </div>
+  {currentPage === 2 ? (
+    <div className="flex items-center gap-4">
+      <button
+        onClick={() => {
+          const isValid = validateDiagnosisForm();
+          console.log("Validation Result:", isValid); // Debugging output
+
+          if (!isValid) {
+            console.warn("Form validation failed. Submission blocked.");
+            return; // Stop execution if validation fails
+          }
+
+          console.log("Form validation passed. Proceeding to next page...");
+          setCurrentPage((prev) => Math.min(pages.length, prev + 1));
+        }}
+        className="flex items-center justify-center rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-teal-600 min-w-[120px]"
+      >
+        Next
+        <ChevronRight className="ml-2 size-5" />
+      </button>
+    </div>
+  ) : currentPage === 3 ? (
+    <button
+      disabled={isLoading}
+      onClick={handleSubmitClick}
+      className="flex items-center justify-center gap-2 rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#007664]/80 disabled:bg-[#007664]/50 min-w-[120px]"
+    >
+      {isLoading ? (
+        <>
+          <Loader2 className="h-4 w-4 animate-spin" />
+          {buttonText === "Update" ? "Updating..." : "Submitting..."}
+        </>
+      ) : (
+        <>{buttonText}</>
+      )}
+    </button>
+  ) : (
+    <button
+      onClick={() => setCurrentPage((prev) => Math.min(pages.length, prev + 1))}
+      className="flex items-center justify-center rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-teal-600 min-w-[120px]"
+    >
+      Next
+      <ChevronRight className="ml-2 size-5" />
+    </button>
+  )}
+</div>
+
           </div>
         </div>
       </div>
@@ -3208,126 +3277,186 @@ export function ViewDiagnosis({ diagnosis, isOpen, onClose }) {
       </p>
     </div>
   );
-return(<Dialog open={isOpen} onOpenChange={onClose}>
-  <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto bg-[#F7F7F7] p-0">
-    <DialogHeader className="rounded-t-lg bg-[#007664] p-6 text-white">
-      <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
-        <Stethoscope className="size-6" />
-        Diagnosis Details
-      </DialogTitle>
-    </DialogHeader>
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto bg-[#F7F7F7] p-0">
+        <DialogHeader className="rounded-t-lg bg-[#007664] p-6 text-white">
+          <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
+            <Stethoscope className="size-6" />
+            Diagnosis Details
+          </DialogTitle>
+        </DialogHeader>
 
-    <div className="space-y-8 p-6">
-      {/* Status Banner */}
-      <motion.div
-        {...fadeIn}
-        className={`rounded-lg border p-4 ${getStatusColor(diagnosis.status)} flex items-center gap-2`}
-      >
-        <Activity className="size-5" />
-        <span className="font-medium">
-          Current Status: {diagnosis.status}
-        </span>
-      </motion.div>
+        <div className="space-y-8 p-6">
+          {/* Status Banner */}
+          <motion.div
+            {...fadeIn}
+            className={`rounded-lg border p-4 ${getStatusColor(diagnosis.status)} flex items-center gap-2`}
+          >
+            <Activity className="size-5" />
+            <span className="font-medium">
+              Current Status: {diagnosis.status}
+            </span>
+          </motion.div>
 
-      {/* Basic Information */}
-      <motion.div {...fadeIn} className="space-y-4">
-        <div className="mb-4 flex items-center gap-2">
-          <div className="h-8 w-2 rounded-full bg-[#75C05B]" />
-          <h2 className="text-xl font-bold text-[#007664]">
-            Basic Information
-          </h2>
-        </div>
-        <Card className="border-none bg-white shadow-lg">
-          <CardContent className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
-            <InfoItem label="Diagnosis ID" value={diagnosis.diagnosisId} />
-            <InfoItem label="Category" value={diagnosis.category} />
-            <InfoItem label="Diagnosed By" value={diagnosis.diagnosedBy} />
-            <InfoItem label="Diagnosed At" value={diagnosis.diagnosedAt} />
-            <InfoItem label="Severity" value={diagnosis.severity} />
-            <InfoItem label="Priority" value={diagnosis.priority} />
-            <InfoItem label="Chronicity Status" value={diagnosis.chronicityStatus} />
-            <InfoItem label="Progression Stage" value={diagnosis.progressionStage} />
-            <InfoItem label="Verification Status" value={diagnosis.verificationStatus} />
-            <InfoItem label="Diagnosis Additional Notes" value={diagnosis.diagnosesisadditionalNotes} />
-            <InfoItem label="Patient ID" value={diagnosis.patient} />
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* Additional Diagnoses */}
-      <motion.div {...fadeIn} className="space-y-4 bg-gray-50 p-4 rounded-lg">
-      <div className="mb-4 flex items-center gap-3">
-        <div className="h-8 w-2.5 rounded-full bg-[#75C05B] shadow-md" />
-        <h2 className="text-2xl font-extrabold text-[#007664] tracking-tight">
-          Additional Diagnoses
-        </h2>
-      </div>
-      <div className="bg-white shadow-xl rounded-xl overflow-hidden">
-        <div className="space-y-6 p-6">
-          {diagnosis.additionalDiagnoses && diagnosis.additionalDiagnoses.length > 0 ? (
-            diagnosis.additionalDiagnoses.map((ad, index) => (
-              <div 
-                key={index} 
-                className="bg-gray-100 p-4 rounded-lg mb-4 last:mb-0 transition-all hover:bg-gray-200/50"
-              >
-                <InfoItem label="Type" value={ad.type} />
-                <InfoItem label="Category" value={ad.category} />
-                <InfoItem label="Code" value={ad.code} />
-                <InfoItem label="Category Description" value={ad.categoryDescription} />
-                <InfoItem label="Code Description" value={ad.codeDescription} />
-              </div>
-            ))
-          ) : (
-            <div className="text-center text-gray-500 italic">
-              No additional diagnoses available
+          {/* Basic Information */}
+          <motion.div {...fadeIn} className="space-y-4">
+            <div className="mb-4 flex items-center gap-2">
+              <div className="h-8 w-2 rounded-full bg-[#75C05B]" />
+              <h2 className="text-xl font-bold text-[#007664]">
+                Basic Information
+              </h2>
             </div>
-          )}
-        </div>
-      </div>
-      <motion.div {...fadeIn} className="space-y-4">
-        <div className="mb-4 flex items-center gap-2">
-          <div className="h-8 w-2 rounded-full bg-[#FFA500]" />
-          <h2 className="flex items-center gap-2 text-xl font-bold text-[#007664]">
-            <Clipboard className="size-5" />
-            Prognosis Information
-          </h2>
-        </div>
-        <Card className="border-none bg-white shadow-lg">
-          <CardContent className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
-            <InfoItem label="Expected Outcome" value={diagnosis.expectedOutcome} />
-            <InfoItem label="Other Outcome" value={diagnosis.otherOutcome} />
-            <InfoItem label="Timeframe" value={diagnosis.timeframe} />
-            <InfoItem label="Recovery Potential" value={diagnosis.recoveryPotential} />
-            <InfoItem label="Prognosis Additional Notes" value={diagnosis.prognosisAdditionalNotes} />
-          </CardContent>
-        </Card>
-      </motion.div>
-    </motion.div>
-      {/* Timing Information */}
-      <motion.div {...fadeIn} className="space-y-4">
-        <div className="mb-4 flex items-center gap-2">
-          <div className="h-8 w-2 rounded-full bg-[#53FDFD]" />
-          <h2 className="flex items-center gap-2 text-xl font-bold text-[#007664]">
-            <Clock className="size-5" />
-            Timing Information
-          </h2>
-        </div>
-        <Card className="border-none bg-white shadow-lg">
-          <CardContent className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
-            <InfoItem label="Created" value={diagnosis.createdAt} icon={<Clock className="size-4 text-[#007664]" />} />
-            <InfoItem label="Updated" value={diagnosis.updatedAt} icon={<Clock className="size-4 text-[#007664]" />} />
-            <InfoItem label="Follow-Up Appointment Date" value={diagnosis.appointmentDate} icon={<Clock className="size-4 text-[#007664]" />} />
-            <InfoItem label="Follow-Up Appointment Time" value={diagnosis.appointmentTime} icon={<Clock className="size-4 text-[#007664]" />} />
-            <InfoItem label="Follow-Up Appointment Type" value={diagnosis.appointmentType} icon={<Clock className="size-4 text-[#007664]" />} />
-          </CardContent>
-        </Card>
-      </motion.div>
+            <Card className="border-none bg-white shadow-lg">
+              <CardContent className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
+                <InfoItem label="Diagnosis ID" value={diagnosis.diagnosisId} />
+                <InfoItem label="Category" value={diagnosis.category} />
+                <InfoItem
+                  label="Diagnosed By"
+                  value={
+                    diagnosis.diagnosedBy
+                      ? `${diagnosis.diagnosedBy.firstName || ""} ${diagnosis.diagnosedBy.lastName || ""}`.trim()
+                      : "Not specified"
+                  }
+                />
+                <InfoItem label="Diagnosed At" value={diagnosis.diagnosedAt} />
+                <InfoItem label="Severity" value={diagnosis.severity} />
+                <InfoItem label="Priority" value={diagnosis.priority} />
+                <InfoItem
+                  label="Chronicity Status"
+                  value={diagnosis.chronicityStatus}
+                />
+                <InfoItem
+                  label="Progression Stage"
+                  value={diagnosis.progressionStage}
+                />
+                <InfoItem
+                  label="Verification Status"
+                  value={diagnosis.verificationStatus}
+                />
+                <InfoItem
+                  label="Diagnosis Additional Notes"
+                  value={diagnosis.diagnosesisadditionalNotes}
+                />
+                <InfoItem label="Patient ID" value={diagnosis.patient} />
+              </CardContent>
+            </Card>
+          </motion.div>
 
-      {/* Prognosis Information */}
-    
-    </div>
-  </DialogContent>
-</Dialog>
-);
+          {/* Additional Diagnoses */}
+          <motion.div
+            {...fadeIn}
+            className="space-y-4 rounded-lg bg-gray-50 p-4"
+          >
+            <div className="mb-4 flex items-center gap-3">
+              <div className="h-8 w-2.5 rounded-full bg-[#75C05B] shadow-md" />
+              <h2 className="text-2xl font-extrabold tracking-tight text-[#007664]">
+                Additional Diagnoses
+              </h2>
+            </div>
+            <div className="overflow-hidden rounded-xl bg-white shadow-xl">
+              <div className="space-y-6 p-6">
+                {diagnosis.additionalDiagnoses &&
+                diagnosis.additionalDiagnoses.length > 0 ? (
+                  diagnosis.additionalDiagnoses.map((ad, index) => (
+                    <div
+                      key={index}
+                      className="mb-4 rounded-lg bg-gray-100 p-4 transition-all last:mb-0 hover:bg-gray-200/50"
+                    >
+                      <InfoItem label="Type" value={ad.type} />
+                      <InfoItem label="Category" value={ad.category} />
+                      <InfoItem label="Code" value={ad.code} />
+                      <InfoItem
+                        label="Category Description"
+                        value={ad.categoryDescription}
+                      />
+                      <InfoItem
+                        label="Code Description"
+                        value={ad.codeDescription}
+                      />
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center italic text-gray-500">
+                    No additional diagnoses available
+                  </div>
+                )}
+              </div>
+            </div>
+            <motion.div {...fadeIn} className="space-y-4">
+              <div className="mb-4 flex items-center gap-2">
+                <div className="h-8 w-2 rounded-full bg-[#FFA500]" />
+                <h2 className="flex items-center gap-2 text-xl font-bold text-[#007664]">
+                  <Clipboard className="size-5" />
+                  Prognosis Information
+                </h2>
+              </div>
+              <Card className="border-none bg-white shadow-lg">
+                <CardContent className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
+                  <InfoItem
+                    label="Expected Outcome"
+                    value={diagnosis.expectedOutcome}
+                  />
+                  <InfoItem
+                    label="Other Outcome"
+                    value={diagnosis.otherOutcome}
+                  />
+                  <InfoItem label="Timeframe" value={diagnosis.timeframe} />
+                  <InfoItem
+                    label="Recovery Potential"
+                    value={diagnosis.recoveryPotential}
+                  />
+                  <InfoItem
+                    label="Prognosis Additional Notes"
+                    value={diagnosis.prognosisAdditionalNotes}
+                  />
+                </CardContent>
+              </Card>
+            </motion.div>
+          </motion.div>
+          {/* Timing Information */}
+          <motion.div {...fadeIn} className="space-y-4">
+            <div className="mb-4 flex items-center gap-2">
+              <div className="h-8 w-2 rounded-full bg-[#53FDFD]" />
+              <h2 className="flex items-center gap-2 text-xl font-bold text-[#007664]">
+                <Clock className="size-5" />
+                Timing Information
+              </h2>
+            </div>
+            <Card className="border-none bg-white shadow-lg">
+              <CardContent className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
+                <InfoItem
+                  label="Created"
+                  value={diagnosis.createdAt}
+                  icon={<Clock className="size-4 text-[#007664]" />}
+                />
+                <InfoItem
+                  label="Updated"
+                  value={diagnosis.updatedAt}
+                  icon={<Clock className="size-4 text-[#007664]" />}
+                />
+                <InfoItem
+                  label="Follow-Up Appointment Date"
+                  value={diagnosis.appointmentDate}
+                  icon={<Clock className="size-4 text-[#007664]" />}
+                />
+                <InfoItem
+                  label="Follow-Up Appointment Time"
+                  value={diagnosis.appointmentTime}
+                  icon={<Clock className="size-4 text-[#007664]" />}
+                />
+                <InfoItem
+                  label="Follow-Up Appointment Type"
+                  value={diagnosis.appointmentType}
+                  icon={<Clock className="size-4 text-[#007664]" />}
+                />
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Prognosis Information */}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }
-

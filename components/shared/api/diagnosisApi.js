@@ -26,31 +26,56 @@ export const updateDiagnosisData = async (mergedData, resetForm, onTabChange, on
   }
 };
 
-export const createDiagnosis = async (mergedData, resetForm, onTabChange, onSubmit) => {
+export const createDiagnosis = async (mergedData, resetForm, onTabChange, onSubmit, patient) => {
   try {
+    console.log("Sending diagnosis data:", mergedData);
+
     const response = await axios.post(`${API_URL}`, mergedData, {
       headers: {
         "Content-Type": "application/json",
       },
     });
 
-    console.log("Data successfully sent:", response.data);
-     const objectId = response.data?._id || response.data?.id; // Adjust based on API response structure
-    
-          if (objectId) {
-            await handleAddVisitHistory(patient, objectId, "Diagnosis");
-          } else {
-            console.warn("No ObjectId found in response. Using medicationId instead.");
-           // await handleAddVisitHistory(patient, updatedMedFormData.medicationId, "Medication");
-          }
+    console.log("Data successfully sent. Response:", response.data);
+
+    const objectId = response.data?._id || response.data?.id;
+
+    if (objectId) {
+      console.log("Object ID found:", objectId);
+      
+      console.log("Patient data before updating history:", patient);
+      
+      if (!patient) {
+        console.error("Error: patient is undefined before updating visit history!");
+        return;
+      }
+
+      await handleAddVisitHistory(patient, objectId, "Diagnosis");
+      console.log("Visit history updated successfully.");
+    } else {
+      console.warn("No ObjectId found in response. Skipping visit history update.");
+    }
+
     resetForm();
+    console.log("Form reset successful.");
+
     onTabChange("medications");
+    console.log("Tab changed to 'medications'.");
+
     onSubmit("success", "Diagnosis added successfully");
+    console.log("Success message sent.");
   } catch (error) {
-    console.error("Error sending data:", error.response ? error.response.data : error.message);
+    console.error(
+      "Error sending data:",
+      error.response ? error.response.data : error.message
+    );
+
     onSubmit("error", "Failed to add diagnosis");
+    console.log("Error message sent.");
   }
 };
+
+
 
 
 export const deleteDiagnosis = async (diagnosisId) => {

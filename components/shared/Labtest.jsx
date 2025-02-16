@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import {useSession } from "next-auth/react";
 
 // Lucide Icons
 import {
@@ -121,6 +122,9 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
   const [currentPage, setCurrentPage] = useState(1);
   const [formData, setFormData] = useState(initialLabtest || {});
   const [errors,setErrors]= useState({});
+      const [isLoading, setIsLoading] = useState(false);
+  
+    const session = useSession();
 
 
   const resetForm = () => {
@@ -129,7 +133,7 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
       priority: 'Routine',
       additionalNotes: '',
       collectionDateTime: new Date().toISOString().slice(0, 16),
-      requestedBy: ''
+      requestedBy: session?.data?.user?.id
     });
   
     // Reset test selections
@@ -429,7 +433,10 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
                           <div className="space-y-2">
                             <h4 className="font-medium text-teal-800">Requested By</h4>
                             <p className="rounded bg-white p-2 text-sm text-gray-700">
-                              {test.requestedBy || "N/A"}
+                            {test.requestedBy
+  ? `${test.requestedBy.firstName || ""} ${test.requestedBy.lastName || ""}`.trim() || "N/A"
+  : "N/A"}
+
                             </p>
                           </div>
     
@@ -477,7 +484,7 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
         priority: "",
         additionalNotes: "",
        
-        requestedBy: "674f8c83cdcebdc67a96e4ac"
+        requestedBy: session?.data?.user?.id
       };  // Default values if initial is null
     }
   });
@@ -836,41 +843,59 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
   };
 
 
-  const handleSubmit = () => {
-
-
-   
-
-    if(buttonText=="Submit") {
-    const mergeLabTestData = (labtestFormData, testSelections) => {
-      return {
-        ...labtestFormData,
-        testSelections: testSelections.map(selection => ({
-          category: selection.selectedCategory,
-          tests: selection.selectedTests,
-          otherTest: selection.otherTest || ''
-        }))
-      };
-    };
-    createLabtest(mergeLabTestData(labtestFormData, testSelections),resetForm, onSubmit, onTabChange)
-  }
-   
-  if (buttonText ==="Update"){
-
-    const mergeLabTestData = (labtestFormData, testSelections) => {
-      return {
-        ...labtestFormData,
-        testSelections: testSelections.map(selection => ({
-          category: selection.selectedCategory,
-          tests: selection.selectedTests,
-          otherTest: selection.otherTest || ''
-        }))
-      };
-    };
-    updateLabtestData(mergeLabTestData(labtestFormData, testSelections),resetForm, onTabChange, onSubmit)
-  }
-    
+  const handleSubmit = async () => {
+    if (!buttonText) return;
+  
+    setIsLoading(true); // Start loading before async operations
+  
+    const mergeLabTestData = (labtestFormData, testSelections) => ({
+      ...labtestFormData,
+      testSelections: testSelections.map(selection => ({
+        category: selection.selectedCategory,
+        tests: selection.selectedTests,
+        otherTest: selection.otherTest || '',
+      })),
+    });
+  
+    try {
+      if (buttonText === "Submit") {
+        await createLabtest(
+          mergeLabTestData(labtestFormData, testSelections),
+          resetForm,
+          onSubmit,
+          onTabChange,
+          session.data.user.id
+        );
+      } else if (buttonText === "Update") {
+        await updateLabtestData(
+          mergeLabTestData(labtestFormData, testSelections),
+          resetForm,
+          onTabChange,
+          onSubmit
+        );
+      }
+    } catch (error) {
+      console.error("Error submitting lab test data:", error);
+    } finally {
+      setIsLoading(false); // Ensure loading state resets after operation
+    }
   };
+  
+  const handleSubmitClick = async () => {
+    const isValid = validateLabTestForm();
+    console.log("Validation Result:", isValid);
+  
+    if (!isValid) return;
+  
+    setIsLoading(true);
+    try {
+      await handleSubmit(); // Await this to ensure proper loading state handling
+    } catch (error) {
+      console.error("Error submitting medication:", error);
+    }
+  };
+  
+
 
   return (
     <>
@@ -925,35 +950,37 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
 
               {currentPage === 2 ? (
                 <div className="flex items-center gap-4">
-                  
-                  <button
-                 
-                    onClick={() => {
-                      const isValid = validateLabTestForm();
-                      console.log("Validation Result:", isValid); // Debugging output
-                    
-                      if (!isValid) {
-                       // console.log("Form validation failed. Submission blocked.");
-                        return; // Stop execution if validation fails
-                      }
-                    
-                    // console.log("Form validation passed. Submitting...");
-                      handleSubmit();
-                    }}
-                    className="flex items-center rounded-lg bg-[#007664] px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#007664]/80 hover:bg-teal-600"
-                  >
-                    {buttonText}
-                    <ChevronRight className="ml-2 size-5" />
-                  </button>
+                   <button
+                        disabled={isLoading}
+                        onClick={handleSubmitClick}
+                        className="flex items-center justify-center gap-2 rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#007664]/80 disabled:bg-[#007664]/50 min-w-[120px]"
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            {buttonText === "Update" ? "Updating..." : "Submitting..."}
+                          </>
+                        ) : (
+                          <>{buttonText}</>
+                        )}
+                      </button>
+               
                 </div>
               ) : currentPage === 3 ? (
                 <button
-                  onClick={
-                    handleSubmit}
-                  className="flex items-center rounded-lg bg-[#007664] px-6 py-3 text-sm font-medium text-white transition-colors  duration-200 hover:bg-[#007664]/80"
-                >
-                  {buttonText}
-                </button>
+                        disabled={isLoading}
+                        onClick={handleSubmitClick}
+                        className="flex items-center justify-center gap-2 rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#007664]/80 disabled:bg-[#007664]/50 min-w-[120px]"
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            {buttonText === "Update" ? "Updating..." : "Submitting..."}
+                          </>
+                        ) : (
+                          <>{buttonText}</>
+                        )}
+                      </button>
               ) : (
                 <button
                   onClick={() =>
@@ -1093,7 +1120,15 @@ export function ViewLabTest({ labtest, isOpen, onClose }) {
             </div>
             <Card className="border-none bg-white shadow-lg">
               <CardContent className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
-                <InfoItem label="Requested By" value={labtest.requestedBy} />
+              <InfoItem
+  label="Requested By"
+  value={
+    labtest.requestedBy
+      ? `${labtest.requestedBy.firstName || ""} ${labtest.requestedBy.lastName || ""}`.trim() || "N/A"
+      : "N/A"
+  }
+/>
+
                 <InfoItem label="Requested At" value={labtest.requestedAt} />
                 <InfoItem 
                   label="Requested On" 

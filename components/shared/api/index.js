@@ -14,3 +14,6 @@ export {createReferral , fetchReferralsByConsultant,updateReferral,deleteReferra
 export { availabilityService } from "./availabilityRegisterApi"
 export { getCurrentUser,getAllStaff } from "./StaffAPI"
 
+
+
+export  { createBookingUrlConfig, updateBookingUrlConfig, getCurrentBookingUrlConfig } from "./bookingurlApi";

@@ -64,8 +64,9 @@ import Modal from 'react-modal';
 import {
 PatientDetailsView
 } from "../shared";
+import {useSession } from "next-auth/react";
 import {getCurrentUser} from '../shared/api'
-const  ReferralsPage = ({currentUser}) => {
+const  ReferralsPage = ({currentUser, currentDashboard}) => {
 
   const [referrals, setReferrals] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -160,9 +161,14 @@ const  ReferralsPage = ({currentUser}) => {
   };
 console.log(filteredReferrals)
 const capitalize = (str) => str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : "";
+const isdoctor = () => {
+  return currentDashboard === "doctor" && currentUser?.roles?.includes("doctor");
+};
 
   return (
+    
     <div>
+      
       {activepage === "referral" && (
         <div className="bg-[#75C05B]/10 p-4 rounded-md shadow-md">
           <div className="flex justify-between items-center w-full">

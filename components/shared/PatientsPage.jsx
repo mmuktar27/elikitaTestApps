@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect ,useMemo } from "react";
+import {useSession } from "next-auth/react";
 
 // Lucide Icons
 import {
@@ -31,7 +32,7 @@ import {
   Send,
   Copy,
   Check as CheckIcon,AlertCircle,
-  Globe,
+  Globe,Loader2,
   Printer,
 } from "lucide-react";
 import { PatientDetailsView} from "../shared"
@@ -132,9 +133,8 @@ const StatusDialog = ({ isOpen, onClose, status, message }) => {
 
 
 
-const PatientsForms = ({ form , onSubmit , onClose}) => {
-  const [loading, setLoading] = useState(true);
-
+const PatientsForms = ({ form , onSubmit , onClose, buttonText}) => {
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -212,7 +212,7 @@ const PatientsForms = ({ form , onSubmit , onClose}) => {
     e.preventDefault();
 console.log(form)
     if (validateForm()) {
-      setLoading(true);
+      setIsLoading(true);
 
       try {
         let data;
@@ -237,7 +237,7 @@ onSubmit('success', 'Patient updated successfully!!');
         onSubmit('error', 'Operation Failed');
         console.error("Error:", error);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     }
   };
@@ -530,12 +530,23 @@ Preferred Language
           </div>
 
           <div className="flex justify-end space-x-2">
-            <button
-              type="submit"
-              className="rounded-md bg-teal-600 px-4 py-2 text-white transition-colors hover:bg-teal-700 focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
-            >
-              {form?.id ? "Update Patient" : "Save Patient"}
-            </button>
+          <button
+  type="submit"
+  disabled={isLoading}
+  className={`rounded-md px-4 py-2 text-white transition-colors focus:ring-2 focus:ring-teal-500 focus:ring-offset-2
+    ${isLoading ? "bg-gray-400 cursor-not-allowed" : "bg-teal-600 hover:bg-teal-700"}
+  `}
+>
+  {isLoading ? (
+    <span className="flex items-center">
+      <Loader2 className="animate-spin h-4 w-4 mr-2" />
+      {buttonText.includes("Update") ? "Updating Patient..." : "Saving Patient..."}
+    </span>
+  ) : (
+    buttonText
+  )}
+</button>
+
           </div>
         </form>
       </div>
@@ -544,9 +555,11 @@ Preferred Language
 };
 
 
-const Patients = ({ setSelectedUser = () => {} }) => {
+const Patients = ({currentDashboard }) => {
   const [currentUser, setCurrentUser] = useState(null);
-  const [currentUserRole, setCurrentUserRole] = useState('remotedoctor');
+  const [currentUserRole, setCurrentUserRole] = useState(currentDashboard);
+    const session = useSession();
+  
   const [isDetailsViewOpen, setIsDetailsViewOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("summary");
   const [isMobile, setIsMobile] = useState(false);
@@ -644,7 +657,7 @@ const Patients = ({ setSelectedUser = () => {} }) => {
   useEffect(() => {
     const fetchCurrentUser = async () => {
         try {
-            const user = await getCurrentUser('MICRO12443456');
+            const user = await getCurrentUser('e3eca2db-7111-4ef7-86b6-54e2a6e19914');
             setCurrentUser(user);
         } catch (error) {
             console.error('Failed to fetch user data');
@@ -652,7 +665,7 @@ const Patients = ({ setSelectedUser = () => {} }) => {
     };
 
     fetchCurrentUser();
-    console.log(currentUser)
+    //console.log(currentUser)
 }, []);
 
 
@@ -932,33 +945,40 @@ const Patients = ({ setSelectedUser = () => {} }) => {
   };
 
   const filteredPatients = useMemo(() => {
+    if (!patients) return []; // Guard clause for when patients is undefined
+  
     return patients.filter(patient => {
-      // Search Logic
-      const matchesSearch = 
-        !searchTerm || 
-        patient.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        patient.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        patient.patientReference.toLowerCase().includes(searchTerm.toLowerCase());
-
-      // Filter Logic
+      if (!patient) return false; // Guard clause for invalid patient records
+  
+      // Search Logic with null checks and default values
+      const matchesSearch = !searchTerm || [
+        patient.firstName || '',
+        patient.lastName || '',
+        patient.patientReference || ''
+      ].some(field => 
+        field.toLowerCase().includes((searchTerm || '').toLowerCase())
+      );
+  
+      // Filter Logic with null checks
       const matchesProgress = 
-        !activeFilters.progress || 
+        !activeFilters?.progress || 
         patient.progress === activeFilters.progress;
-
+  
       const matchesStatus = 
-        !activeFilters.status || 
+        !activeFilters?.status || 
         patient.status === activeFilters.status;
-
+  
       const matchesCondition = 
-        !activeFilters.condition || 
-        patient.medicalCondition.toLowerCase().includes(activeFilters.condition.toLowerCase());
-
+        !activeFilters?.condition || 
+        (patient.medicalCondition || '').toLowerCase()
+          .includes((activeFilters.condition || '').toLowerCase());
+  
       const matchesDateRange = 
-        (!activeFilters.dateRange?.from || 
+        (!activeFilters?.dateRange?.from || 
           new Date(patient.birthDate) >= new Date(activeFilters.dateRange.from)) &&
-        (!activeFilters.dateRange?.to || 
+        (!activeFilters?.dateRange?.to || 
           new Date(patient.birthDate) <= new Date(activeFilters.dateRange.to));
-
+  
       return matchesSearch && 
              matchesProgress && 
              matchesStatus && 
@@ -992,6 +1012,26 @@ const Patients = ({ setSelectedUser = () => {} }) => {
     </Dialog>
   );
 
+
+  const [currentPage, setCurrentPage] = useState(1);
+const [totalPages, setTotalPages] = useState(1);
+const itemsPerPage = 10;
+  useEffect(() => {
+    setTotalPages(Math.ceil(filteredPatients.length / itemsPerPage));
+    
+    // Reset to first page when filters change to avoid empty pages
+    if (currentPage > Math.ceil(filteredPatients.length / itemsPerPage)) {
+      setCurrentPage(1);
+    }
+  }, [filteredPatients, itemsPerPage]);
+  
+  // Calculate paginated patients
+  const paginatedPatients = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredPatients.slice(startIndex, endIndex);
+  }, [filteredPatients, currentPage, itemsPerPage]);
+  
   return (
     <div className="space-y-4">
       {/* Success Modal */}
@@ -1008,6 +1048,7 @@ const Patients = ({ setSelectedUser = () => {} }) => {
           onClose={() => setIsDetailsViewOpen(false)}
           SelectedPatient={selectedPatient}
           currentUser={currentUser}
+          
         />
       )}
 
@@ -1069,7 +1110,7 @@ const Patients = ({ setSelectedUser = () => {} }) => {
                 onOpenChange={(isOpen) => !isOpen && handleDialogClose()}
               >
                 <DialogTrigger asChild>
-                {currentUser?.roles?.includes("healthassistant") && (
+                {currentDashboard === "healthcare assistant" && session?.data?.user?.roles?.includes("healthcare assistant") && ( 
   <Button
     className="w-full bg-[#007664] hover:bg-[#007664]/80 sm:w-auto"
     onClick={handleNewPatient}
@@ -1078,6 +1119,7 @@ const Patients = ({ setSelectedUser = () => {} }) => {
     New Patient
   </Button>
 )}
+
 
                 </DialogTrigger>
                 <DialogContent className="max-h-[90vh] max-w-full overflow-y-auto sm:max-w-5xl">
@@ -1097,8 +1139,8 @@ const Patients = ({ setSelectedUser = () => {} }) => {
                     form={editPatState.patientData}
                     onClose={handleDialogClose}
                     onSubmit={(status, message) =>
-                      handleAddNewPatientDialog(status, message)
-                    }
+                      handleAddNewPatientDialog(status, message)}
+                       buttonText="Submit"
                   />
                 </DialogContent>
               </Dialog>
@@ -1120,102 +1162,123 @@ const Patients = ({ setSelectedUser = () => {} }) => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredPatients.length > 0 ? (
-                    filteredPatients.map((patient) => (
-                      <TableRow
-                        key={patient.patientReference}
-                        className="transition-colors duration-200 hover:bg-green-50"
-                      >
-                        <TableCell>{patient.patientReference}</TableCell>
-                        <TableCell>{`${patient.firstName} ${patient.lastName}`}</TableCell>
-                        <TableCell>
-                          {new Intl.DateTimeFormat("en-US", {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          }).format(new Date(patient.birthDate))}
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">
-                            <div>{patient.phone}</div>
-                            <div className="text-gray-500">{patient.email}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>{patient.medicalCondition}</TableCell>
-                        <TableCell>{patient.progress}</TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-blue-600 hover:text-blue-700"
-                              onClick={() => viewDetails(patient)}
-                            >
-                              <Eye className="size-4" />
-                            </Button>
-    
-                            <Dialog
-                              open={editPatState.isOpen}
-                              onOpenChange={(isOpen) =>
-                                !isOpen && handleDialogClose()
-                              }
-                            >
-                              <DialogTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="text-[#007664] hover:text-[#007664]/80"
-                                  onClick={() => startEdit(patient)}
-                                >
-                                  <Edit className="size-4" />
-                                </Button>
-                              </DialogTrigger>
-    
-                              <DialogContent className="max-h-[90vh] max-w-full overflow-y-auto sm:max-w-5xl">
-                                <DialogHeader>
-                                  <DialogTitle>
-                                    <div className="mb-0 text-center">
-                                      <h2 className="bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-3xl font-bold text-transparent">
-                                        {editPatState.patientData?._id
-                                          ? "Edit Patient"
-                                          : "New Patient"}
-                                      </h2>
-                                    </div>
-                                  </DialogTitle>
-                                </DialogHeader>
-    
-                                <PatientsForms
-                                  form={editPatState.patientData}
-                                  onClose={handleDialogClose}
-                                  onSubmit={(status, message) =>
-                                    handleAddNewPatientDialog(status, message)
-                                  }
-                                />
-                              </DialogContent>
-                            </Dialog>
-                            {currentUser?.roles?.includes("healthassistant") && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-red-700 hover:text-red-800"
-                              onClick={() => startDelete(patient._id)}
-                            >
-                              <Trash2 className="size-4" />
-                            </Button>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center text-gray-500">
-                        No data found
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+  {paginatedPatients.length > 0 ? (
+    paginatedPatients.map((patient) => (
+      <TableRow
+        key={patient.patientReference}
+        className="transition-colors duration-200 hover:bg-green-50"
+      >
+        <TableCell>{patient.patientReference}</TableCell>
+        <TableCell>{`${patient.firstName} ${patient.lastName}`}</TableCell>
+        <TableCell>
+          {new Intl.DateTimeFormat("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          }).format(new Date(patient.birthDate))}
+        </TableCell>
+        <TableCell>
+          <div className="text-sm">
+            <div>{patient.phone}</div>
+            <div className="text-gray-500">{patient.email}</div>
+          </div>
+        </TableCell>
+        <TableCell>{patient.medicalCondition}</TableCell>
+        <TableCell>{patient.progress}</TableCell>
+        <TableCell>
+          <div className="flex space-x-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-blue-600 hover:text-blue-700"
+              onClick={() => viewDetails(patient)}
+            >
+              <Eye className="size-4" />
+            </Button>
+
+            <Dialog
+              open={editPatState.isOpen}
+              onOpenChange={(isOpen) => !isOpen && handleDialogClose()}
+            >
+              <DialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-[#007664] hover:text-[#007664]/80"
+                  onClick={() => startEdit(patient)}
+                >
+                  <Edit className="size-4" />
+                </Button>
+              </DialogTrigger>
+
+              <DialogContent className="max-h-[90vh] max-w-full overflow-y-auto sm:max-w-5xl">
+                <DialogHeader>
+                  <DialogTitle>
+                    <div className="mb-0 text-center">
+                      <h2 className="bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-3xl font-bold text-transparent">
+                        {editPatState.patientData?._id
+                          ? "Edit Patient"
+                          : "New Patient"}
+                      </h2>
+                    </div>
+                  </DialogTitle>
+                </DialogHeader>
+
+                <PatientsForms
+                  form={editPatState.patientData}
+                  onClose={handleDialogClose}
+                  onSubmit={(status, message) =>
+                    handleAddNewPatientDialog(status, message)
+                  }
+                   buttonText="Update"
+                />
+              </DialogContent>
+            </Dialog>
+            {currentDashboard === "healthcare assistant" &&
+              session?.data?.user?.roles?.includes("healthcare assistant") && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-red-700 hover:text-red-800"
+                  onClick={() => startDelete(patient._id)}
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              )}
+          </div>
+        </TableCell>
+      </TableRow>
+    ))
+  ) : (
+    <TableRow>
+      <TableCell colSpan={7} className="text-center text-gray-500">
+        No data found
+      </TableCell>
+    </TableRow>
+  )}
+</TableBody>
+</Table>
+{/* Pagination Controls */}
+<div className="flex justify-end mt-4 space-x-2">
+    <Button
+      variant="outline"
+      disabled={currentPage === 1}
+      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+    >
+      Previous
+    </Button>
+    <span className="self-center">
+      Page {currentPage} of {totalPages}
+    </span>
+    <Button
+      variant="outline"
+      disabled={currentPage === totalPages}
+      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+    >
+      Next
+    </Button>
+  </div>
+           
             </div>
           </CardContent>
         </Card>

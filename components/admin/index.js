@@ -5,4 +5,7 @@ export { default as AdminReportAnalytics } from "./ReportAnalytics";
 export { default as AdminSettings } from "./SettingsComponent";
 export { default as AdminUtilities } from "./Utilities";
 export { default as AdminUserComponent } from "./UserComponent";
-export { default as UserDetailComponent } from "./UserDetail";
+export { default as UserDetailComponent } from "./UserDetail";  
+export { default as BookingsURLManagement } from "./BookingUrl";  
+
+

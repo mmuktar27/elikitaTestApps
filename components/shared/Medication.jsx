@@ -78,7 +78,6 @@ import {
   Users,
   Printer,
   ChevronUp,
-  TrendingUp,
   X,
 } from "lucide-react";
 
@@ -112,6 +111,7 @@ import {
 } from "@/components/ui/select";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useSession } from "next-auth/react";
 
 import {
   Dialog,
@@ -138,8 +138,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-import { editMedication,submitMedication } from '../shared/api'
-import {handleAddVisitHistory} from '../shared'
+import { editMedication, submitMedication } from "../shared/api";
+import { handleAddVisitHistory } from "../shared";
 
 export function NewMedicationForm({
   medications,
@@ -154,10 +154,11 @@ export function NewMedicationForm({
   const [selectedComplaints, setSelectedComplaints] = useState([]);
   const [selectedSymptoms, setSelectedSymptoms] = useState([]);
   const [filteredComplaints, setFilteredComplaints] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
 
+  const session = useSession();
 
-  const [errors,setErrors]= useState({});
-
+  const [errors, setErrors] = useState({});
 
   const [filteredMedications, setFilteredMedications] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -168,7 +169,7 @@ export function NewMedicationForm({
     } else {
       return {
         medicationId: generateMedicationId(), // Default medication ID (you can replace it with a dynamic ID generator)
-        requestedBy: "Dr. John Doe", // Default requestedBy (can be dynamic based on the user)
+        requestedBy: session.data.user.id, // Default requestedBy (can be dynamic based on the user)
         medicationName: " j", // Initially empty, to be filled in by the user
         dosage: "", // Initially empty, to be filled in by the user
         treatmentDuration: "", // Initially empty, to be filled in by the user
@@ -298,6 +299,8 @@ export function NewMedicationForm({
     const recentMedications = [...medications]
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       .slice(0, 4);
+
+    console.log(recentMedications);
     return (
       <div
         className="mx-auto max-w-4xl space-y-8 p-6"
@@ -328,7 +331,13 @@ export function NewMedicationForm({
                           {medication.medicationName}
                         </div>
                         <div className="text-sm text-gray-600">
-                          Requested by: {medication.requestedBy}
+                          Requested by:
+                          <p className="text-sm opacity-80">
+                            <span>
+                              {`${medication.requestedBy?.firstName || ""} ${medication.requestedBy?.lastName || ""}`.trim() ||
+                                "Not specified"}
+                            </span>
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -401,43 +410,51 @@ export function NewMedicationForm({
   };
   const validateForm = () => {
     let newErrors = {};
-  
+
     // Validate Medication Name
     if (!medformData?.medicationName?.trim()) {
       newErrors.medicationName = "Medication Name is required.";
     }
-  
+
     // Validate Dosage (must be a positive number)
-    if (!medformData?.dosage || isNaN(medformData.dosage) || Number(medformData.dosage) <= 0) {
+    if (
+      !medformData?.dosage ||
+      isNaN(medformData.dosage) ||
+      Number(medformData.dosage) <= 0
+    ) {
       newErrors.dosage = "Dosage must be a valid positive number.";
     }
-  
+
     // Validate Treatment Duration (must be a positive number)
-    if (!medformData?.treatmentDuration || isNaN(medformData.treatmentDuration) || Number(medformData.treatmentDuration) <= 0) {
-      newErrors.treatmentDuration = "Treatment Duration must be a valid positive number.";
+    if (
+      !medformData?.treatmentDuration ||
+      isNaN(medformData.treatmentDuration) ||
+      Number(medformData.treatmentDuration) <= 0
+    ) {
+      newErrors.treatmentDuration =
+        "Treatment Duration must be a valid positive number.";
     }
-  
+
     // Validate Follow-Up Protocol
     if (!medformData?.followUpProtocol?.trim()) {
       newErrors.followUpProtocol = "Follow-up Protocol is required.";
     }
-  
+
     // Debugging log to check errors
     console.log("Validation Errors:", newErrors);
-  
+
     // Set errors in state
     setErrors(newErrors);
-  
+
     // Return false if errors exist
     if (Object.keys(newErrors).length > 0) {
       return false;
     }
-  
+
     // Return true if no errors
     return true;
   };
-  
-  
+
   const MedicationForm = () => {
     // Sample data for AI completion
     console.log(patient);
@@ -488,14 +505,13 @@ export function NewMedicationForm({
       setmedFormData((prev) => ({
         ...prev,
         [name]: value,
-      }))
-    
+      }));
+
       setErrors((prevErrors) => ({
         ...prevErrors,
         [name]: "", // Clear the error message
       }));
-    
-    
+
       setInteractionAlert(null);
 
       if (name === "medicationName") {
@@ -559,10 +575,9 @@ export function NewMedicationForm({
       setmedFormData((prev) => ({ ...prev, medicationName: medication }));
       setShowSuggestions(false);
     };
-   
-    
+
     return (
-      <div className="mx-auto max-w-4xl mt-0 p-6" style={{ width: "65vw" }}>
+      <div className="mx-auto mt-0 max-w-4xl p-6" style={{ width: "65vw" }}>
         <Card className="grid grid-cols-1 gap-4 bg-white shadow-lg md:grid-cols-1">
           <CardHeader className="flex flex-row items-center justify-between rounded-t-lg bg-teal-700 text-white">
             <CardTitle className="text-2xl">New Medication Entry</CardTitle>
@@ -589,7 +604,7 @@ export function NewMedicationForm({
                 </div>
               )}
             </div>
-            <div className="space-y-4" >
+            <div className="space-y-4">
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-teal-700">
                   Medication ID
@@ -603,7 +618,7 @@ export function NewMedicationForm({
                   />
                 </div>
               </div>
-    
+
               <div className=" relative">
                 <label className="block text-sm font-medium text-teal-700">
                   Medication Name
@@ -617,28 +632,31 @@ export function NewMedicationForm({
                   required
                 />
                 {showSuggestions && (
-    <ul className="absolute left-0 right-0 z-10 mt-1 w-full max-h-60 overflow-y-auto rounded-md border bg-white shadow-md">
-
-                  {filteredMedications.length > 0 ? (
-                    filteredMedications.map((medication, index) => (
-                      <li
-                        key={index}
-                        onClick={() => handleSuggestionClick(medication)}
-                        className="cursor-pointer px-3 py-2 hover:bg-teal-100"
-                      >
-                        {medication}
+                  <ul className="absolute left-0 right-0 z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-md border bg-white shadow-md">
+                    {filteredMedications.length > 0 ? (
+                      filteredMedications.map((medication, index) => (
+                        <li
+                          key={index}
+                          onClick={() => handleSuggestionClick(medication)}
+                          className="cursor-pointer px-3 py-2 hover:bg-teal-100"
+                        >
+                          {medication}
+                        </li>
+                      ))
+                    ) : (
+                      <li className="px-3 py-2 text-gray-500">
+                        No matches found
                       </li>
-                    ))
-                  ) : (
-                    <li className="px-3 py-2 text-gray-500">No matches found</li>
-                  )}
-                </ul>
-              )}
+                    )}
+                  </ul>
+                )}
                 {errors.medicationName && (
-                  <p className="text-red-500 text-sm">{errors.medicationName}</p>
+                  <p className="text-sm text-red-500">
+                    {errors.medicationName}
+                  </p>
                 )}
               </div>
-    
+
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <label className="flex items-center text-sm font-medium text-teal-700">
@@ -653,10 +671,10 @@ export function NewMedicationForm({
                     required
                   />
                   {errors.dosage && (
-                    <p className="text-red-500 text-sm">{errors.dosage}</p>
+                    <p className="text-sm text-red-500">{errors.dosage}</p>
                   )}
                 </div>
-    
+
                 <div className="space-y-2">
                   <label className="flex items-center text-sm font-medium text-teal-700">
                     Treatment Duration
@@ -670,11 +688,13 @@ export function NewMedicationForm({
                     required
                   />
                   {errors.treatmentDuration && (
-                    <p className="text-red-500 text-sm">{errors.treatmentDuration}</p>
+                    <p className="text-sm text-red-500">
+                      {errors.treatmentDuration}
+                    </p>
                   )}
                 </div>
               </div>
-    
+
               <div className="space-y-2">
                 <label className="flex items-center text-sm font-medium text-teal-700">
                   Follow-up Protocol
@@ -688,10 +708,12 @@ export function NewMedicationForm({
                   required
                 />
                 {errors.followUpProtocol && (
-                  <p className="text-red-500 text-sm">{errors.followUpProtocol}</p>
+                  <p className="text-sm text-red-500">
+                    {errors.followUpProtocol}
+                  </p>
                 )}
               </div>
-    
+
               <div className="space-y-2">
                 <label className="flex items-center text-sm font-medium text-teal-700">
                   Additional Notes
@@ -705,44 +727,42 @@ export function NewMedicationForm({
                 />
               </div>
               <div className="space-y-4">
-  {/* Buttons for checking interactions and contraindications */}
-  <div className="flex space-x-4">
-    <button
-      onClick={checkInteractions}
-      className="rounded-md bg-yellow-500 px-4 py-2 text-white transition hover:bg-yellow-600"
-    >
-      Check Drug Interactions
-    </button>
+                {/* Buttons for checking interactions and contraindications */}
+                <div className="flex space-x-4">
+                  <button
+                    onClick={checkInteractions}
+                    className="rounded-md bg-yellow-500 px-4 py-2 text-white transition hover:bg-yellow-600"
+                  >
+                    Check Drug Interactions
+                  </button>
 
-    <button
-      onClick={handleContradictionCheck}
-      className="rounded-md bg-red-500 px-4 py-2 text-white transition hover:bg-red-600"
-    >
-      Check Contraindications
-    </button>
-  </div>
+                  <button
+                    onClick={handleContradictionCheck}
+                    className="rounded-md bg-red-500 px-4 py-2 text-white transition hover:bg-red-600"
+                  >
+                    Check Contraindications
+                  </button>
+                </div>
 
-  {/* Display alert for interactions or contraindications */}
-  {interactionAlert && (
-    <div
-      className={`mt-4 rounded-md p-4 ${
-        interactionAlert.type === "warning"
-          ? "bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700"
-          : "bg-green-100 border-l-4 border-green-500 text-green-700"
-      }`}
-    >
-      <strong className="block">{interactionAlert.title}</strong>
-      <p>{interactionAlert.message}</p>
-    </div>
-  )}
-</div>
-
+                {/* Display alert for interactions or contraindications */}
+                {interactionAlert && (
+                  <div
+                    className={`mt-4 rounded-md p-4 ${
+                      interactionAlert.type === "warning"
+                        ? "border-l-4 border-yellow-500 bg-yellow-100 text-yellow-700"
+                        : "border-l-4 border-green-500 bg-green-100 text-green-700"
+                    }`}
+                  >
+                    <strong className="block">{interactionAlert.title}</strong>
+                    <p>{interactionAlert.message}</p>
+                  </div>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
     );
-    
   };
 
   const pages = [RenderMedicationHistory, MedicationForm];
@@ -766,26 +786,41 @@ export function NewMedicationForm({
         setmedFormData,
         generateMedicationId,
       });
-    
     } catch (error) {
       console.error("Error in handleSubmitMedication:", error);
     }
   };
-  
+  const handleSubmitClick = async () => {
+    const isValid = validateForm();
+    console.log("Validation Result:", isValid);
+
+    if (!isValid) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await handleSubmitMedication();
+    } catch (error) {
+      console.error('Error submitting medication:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <>
-<div className="mx-auto flex max-w-6xl flex-col p-6 !min-h-0  !mt-0">
-<div className="mb-0 text-center">
-                              <h2 className="bg-gradient-to-r mb-4 from-teal-600 to-teal-800 bg-clip-text text-3xl font-bold text-transparent">
-                                New Medication
-                              </h2>
-                            </div>
-        <div className="mb-0 flex justify-center gap-2  mt-0">
+      <div className="mx-auto !mt-0 flex !min-h-0 max-w-6xl flex-col  p-6">
+        <div className="mb-0 text-center">
+          <h2 className="mb-4 bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-3xl font-bold text-transparent">
+            New Medication
+          </h2>
+        </div>
+        <div className="mb-0 mt-0 flex justify-center  gap-2">
           {Array.from({ length: pages.length }, (_, i) => i + 1).map(
             (pageNum) => (
               <button
                 key={pageNum}
-               // onClick={() => setCurrentPage(pageNum)}
+                // onClick={() => setCurrentPage(pageNum)}
                 className={`
           flex h-10 w-10 items-center justify-center rounded-full
           border-2 border-teal-500 text-sm font-medium
@@ -830,21 +865,20 @@ export function NewMedicationForm({
               {currentPage === 2 ? (
                 <div className="flex items-center gap-4">
                   <button
-                  onClick={() => {
-                    const isValid = validateForm();
-                    console.log("Validation Result:", isValid); // Debugging output
-                  
-                    if (!isValid) {
-                     // console.log("Form validation failed. Submission blocked.");
-                      return; // Stop execution if validation fails
-                    }
-                  
-                   // console.log("Form validation passed. Submitting...");
-                  handleSubmitMedication();
-                  }}
-                  className="flex items-center rounded-lg bg-[#007664] px-6 py-3 text-sm font-medium text-white transition-colors  duration-200 hover:bg-[#007664]/80"
+                    disabled={isLoading}
+                    onClick={handleSubmitClick}
+                    className="flex items-center gap-2 rounded-lg bg-[#007664] px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#007664]/80 disabled:bg-[#007664]/50"
                   >
-                    {isEditMode ? "Update Medication" : "Submit Medication"}
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        {isEditMode ? "Updating..." : "Submitting..."}
+                      </>
+                    ) : isEditMode ? (
+                      "Update Medication"
+                    ) : (
+                      "Submit Medication"
+                    )}
                   </button>
                 </div>
               ) : (
