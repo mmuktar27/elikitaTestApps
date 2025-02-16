@@ -7,7 +7,7 @@ import {
   Camera,
   ChevronDown,
   Database,
-  FileBarChart,
+  FileBarChart,Link2,
   Home,
   LogOut,
   Menu,
@@ -112,7 +112,7 @@ function DashboardPage({ children }) {
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
-
+  const [isOpen, setIsOpen] = useState(false);
   return (
     <div className="flex h-screen bg-[#007664]">
       <aside
@@ -149,6 +149,12 @@ function DashboardPage({ children }) {
             active={routes === "/admin/events"}
             url={"/admin/events"}
           />
+          <NavItem
+  icon={Link2}
+  label="Manage Booking URLs"
+  active={routes === "/admin/bookingUrlMgt"}
+  url={"/admin/bookingUrlMgt"} 
+/>
           <NavItem
             icon={FileBarChart}
             label="Report/Analytics"

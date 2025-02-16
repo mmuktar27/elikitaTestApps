@@ -1,6 +1,7 @@
 import axios from "axios";
 import NextAuth, { NextAuthOptions } from "next-auth";
 import AzureADProvider from "next-auth/providers/azure-ad";
+//          redirect_uri: "http://localhost:3000", // Custom Redirect URI
 
 const authOptions: NextAuthOptions = {
   providers: [
@@ -8,7 +9,15 @@ const authOptions: NextAuthOptions = {
       tenantId: process.env.AZURE_AD_B2C_TENANT_NAME,
       clientId: process.env.AZURE_AD_B2C_CLIENT_ID as string,
       clientSecret: process.env.AZURE_AD_B2C_CLIENT_SECRET as string,
-      authorization: { params: { scope: "openid profile user.Read email" } },
+      authorization: {
+        params: {
+          scope: "openid profile user.Read email",
+          response_type: "code",
+          response_mode: "query",
+          redirect_uri: "https://elikita-test-apps.vercel.app" // Replace with your actual redirect URL
+
+        },
+      },
     }),
   ],
 
@@ -30,11 +39,10 @@ const authOptions: NextAuthOptions = {
               headers: {
                 Authorization: `Bearer ${token.accessToken}`,
               },
-            },
+            }
           );
 
           const userDetails = response.data[0];
-
           token.roles = userDetails.roles;
         } catch (error: any) {
           return token;
@@ -60,7 +68,7 @@ const authOptions: NextAuthOptions = {
               headers: {
                 Authorization: `Bearer ${token.accessToken}`,
               },
-            },
+            }
           );
 
           const userDetails = response.data[0];
@@ -93,5 +101,5 @@ const authOptions: NextAuthOptions = {
 };
 
 const handler = NextAuth(authOptions);
-
 export { handler as GET, handler as POST };
+

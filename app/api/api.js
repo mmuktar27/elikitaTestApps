@@ -1,13 +1,12 @@
 import axios from "axios";
 import { getSession } from "next-auth/react";
 
- const API = axios.create({
+const API = axios.create({
   baseURL:
     "https://elikitawebservices-crdpgafxekayhkbe.southafricanorth-01.azurewebsites.net/api/v2",
   timeout: 30000,
 });
-
-
+//    "https://elikitawebservices-crdpgafxekayhkbe.southafricanorth-01.azurewebsites.net/api/v2",
 
 API.interceptors.request.use(
   async (config) => {
