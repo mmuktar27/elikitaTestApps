@@ -14,8 +14,8 @@ const authOptions: NextAuthOptions = {
           scope: "openid profile user.Read email",
           response_type: "code",
           response_mode: "query",
-         // redirect_uri: "https://elikita-test-apps.vercel.app" // Replace with your actual redirect URL
-
+          redirect_uri:
+            "https://elikita-test-apps.vercel.app/api/auth/callback/azure-ad", // Replace with your actual redirect URL
         },
       },
     }),
@@ -39,7 +39,7 @@ const authOptions: NextAuthOptions = {
               headers: {
                 Authorization: `Bearer ${token.accessToken}`,
               },
-            }
+            },
           );
 
           const userDetails = response.data[0];
@@ -68,7 +68,7 @@ const authOptions: NextAuthOptions = {
               headers: {
                 Authorization: `Bearer ${token.accessToken}`,
               },
-            }
+            },
           );
 
           const userDetails = response.data[0];
@@ -102,4 +102,3 @@ const authOptions: NextAuthOptions = {
 
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
-
