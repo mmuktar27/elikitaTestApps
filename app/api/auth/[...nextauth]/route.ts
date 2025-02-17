@@ -14,8 +14,7 @@ const authOptions: NextAuthOptions = {
           scope: "openid profile user.Read email",
           response_type: "code",
           response_mode: "query",
-          redirect_uri:
-            "https://elikita-test-apps.vercel.app/api/auth/callback/azure-ad", // Replace with your actual redirect URL
+         // redirect_uri: "https://elikita-test-apps.vercel.app/api/auth/callback/azure-ad", // Replace with your actual redirect URL
         },
       },
     }),
