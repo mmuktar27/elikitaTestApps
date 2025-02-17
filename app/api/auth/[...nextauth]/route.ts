@@ -1,7 +1,6 @@
 import axios from "axios";
 import NextAuth, { NextAuthOptions } from "next-auth";
 import AzureADProvider from "next-auth/providers/azure-ad";
-//          redirect_uri: "http://localhost:3000", // Custom Redirect URI
 
 const authOptions: NextAuthOptions = {
   providers: [
@@ -14,7 +13,6 @@ const authOptions: NextAuthOptions = {
           scope: "openid profile user.Read email",
           response_type: "code",
           response_mode: "query",
-         // redirect_uri: "https://elikita-test-apps.vercel.app/api/auth/callback/azure-ad", // Replace with your actual redirect URL
         },
       },
     }),
