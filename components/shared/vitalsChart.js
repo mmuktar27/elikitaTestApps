@@ -94,17 +94,17 @@ const VitalsChart = ({vitals}) => {
       const status = getStatus(value, range);
       
       return (
-        <div className="bg-white p-4 border rounded-lg shadow-lg">
-          <p className="font-bold text-teal-900 text-lg mb-2">{range.label}</p>
-          <p className="text-teal-800 font-medium">
+        <div className="rounded-lg border bg-white p-4 shadow-lg">
+          <p className="mb-2 text-lg font-bold text-teal-900">{range.label}</p>
+          <p className="font-medium text-teal-800">
             Value: {value} {range.unit}
           </p>
-          <p className="text-teal-600 text-sm mt-1">
+          <p className="mt-1 text-sm text-teal-600">
             Date: {formatXAxis(label)}
           </p>
           {range.min && range.max && (
             <>
-              <p className="text-teal-600 text-sm">
+              <p className="text-sm text-teal-600">
                 Normal range: {range.min}-{range.max} {range.unit}
               </p>
               <p className="mt-2 font-semibold" style={{ color: status.color }}>
@@ -152,7 +152,7 @@ const VitalsChart = ({vitals}) => {
 */
 
 return (
-  <Card className="w-full bg-transparent border-none shadow-none">
+  <Card className="w-full border-none bg-transparent shadow-none">
     <CardHeader className="border-b border-teal-100">
       <CardTitle className="text-2xl font-bold text-teal-900">
         Vital Signs
@@ -173,7 +173,7 @@ return (
           </SelectContent>
         </Select>
       </div>
-      <div className="h-[500px] p-4 flex items-center justify-center">
+      <div className="flex h-[500px] items-center justify-center p-4">
         {examinationVitals && examinationVitals.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
@@ -251,7 +251,7 @@ return (
             </LineChart>
           </ResponsiveContainer>
         ) : (
-          <p className="text-gray-500 text-center">No data available</p>
+          <p className="text-center text-gray-500">No data available</p>
         )}
       </div>
     </CardContent>

@@ -22,6 +22,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { BsTwitterX } from "react-icons/bs";
+import SkeletonCard from "../../components/ui/skeletoncard";
 
 import { Button } from "@/components/ui/button";
 import { CreateEventForm } from "../../components/events/create-event-form";
@@ -298,7 +299,9 @@ export default function EventsPage() {
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-100 p-8">
-        <div className="text-lg">Loading events...</div>
+        <div className="text-lg">
+          <SkeletonCard />
+        </div>
       </div>
     );
   }
@@ -323,11 +326,14 @@ export default function EventsPage() {
           </div>
 
           <div className="hidden items-center space-x-8 md:flex">
-            <Link href="#home" className="text-base font-normal text-[#2D2E2E]">
+            <Link
+              href="/home#home"
+              className="text-base font-normal text-[#2D2E2E]"
+            >
               Home
             </Link>
             <Link
-              href="#about"
+              href="/home#about"
               className="text-base font-normal text-[#2D2E2E]"
             >
               About Us
@@ -339,7 +345,7 @@ export default function EventsPage() {
               Events
             </Link>
             <Link
-              href="#contact"
+              href="/home#contact"
               className="text-base font-normal text-[#2D2E2E]"
             >
               Contact Us
@@ -347,19 +353,19 @@ export default function EventsPage() {
           </div>
 
           <div className="hidden items-center space-x-4 md:flex">
-            <Button
+         {/*    <Button
               className="rounded-lg border border-white bg-[#3A4F39] px-4 py-2 text-white"
               onClick={() => {}}
             >
               Sign In
-            </Button>
+            </Button> */}
             <VolunteerModal />
           </div>
 
           <div className="md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-2 text-white"
+              className="p-2 text-green-600"
             >
               <svg
                 className="size-6"
@@ -380,16 +386,16 @@ export default function EventsPage() {
 
         {isMenuOpen && (
           <div className="mt-4 md:hidden">
-            <Link href="#home" className="block py-2 text-[#2D2E2E]">
+            <Link href="/home#home" className="block py-2 text-[#2D2E2E]">
               Home
             </Link>
-            <Link href="#about" className="block py-2 text-[#2D2E2E]">
+            <Link href="/home#about" className="block py-2 text-[#2D2E2E]">
               About Us
             </Link>
             <Link href="/events" className="block py-2 text-[#2D2E2E]">
               Events
             </Link>
-            <Link href="#contact" className="block py-2 text-[#2D2E2E]">
+            <Link href="/home#contact" className="block py-2 text-[#2D2E2E]">
               Contact Us
             </Link>
             {/* <div className="mt-4 space-y-2">
@@ -480,7 +486,7 @@ export default function EventsPage() {
           )}
         </div>
       </div>
-      <footer className="relative bg-[#007664] py-16 text-white ">
+      <footer className="relative flex bg-[#007664] py-16 text-[#FFFFFF]">
         <Image
           src={bgfooterImage}
           alt="bg hero"
@@ -583,7 +589,7 @@ export default function EventsPage() {
         </div>
       </footer>
 
-      <div className=" flex flex-col items-center justify-between border-t border-gray-700 bg-[#3A4F39] px-20  py-8 md:flex-row">
+      <div className=" flex flex-col items-center justify-between border-t border-gray-700 bg-[#3A4F39] px-2 py-8  md:flex-row md:px-20">
         <p className="text-sm text-gray-400">
           e-Likita Copyright 2025 | All Rights Reserved
         </p>

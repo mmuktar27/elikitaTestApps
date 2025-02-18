@@ -534,12 +534,12 @@ Preferred Language
   type="submit"
   disabled={isLoading}
   className={`rounded-md px-4 py-2 text-white transition-colors focus:ring-2 focus:ring-teal-500 focus:ring-offset-2
-    ${isLoading ? "bg-gray-400 cursor-not-allowed" : "bg-teal-600 hover:bg-teal-700"}
+    ${isLoading ? "cursor-not-allowed bg-gray-400" : "bg-teal-600 hover:bg-teal-700"}
   `}
 >
   {isLoading ? (
     <span className="flex items-center">
-      <Loader2 className="animate-spin h-4 w-4 mr-2" />
+      <Loader2 className="mr-2 size-4 animate-spin" />
       {buttonText.includes("Update") ? "Updating Patient..." : "Saving Patient..."}
     </span>
   ) : (
@@ -901,8 +901,8 @@ const Patients = ({currentDashboard }) => {
     if (!show) return null;
 
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-        <div className="rounded bg-white p-6 shadow-md">
+<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+<div className="rounded bg-white p-6 shadow-md">
           <h2 className="text-lg font-bold">Confirm Deletion</h2>
           <p className="mt-2">Are you sure you want to delete this item?</p>
           <div className="mt-4 flex justify-end space-x-4">
@@ -1023,7 +1023,7 @@ const itemsPerPage = 10;
     if (currentPage > Math.ceil(filteredPatients.length / itemsPerPage)) {
       setCurrentPage(1);
     }
-  }, [filteredPatients, itemsPerPage]);
+  }, [currentPage, filteredPatients, itemsPerPage]);
   
   // Calculate paginated patients
   const paginatedPatients = useMemo(() => {
@@ -1259,7 +1259,7 @@ const itemsPerPage = 10;
 </TableBody>
 </Table>
 {/* Pagination Controls */}
-<div className="flex justify-end mt-4 space-x-2">
+<div className="mt-4 flex justify-end space-x-2">
     <Button
       variant="outline"
       disabled={currentPage === 1}

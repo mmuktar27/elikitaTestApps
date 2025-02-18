@@ -11,10 +11,11 @@ import {
   UserCheck,
   UserRoundPen,Calendar,
   Users,
-  X,
+  X,CalendarCheck
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
-import { useState } from "react";
+import { useState,useEffect  } from "react";
+import {getCurrentBookingUrlConfig} from "../../components/shared/api"
 
 import TeamSwitcher from "../../components/ui/team-switcher";
 import { LogoutConfirmation } from "../components/shared";
@@ -85,7 +86,31 @@ function LayoutPage({ children }) {
       redirect: true,
     });
   };
+  const [bookingUrl, setBookingUrl] = useState("");
 
+  useEffect(() => {
+    const fetchBookingUrl = async () => {
+      try {
+        const data = await getCurrentBookingUrlConfig();
+        let url = data?.internalBookingUrl;
+  
+        if (url) {
+          // Ensure it has a proper scheme (http/https)
+          if (!url.startsWith("http")) {
+            url = `https://${url}`;
+          }
+        } else {
+          url = "https://e-likita.com"; // Fallback URL
+        }
+  
+        setBookingUrl(url);
+      } catch (error) {
+        console.error("Failed to fetch booking URL", error);
+      }
+    };
+  
+    fetchBookingUrl();
+  }, []);
   const session = useSession();
   const routes = usePathname();
   const [currUser, setCurrUser] = useState(null);
@@ -151,10 +176,12 @@ function LayoutPage({ children }) {
             active={routes === "/remotedoctor/events"}
             url={"/remotedoctor/events"}
           />
-  <NavItem icon={Calendar} 
-  label="Availability Register" 
-  active={routes === "/remotedoctor/availabilityRegister"} 
-  url={"/remotedoctor/availabilityRegister"} />
+            <NavItem 
+              icon={CalendarCheck} 
+              label="Bookings" 
+              active={routes === bookingUrl} 
+              url={bookingUrl} 
+            />
 
           <NavItem
             icon={UserRoundPen}

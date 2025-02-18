@@ -222,7 +222,7 @@ const MultiSectionSymptomsForm = ({
         return newErrors;
       });
     },
-    [setFormData, setErrors]
+    [setFormData, setTouchedFields, setErrors]
   );
   
 
@@ -245,7 +245,7 @@ const MultiSectionSymptomsForm = ({
 
       handleFieldChange(sectionName, subsectionName, fieldName, "Others");
     },
-    [handleFieldChange]
+    [handleFieldChange, setOtherValues]
   );
 
   const handleBlur = useCallback((fieldId) => {
@@ -253,7 +253,7 @@ const MultiSectionSymptomsForm = ({
       ...prev,
       [fieldId]: true,
     }));
-  }, []);
+  }, [setTouchedFields]);
 
 
  
@@ -382,7 +382,7 @@ const MultiSectionSymptomsForm = ({
         </div>
       );
     },
-    [getCurrentValue, handleFieldChange, handleOtherChange, otherValues, validationErrors, touchedFields, handleBlur]
+    [getCurrentValue, otherValues, validationErrors, handleFieldChange, setOtherValues, handleBlur, handleOtherChange]
   );
 
   
@@ -3640,7 +3640,7 @@ export function NewExamination({
       handleExamination();
       setManualUpdateTrigger(false); // Reset trigger
     }
-  }, [manualUpdateTrigger, formData, createExamination, updateExam, buttonText]);
+  }, [manualUpdateTrigger, formData, buttonText, onSubmit, onTabChange]);
   
   
   const handleSubmitExamination = () => {
@@ -3746,7 +3746,7 @@ export function NewExamination({
 >
   {isLoading ? (
     <>
-      <Loader2 className="h-4 w-4 animate-spin" />
+      <Loader2 className="size-4 animate-spin" />
       {currentPage === pages.length ? (buttonText === "Update" ? "Updating..." : "Submitting...") : "Next"}
     </>
   ) : (

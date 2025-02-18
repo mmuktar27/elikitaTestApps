@@ -632,7 +632,7 @@ export function NewMedicationForm({
                   required
                 />
                 {showSuggestions && (
-                  <ul className="absolute left-0 right-0 z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-md border bg-white shadow-md">
+                  <ul className="absolute inset-x-0 z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-md border bg-white shadow-md">
                     {filteredMedications.length > 0 ? (
                       filteredMedications.map((medication, index) => (
                         <li
@@ -811,11 +811,9 @@ export function NewMedicationForm({
     <>
       <div className="mx-auto !mt-0 flex !min-h-0 max-w-6xl flex-col  p-6">
         <div className="mb-0 text-center">
-          <h2 className="mb-4 bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-3xl font-bold text-transparent">
-            New Medication
-          </h2>
+         
         </div>
-        <div className="mb-0 mt-0 flex justify-center  gap-2">
+        <div className="my-0 flex justify-center gap-2">
           {Array.from({ length: pages.length }, (_, i) => i + 1).map(
             (pageNum) => (
               <button
@@ -871,7 +869,7 @@ export function NewMedicationForm({
                   >
                     {isLoading ? (
                       <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <Loader2 className="size-4 animate-spin" />
                         {isEditMode ? "Updating..." : "Submitting..."}
                       </>
                     ) : isEditMode ? (

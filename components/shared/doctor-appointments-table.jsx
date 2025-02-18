@@ -1,5 +1,21 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
+import {
+  Calendar,
+  Filter,
+  Eye,
+  Clock,
+  User,
+  FileText,
+  Phone,
+  History,
+  ArrowUpRight,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import {
+  useGetAppointments,
+  useUpdateAppointment,
+} from "@/hooks/appointment.hook";
 import {
   Table,
   TableBody,
@@ -10,14 +26,6 @@ import {
 } from "../ui/table";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
-import { CardContent } from "../ui/card";
-import { Eye, Clock, UserRound, ArrowUpRight } from "lucide-react";
-import { format } from "date-fns";
-import {
-  useGetAppointments,
-  useUpdateAppointment,
-} from "@/hooks/appointment.hook";
-import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -34,36 +42,27 @@ import {
 } from "../ui/select";
 import { Label } from "../ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import SkeletonCard from "../ui/skeletoncard";
 
-const DoctorAppointmentsTable = ({ doctorId }) => {
+const DoctorsView = ({ doctorId }) => {
   const router = useRouter();
-
   const { data: appointments, isLoading } = useGetAppointments();
   const updateAppointment = useUpdateAppointment();
 
-  const [sortBy, setSortBy] = useState("chronology");
-  const [isAscending, setIsAscending] = useState(true);
+  const [sortType, setSortType] = useState("date");
+  const [filterType, setFilterType] = useState("today");
   const [selectedAppointment, setSelectedAppointment] = useState(null);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [viewTab, setViewTab] = useState("details");
+  const [showModal, setShowModal] = useState(false);
+  const [activeTab, setActiveTab] = useState("appointment");
 
-  const formatDate = (date) => format(new Date(date), "EEEE, MMMM d, yyyy");
-  const formatTime = (date) => format(new Date(date), "h:mm a");
-
-  const handleViewClick = (appointment) => {
-    setSelectedAppointment(appointment);
-    setIsViewModalOpen(true);
-  };
+  const formatDate = (date) => (new Date(date), "EEEE, MMMM d, yyyy");
+  const formatTime = (date) => (new Date(date), "h:mm a");
 
   const handleUpdateStatus = async (newStatus) => {
     await updateAppointment.mutateAsync({
       id: selectedAppointment._id,
       status: newStatus,
     });
-  };
-
-  const navigateToPatient = (patientId) => {
-    router.push(`/patients/${patientId}`);
   };
 
   const getStatusColor = (status) => {
@@ -83,227 +82,255 @@ const DoctorAppointmentsTable = ({ doctorId }) => {
     }
   };
 
-  const getTodayAppointments = () => {
+  const filteredAppointments = useMemo(() => {
+    if (!appointments?.data?.data) return [];
+
     const today = new Date().toISOString().split("T")[0];
-    return sortedAppointments.filter(
-      (apt) => new Date(apt.startDate).toISOString().split("T")[0] === today,
-    );
-  };
+    return appointments.data.data
+      .filter((appointment) => {
+        const appointmentDate = new Date(appointment.startDate)
+          .toISOString()
+          .split("T")[0];
 
-  const getUpcomingAppointments = () => {
-    const today = new Date().toISOString().split("T")[0];
-    return sortedAppointments.filter(
-      (apt) => new Date(apt.startDate).toISOString().split("T")[0] > today,
-    );
-  };
-
-  const sortedAppointments = React.useMemo(() => {
-    if (!appointments?.data?.data || !Array.isArray(appointments?.data?.data)) {
-      return [];
-    }
-
-    return [...appointments?.data?.data].sort((a, b) => {
-      if (sortBy === "status") {
-        return isAscending
-          ? a.status.localeCompare(b.status)
-          : b.status.localeCompare(a.status);
-      } else if (sortBy === "chronology") {
-        const dateA = new Date(a?.startDate);
-        const dateB = new Date(b?.startDate);
-        return isAscending ? dateA - dateB : dateB - dateA;
-      }
-      return 0;
-    });
-  }, [appointments?.data?.data, sortBy, isAscending]);
+        switch (filterType) {
+          case "today":
+            return appointmentDate === today;
+          case "upcoming":
+            return appointmentDate > today;
+          default:
+            return true;
+        }
+      })
+      .sort((a, b) => {
+        if (sortType === "date") {
+          return new Date(a.startDate) - new Date(b.startDate);
+        } else {
+          return a.status.localeCompare(b.status);
+        }
+      });
+  }, [appointments, filterType, sortType]);
 
   if (isLoading) {
-    return <CardContent>Loading appointments...</CardContent>;
+    return <SkeletonCard />;
   }
 
-  const AppointmentTable = ({ appointments }) => (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="w-32 bg-[#007664] text-white">Time</TableHead>
-          <TableHead className="bg-[#007664] text-white">Patient</TableHead>
-          <TableHead className="bg-[#007664] text-white">Type</TableHead>
-          <TableHead className="bg-[#007664] text-white">Status</TableHead>
-          <TableHead className="w-20 bg-[#007664] text-white">
-            Actions
-          </TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {appointments.map((appointment) => (
-          <TableRow
-            key={appointment._id}
-            className="transition-colors duration-200 hover:bg-green-50"
-          >
-            <TableCell>
-              <div className="flex flex-col">
-                <span className="font-medium">
-                  {formatTime(appointment.startDate)}
-                </span>
-                <span className="text-sm text-gray-500">
-                  {format(new Date(appointment.startDate), "MMM d")}
-                </span>
-              </div>
-            </TableCell>
-            <TableCell>
-              <div className="flex items-center gap-2">
-                <UserRound className="size-4 text-gray-500" />
-                <span>{`${appointment.patient.firstName} ${appointment.patient.firstName}`}</span>
-              </div>
-            </TableCell>
-            <TableCell>{appointment.appointmentType}</TableCell>
-            <TableCell>
-              <Badge className={`${getStatusColor(appointment.status)}`}>
-                {appointment.status}
-              </Badge>
-            </TableCell>
-            <TableCell>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-blue-600 hover:text-blue-700"
-                onClick={() => handleViewClick(appointment)}
-              >
-                <Eye className="size-4" />
-              </Button>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  );
-
   return (
-    <CardContent>
-      <Tabs defaultValue="today" className="w-full">
-        <TabsList>
-          <TabsTrigger value="today" className="flex items-center gap-2">
-            <Clock className="size-4" />
-            Today
-          </TabsTrigger>
-          <TabsTrigger value="upcoming" className="flex items-center gap-2">
-            <ArrowUpRight className="size-4" />
-            Upcoming
-          </TabsTrigger>
-        </TabsList>
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-[#007664] p-6 text-white">
+        <div className="mx-auto max-w-7xl">
+          <h1 className="text-3xl font-bold">Doctor&apos;s Dashboard</h1>
+        </div>
+      </header>
 
-        <TabsContent value="today" className="mt-4">
-          <AppointmentTable appointments={getTodayAppointments()} />
-        </TabsContent>
+      <main className="mx-auto max-w-7xl p-6">
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex gap-4">
+            <Button
+              variant={filterType === "today" ? "secondary" : "outline"}
+              onClick={() => setFilterType("today")}
+            >
+              <Clock className="mr-2 size-4" />
+              Today&apos;s Appointments
+            </Button>
+            <Button
+              variant={filterType === "upcoming" ? "secondary" : "outline"}
+              onClick={() => setFilterType("upcoming")}
+            >
+              <ArrowUpRight className="mr-2 size-4" />
+              Upcoming Appointments
+            </Button>
+          </div>
 
-        <TabsContent value="upcoming" className="mt-4">
-          <AppointmentTable appointments={getUpcomingAppointments()} />
-        </TabsContent>
-      </Tabs>
+          <div className="flex gap-4">
+            <Button
+              variant={sortType === "date" ? "secondary" : "outline"}
+              onClick={() => setSortType("date")}
+            >
+              <Calendar className="mr-2 size-4" />
+              Sort by Date
+            </Button>
+            <Button
+              variant={sortType === "status" ? "secondary" : "outline"}
+              onClick={() => setSortType("status")}
+            >
+              <Filter className="mr-2 size-4" />
+              Sort by Status
+            </Button>
+          </div>
+        </div>
 
-      {/* View Modal */}
-      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+        <Table className="rounded-lg bg-white shadow">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-32 bg-[#007664] text-white">
+                Time
+              </TableHead>
+              <TableHead className="bg-[#007664] text-white">Patient</TableHead>
+              <TableHead className="bg-[#007664] text-white">Type</TableHead>
+              <TableHead className="bg-[#007664] text-white">Status</TableHead>
+              <TableHead className="w-20 bg-[#007664] text-white">
+                Actions
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredAppointments.map((appointment) => (
+              <TableRow key={appointment._id} className="hover:bg-green-50">
+                <TableCell>
+                  <div className="flex flex-col">
+                    <span className="font-medium">
+                      {formatTime(appointment.startDate)}
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      {(new Date(appointment.startDate), "MMM d")}
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <User className="size-4 text-gray-500" />
+                    {`${appointment.patient.firstName} ${appointment.patient.lastName}`}
+                  </div>
+                </TableCell>
+                <TableCell>{appointment.appointmentType}</TableCell>
+                <TableCell>
+                  <Badge className={getStatusColor(appointment.status)}>
+                    {appointment.status}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      setSelectedAppointment(appointment);
+                      setShowModal(true);
+                    }}
+                  >
+                    <Eye className="size-4 text-[#007664]" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </main>
+
+      <Dialog open={showModal} onOpenChange={setShowModal}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Appointment Details</DialogTitle>
           </DialogHeader>
-          {selectedAppointment && (
-            <Tabs value={viewTab} onValueChange={setViewTab}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="details">Appointment Details</TabsTrigger>
-                <TabsTrigger value="patient">Patient Information</TabsTrigger>
-              </TabsList>
 
-              <TabsContent value="details" className="space-y-4 pt-4">
-                <div className="grid grid-cols-2 gap-4">
+          {selectedAppointment && (
+            <>
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="appointment">
+                    Appointment Details
+                  </TabsTrigger>
+                  <TabsTrigger value="patient">Patient Information</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="appointment" className="space-y-4 pt-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Date & Time</Label>
+                      <p className="mt-1 font-medium">
+                        {formatDate(selectedAppointment.startDate)}
+                        <br />
+                        {formatTime(selectedAppointment.startDate)}
+                      </p>
+                    </div>
+                    <div>
+                      <Label>Status</Label>
+                      <div className="mt-1 space-y-2">
+                        <Badge
+                          className={getStatusColor(selectedAppointment.status)}
+                        >
+                          {selectedAppointment.status}
+                        </Badge>
+                        <Select onValueChange={handleUpdateStatus}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Update status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="in-progress">
+                              Mark as In Progress
+                            </SelectItem>
+                            <SelectItem value="completed">
+                              Mark as Completed
+                            </SelectItem>
+                            <SelectItem value="no-show">
+                              Mark as No-show
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
                   <div>
-                    <Label>Date & Time</Label>
-                    <p className="mt-1 font-medium">
-                      {formatDate(selectedAppointment.startDate)}
-                      <br />
-                      {formatTime(selectedAppointment.startDate)}
+                    <Label>Appointment Type</Label>
+                    <p className="mt-1">
+                      {selectedAppointment.appointmentType}
                     </p>
                   </div>
                   <div>
-                    <Label>Status</Label>
-                    <div className="mt-1 space-y-2">
-                      <Badge
-                        className={`${getStatusColor(selectedAppointment.status)}`}
-                      >
-                        {selectedAppointment.status}
-                      </Badge>
-                      <Select onValueChange={handleUpdateStatus}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Update status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="in-progress">
-                            Mark as In Progress
-                          </SelectItem>
-                          <SelectItem value="completed">
-                            Mark as Completed
-                          </SelectItem>
-                          <SelectItem value="no-show">
-                            Mark as No-show
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    <Label>Description</Label>
+                    <p className="mt-1">{selectedAppointment.description}</p>
                   </div>
-                </div>
-                <div>
-                  <Label>Appointment Type</Label>
-                  <p className="mt-1">{selectedAppointment.appointmentType}</p>
-                </div>
-                <div>
-                  <Label>Description</Label>
-                  <p className="mt-1">{selectedAppointment.description}</p>
-                </div>
-                <div>
-                  <Label>Clinical Notes</Label>
-                  <p className="mt-1 whitespace-pre-wrap">
-                    {selectedAppointment.notes}
-                  </p>
-                </div>
-              </TabsContent>
+                  <div>
+                    <Label>Clinical Notes</Label>
+                    <p className="mt-1 whitespace-pre-wrap">
+                      {selectedAppointment.notes}
+                    </p>
+                  </div>
+                </TabsContent>
 
-              <TabsContent value="patient" className="space-y-4 pt-4">
-                <div className="rounded-lg border p-4">
-                  <div className="mb-4 flex items-center justify-between">
-                    <h3 className="text-lg font-medium">Patient Information</h3>
-                    <Button
-                      onClick={() =>
-                        navigateToPatient(selectedAppointment.patientReference)
-                      }
-                      className="flex items-center gap-2"
-                    >
-                      View Full Profile
-                      <ArrowUpRight className="size-4" />
-                    </Button>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label>Name</Label>
-                      <p className="mt-1">{selectedAppointment.patientName}</p>
+                <TabsContent value="patient" className="space-y-4 pt-4">
+                  <div className="rounded-lg border p-4">
+                    <div className="mb-4 flex items-center justify-between">
+                      <h3 className="text-lg font-medium">
+                        Patient Information
+                      </h3>
+                      {/*  <Button
+                        onClick={() =>
+                          router.push(
+                            `/patients/${selectedAppointment.patientReference}`,
+                          )
+                        }
+                        className="flex items-center gap-2"
+                      >
+                        View Full Profile
+                        <ArrowUpRight className="size-4" />
+                      </Button> */}
                     </div>
-                    <div>
-                      <Label>Patient ID</Label>
-                      <p className="mt-1">
-                        {selectedAppointment.patientReference}
-                      </p>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Name</Label>
+                        <p className="mt-1">
+                          {selectedAppointment.patientName}
+                        </p>
+                      </div>
+                      <div>
+                        <Label>Patient ID</Label>
+                        <p className="mt-1">
+                          {selectedAppointment.patientReference}
+                        </p>
+                      </div>
                     </div>
-                    {/* Add more patient details as needed */}
                   </div>
-                </div>
-              </TabsContent>
-            </Tabs>
+                </TabsContent>
+              </Tabs>
+              <DialogFooter>
+                <Button onClick={() => setShowModal(false)}>Close</Button>
+              </DialogFooter>
+            </>
           )}
-          <DialogFooter>
-            <Button onClick={() => setIsViewModalOpen(false)}>Close</Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
-    </CardContent>
+    </div>
   );
 };
 
-export default DoctorAppointmentsTable;
+export default DoctorsView;

@@ -1,139 +1,215 @@
-import { useState } from "react";
-import { useCreateAppointment } from "@/hooks/appointment.hook";
-import { useGetPatients } from "@/hooks/patients.hook";
-
+import React, { useState, useEffect } from "react";
+import { X } from "lucide-react";
+import { format } from "date-fns";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
-  SelectTrigger,
-  SelectValue,
   SelectContent,
   SelectItem,
-} from "../ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
-
-import { Button } from "../ui/button";
-import { Textarea } from "../ui/textarea";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  useCreateAppointment,
+  useUpdateAppointment,
+} from "@/hooks/appointment.hook";
+import { useGetPatients } from "@/hooks/patients.hook";
 
 const CreateNewAppointmentModal = ({
   isNewAppointmentOpen,
   setIsNewAppointmentOpen,
+  selectedAppointment,
+  setSelectedAppointment,
+  setShowSuccess,
 }) => {
-  const [appointmentData, setAppointmentData] = useState({
+  const { data: patients } = useGetPatients();
+  const createAppointment = useCreateAppointment();
+  const updateAppointment = useUpdateAppointment();
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showPatientList, setShowPatientList] = useState(false);
+  const [selectedPatient, setSelectedPatient] = useState(null);
+  const [formData, setFormData] = useState({
     patientReference: "",
-    appointmentType: "",
-    specialty: "",
-    status: "",
-    startTime: "",
+    appointmentType: "ROUTINE",
+    specialty: "394814009",
+    status: "scheduled",
+    startTime: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
     duration: 30,
     description: "",
     notes: "",
   });
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const { data: patients } = useGetPatients();
+  useEffect(() => {
+    if (selectedAppointment) {
+      setFormData({
+        patientReference: selectedAppointment.patientReference,
+        appointmentType: selectedAppointment.appointmentType,
+        specialty: selectedAppointment.specialty || "394814009",
+        status: selectedAppointment.status,
+        startTime: format(
+          new Date(selectedAppointment.startDate),
+          "yyyy-MM-dd'T'HH:mm",
+        ),
+        duration: selectedAppointment.duration || 30,
+        description: selectedAppointment.description || "",
+        notes: selectedAppointment.notes || "",
+      });
+      setSelectedPatient({
+        id: selectedAppointment.patientReference,
+        name: `${selectedAppointment.patient.firstName} ${selectedAppointment.patient.lastName}`,
+        reference: selectedAppointment.patient.patientReference,
+      });
+    }
+  }, [selectedAppointment]);
 
-  const createAppointment = useCreateAppointment();
-
-  const handleCreateAppointment = () => {
-    createAppointment.mutate(appointmentData, {
-      onSuccess: () => {
-        setIsNewAppointmentOpen(false);
-        setAppointmentData({
-          patientReference: "",
-          appointmentType: "",
-          specialty: "",
-          status: "",
-          startTime: "",
-          duration: 30,
-          description: "",
-          notes: "",
-        });
-      },
+  const handleClose = () => {
+    setIsNewAppointmentOpen(false);
+    setSelectedAppointment(null);
+    setSelectedPatient(null);
+    setSearchTerm("");
+    setFormData({
+      patientReference: "",
+      appointmentType: "ROUTINE",
+      specialty: "394814009",
+      status: "scheduled",
+      startTime: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
+      duration: 30,
+      description: "",
+      notes: "",
     });
   };
 
-  const filteredPatients = (patients?.data ?? []).filter((patient) =>
-    patient.firstName.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const handleSubmit = () => {
+    const appointmentData = {
+      ...formData,
+      patientReference: selectedPatient.id,
+    };
+
+    if (selectedAppointment) {
+      updateAppointment.mutate(
+        { id: selectedAppointment._id, data: appointmentData },
+        {
+          onSuccess: () => {
+            setShowSuccess(true);
+            handleClose();
+          },
+        },
+      );
+    } else {
+      createAppointment.mutate(appointmentData, {
+        onSuccess: () => {
+          setShowSuccess(true);
+          handleClose();
+        },
+      });
+    }
+  };
+
+  const filteredPatients =
+    patients?.data?.filter((patient) =>
+      `${patient.firstName} ${patient.lastName}`
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()),
+    ) || [];
 
   return (
     <Dialog open={isNewAppointmentOpen} onOpenChange={setIsNewAppointmentOpen}>
       <DialogContent className="max-h-[90vh] w-[95vw] max-w-2xl overflow-y-auto p-4 md:p-6">
-        <DialogHeader className="mb-4">
+        <DialogHeader className="flex flex-row items-center justify-between">
           <DialogTitle className="text-xl font-bold text-teal-700 md:text-2xl">
-            New Appointment
+            {selectedAppointment ? "Edit Appointment" : "New Appointment"}
           </DialogTitle>
+          <Button variant="ghost" className="size-8 p-0" onClick={handleClose}>
+            <X className="size-4" />
+          </Button>
         </DialogHeader>
 
-        <div className="grid gap-4">
-          {/* Patient Search and Select */}
+        <div className="mt-4 grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="patientSearch">Search Patient</Label>
-            <Input
-              id="patientSearch"
-              placeholder="Type patient name"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="focus-visible:ring-teal-700"
-            />
-            {filteredPatients &&
-              filteredPatients.length > 0 &&
-              searchTerm.length > 0 && (
-                <ul className="mt-2 max-h-[150px] overflow-y-auto border border-gray-300 bg-white p-2">
+            <Label>Patient</Label>
+            <div className="relative">
+              <Input
+                placeholder="Search patient by name"
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setShowPatientList(true);
+                }}
+                className="focus-visible:ring-teal-700"
+              />
+              {showPatientList && searchTerm && (
+                <div className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-md border bg-white shadow-lg">
                   {filteredPatients.map((patient) => (
-                    <li
-                      key={patient?.patientReference}
-                      className="cursor-pointer p-2 hover:bg-teal-100"
+                    <div
+                      key={patient._id}
+                      className="cursor-pointer p-2 hover:bg-teal-50"
                       onClick={() => {
-                        setAppointmentData((prev) => ({
-                          ...prev,
-                          patientReference: patient?._id,
-                        }));
-                        setSearchTerm(patient.firstName);
+                        setSelectedPatient({
+                          id: patient._id,
+                          name: `${patient.firstName} ${patient.lastName}`,
+                          reference: patient.patientReference,
+                        });
+                        setSearchTerm(
+                          `${patient.firstName} ${patient.lastName}`,
+                        );
+                        setShowPatientList(false);
                       }}
                     >
-                      {`${patient?.firstName} ${patient?.lastName}`} (
-                      {patient?.patientReference})
-                    </li>
+                      <div className="font-medium">
+                        {patient.firstName} {patient.lastName}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        Ref: {patient.patientReference}
+                      </div>
+                    </div>
                   ))}
-                </ul>
+                </div>
               )}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="grid gap-2">
-              <Label htmlFor="appointmentType">Appointment Type</Label>
+              <Label>Appointment Type</Label>
               <Select
+                value={formData.appointmentType}
                 onValueChange={(value) =>
-                  setAppointmentData((prev) => ({
-                    ...prev,
-                    appointmentType: value,
-                  }))
+                  setFormData((prev) => ({ ...prev, appointmentType: value }))
                 }
               >
                 <SelectTrigger className="focus-visible:ring-teal-700">
-                  <SelectValue placeholder="Select type" />
+                  <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="min-w-[200px]">
+                <SelectContent>
                   <SelectItem value="ROUTINE">Routine</SelectItem>
                   <SelectItem value="WALKIN">Walk-in</SelectItem>
                   <SelectItem value="EMERGENCY">Emergency</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
             <div className="grid gap-2">
-              <Label htmlFor="specialty">Specialty</Label>
+              <Label>Specialty</Label>
               <Select
+                value={formData.specialty}
                 onValueChange={(value) =>
-                  setAppointmentData((prev) => ({ ...prev, specialty: value }))
+                  setFormData((prev) => ({ ...prev, specialty: value }))
                 }
               >
                 <SelectTrigger className="focus-visible:ring-teal-700">
-                  <SelectValue placeholder="Select specialty" />
+                  <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="min-w-[200px]">
+                <SelectContent>
                   <SelectItem value="394814009">General Practice</SelectItem>
                   <SelectItem value="394582007">Cardiology</SelectItem>
                   <SelectItem value="394539006">Pediatrics</SelectItem>
@@ -144,16 +220,17 @@ const CreateNewAppointmentModal = ({
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="grid gap-2">
-              <Label htmlFor="status">Status</Label>
+              <Label>Status</Label>
               <Select
+                value={formData.status}
                 onValueChange={(value) =>
-                  setAppointmentData((prev) => ({ ...prev, status: value }))
+                  setFormData((prev) => ({ ...prev, status: value }))
                 }
               >
                 <SelectTrigger className="focus-visible:ring-teal-700">
-                  <SelectValue placeholder="Select status" />
+                  <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="min-w-[200px]">
+                <SelectContent>
                   <SelectItem value="scheduled">Scheduled</SelectItem>
                   <SelectItem value="cancelled">Cancelled</SelectItem>
                   <SelectItem value="completed">Completed</SelectItem>
@@ -161,14 +238,14 @@ const CreateNewAppointmentModal = ({
                 </SelectContent>
               </Select>
             </div>
+
             <div className="grid gap-2">
-              <Label htmlFor="startTime">Start Time</Label>
+              <Label>Start Time</Label>
               <Input
-                id="startTime"
                 type="datetime-local"
-                value={appointmentData.startTime}
+                value={formData.startTime}
                 onChange={(e) =>
-                  setAppointmentData((prev) => ({
+                  setFormData((prev) => ({
                     ...prev,
                     startTime: e.target.value,
                   }))
@@ -179,13 +256,12 @@ const CreateNewAppointmentModal = ({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="description">Description</Label>
+            <Label>Description</Label>
             <Input
-              id="description"
               placeholder="Brief description of appointment"
-              value={appointmentData.description}
+              value={formData.description}
               onChange={(e) =>
-                setAppointmentData((prev) => ({
+                setFormData((prev) => ({
                   ...prev,
                   description: e.target.value,
                 }))
@@ -195,16 +271,12 @@ const CreateNewAppointmentModal = ({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="notes">Clinical Notes</Label>
+            <Label>Clinical Notes</Label>
             <Textarea
-              id="notes"
               placeholder="Additional notes about the appointment"
-              value={appointmentData.notes}
+              value={formData.notes}
               onChange={(e) =>
-                setAppointmentData((prev) => ({
-                  ...prev,
-                  notes: e.target.value,
-                }))
+                setFormData((prev) => ({ ...prev, notes: e.target.value }))
               }
               className="min-h-[100px] focus-visible:ring-teal-700"
             />
@@ -214,16 +286,17 @@ const CreateNewAppointmentModal = ({
         <div className="mt-6 flex flex-col justify-end gap-3 sm:flex-row">
           <Button
             variant="outline"
-            onClick={() => setIsNewAppointmentOpen(false)}
+            onClick={handleClose}
             className="w-full sm:w-auto"
           >
             Cancel
           </Button>
           <Button
             className="w-full bg-teal-700 text-white hover:bg-teal-800 sm:w-auto"
-            onClick={handleCreateAppointment}
+            onClick={handleSubmit}
+            disabled={!selectedPatient}
           >
-            Create Appointment
+            {selectedAppointment ? "Update" : "Create"} Appointment
           </Button>
         </div>
       </DialogContent>

@@ -199,39 +199,7 @@ export function NewDiagnosisForm({
     setAdditionalDiagnoses([]);
   };
 
-  const handleDiagnosisData = async () => {
-    if (!formData) {
-      console.warn("No form data available. Exiting function.");
-      return;
-    }
-  
-    console.log("Handling diagnosis data:", formData);
-    setIsLoading(true); // Set loading state at the start
-  
-    try {
-      if (formData._id) {
-        console.log("Existing diagnosis found. Updating...");
-        await updateDiagnosisData(formData, resetForm, onTabChange, onSubmit);
-        console.log("Diagnosis update process completed.");
-      } else {
-        console.log("No existing diagnosis found. Creating new diagnosis...");
-  
-        if (!patient) {
-          console.error("Error: patient is undefined before calling createDiagnosis!");
-          return;
-        }
-  
-        console.log("Patient data before sending:", patient);
-        await createDiagnosis(formData, resetForm, onTabChange, onSubmit, patient);
-        console.log("Diagnosis creation process completed.");
-      }
-    } catch (error) {
-      console.error("Error handling diagnosis data:", error);
-    } finally {
-      setIsLoading(false); // Ensure loading state resets after operation
-    }
-  };
-  
+
 
   const generateDiagnosisId = () => {
     const now = new Date();
@@ -249,12 +217,45 @@ export function NewDiagnosisForm({
   };
 
   useEffect(() => {
+    const handleDiagnosisData = async () => {
+      if (!formData) {
+        console.warn("No form data available. Exiting function.");
+        return;
+      }
+    
+      console.log("Handling diagnosis data:", formData);
+      setIsLoading(true); // Set loading state at the start
+    
+      try {
+        if (formData._id) {
+          console.log("Existing diagnosis found. Updating...");
+          await updateDiagnosisData(formData, resetForm, onTabChange, onSubmit);
+          console.log("Diagnosis update process completed.");
+        } else {
+          console.log("No existing diagnosis found. Creating new diagnosis...");
+    
+          if (!patient) {
+            console.error("Error: patient is undefined before calling createDiagnosis!");
+            return;
+          }
+    
+          console.log("Patient data before sending:", patient);
+          await createDiagnosis(formData, resetForm, onTabChange, onSubmit, patient);
+          console.log("Diagnosis creation process completed.");
+        }
+      } catch (error) {
+        console.error("Error handling diagnosis data:", error);
+      } finally {
+        setIsLoading(false); // Ensure loading state resets after operation
+      }
+    };
+    
     if (manualUpdateTrigger) {
       // Only run if trigger is true
       handleDiagnosisData();
       setManualUpdateTrigger(false);
     }
-  }, [manualUpdateTrigger]);
+  }, [formData, manualUpdateTrigger, onSubmit, onTabChange, patient]);
 
   const handlesubmitDiagnosis = () => {
     if (buttonText === "Update") {
@@ -2458,7 +2459,7 @@ export function NewDiagnosisForm({
                 <select
   value={primaryCategory}
   onChange={(e) => handlePrimaryCategoryChange(e.target.value)}
-  className="w-full rounded-md border border-gray-300 p-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-600 peer"
+  className="peer w-full rounded-md border border-gray-300 bg-white p-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-600"
 >
   <option value="">Select Category</option>
   {Object.entries(icdCategories).map(([key, value]) => (
@@ -3180,7 +3181,7 @@ export function NewDiagnosisForm({
   <button
     onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
     disabled={currentPage === 1}
-    className="flex items-center justify-center rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-teal-600 disabled:opacity-50 disabled:hover:bg-teal-500 min-w-[120px]"
+    className="flex min-w-[120px] items-center justify-center rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-teal-600 disabled:opacity-50 disabled:hover:bg-teal-500"
   >
     <ChevronLeft className="mr-2 size-5" />
     Previous
@@ -3205,7 +3206,7 @@ export function NewDiagnosisForm({
           console.log("Form validation passed. Proceeding to next page...");
           setCurrentPage((prev) => Math.min(pages.length, prev + 1));
         }}
-        className="flex items-center justify-center rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-teal-600 min-w-[120px]"
+        className="flex min-w-[120px] items-center justify-center rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-teal-600"
       >
         Next
         <ChevronRight className="ml-2 size-5" />
@@ -3215,11 +3216,11 @@ export function NewDiagnosisForm({
     <button
       disabled={isLoading}
       onClick={handleSubmitClick}
-      className="flex items-center justify-center gap-2 rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#007664]/80 disabled:bg-[#007664]/50 min-w-[120px]"
+      className="flex min-w-[120px] items-center justify-center gap-2 rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#007664]/80 disabled:bg-[#007664]/50"
     >
       {isLoading ? (
         <>
-          <Loader2 className="h-4 w-4 animate-spin" />
+          <Loader2 className="size-4 animate-spin" />
           {buttonText === "Update" ? "Updating..." : "Submitting..."}
         </>
       ) : (
@@ -3229,7 +3230,7 @@ export function NewDiagnosisForm({
   ) : (
     <button
       onClick={() => setCurrentPage((prev) => Math.min(pages.length, prev + 1))}
-      className="flex items-center justify-center rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-teal-600 min-w-[120px]"
+      className="flex min-w-[120px] items-center justify-center rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-teal-600"
     >
       Next
       <ChevronRight className="ml-2 size-5" />

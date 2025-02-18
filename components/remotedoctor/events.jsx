@@ -161,7 +161,7 @@ const Events = () => {
       <Card className="mo:mt-8 border-none shadow-lg">
         <CardHeader className="border-b border-gray-100">
           <CardTitle className="flex items-center gap-2 text-[#007664]">
-            <Calendar className="h-5 w-5" />
+            <Calendar className="size-5" />
             Upcoming Consultations
           </CardTitle>
         </CardHeader>
@@ -174,7 +174,7 @@ const Events = () => {
               >
                 <div className="flex items-center gap-4">
                   <div
-                    className={`flex h-12 w-12 items-center justify-center rounded-full
+                    className={`flex size-12 items-center justify-center rounded-full
               ${consultation.role === "Health Assistant" ? "bg-blue-100" : "bg-[#53FDFD]/10"}`}
                   >
                     {consultation.role === "Health Assistant" ? (
@@ -201,7 +201,7 @@ const Events = () => {
                     </div>
                     <div className="flex flex-col gap-1">
                       <p className="flex items-center gap-1 text-sm text-gray-500">
-                        <Clock className="h-3 w-3" />
+                        <Clock className="size-3" />
                         {consultation.appointmentTime}
                       </p>
                       <p className="text-sm text-gray-500">
@@ -216,7 +216,7 @@ const Events = () => {
 
                 <div className="mt-4 flex w-full gap-2 sm:mt-0 sm:w-auto">
                   <button className="flex w-32 items-center gap-2 rounded-md bg-teal-500 px-4 py-2 text-white transition-colors hover:bg-teal-600 sm:w-auto">
-                    <Video className="h-5 w-5" />
+                    <Video className="size-5" />
                     <span>Join</span>
                   </button>
                 </div>

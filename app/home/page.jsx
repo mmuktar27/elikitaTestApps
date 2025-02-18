@@ -124,9 +124,9 @@ export default function LoginPage() {
           </div>
 
           <div className="hidden items-center space-x-4 md:flex">
-            <Button className="rounded-lg border border-white bg-[#3A4F39] px-4 py-2 text-white">
+            {/*       <Button className="rounded-lg border border-white bg-[#3A4F39] px-4 py-2 text-white">
               Sign In
-            </Button>
+            </Button> */}
             <VolunteerModal />
           </div>
 
@@ -171,25 +171,10 @@ export default function LoginPage() {
               Contact Us
             </Link>
             <div className="mt-4 space-y-2">
-              <button className="w-full rounded-lg border border-white bg-[#3A4F39] px-4 py-2 text-white">
+              {/*  <button className="w-full rounded-lg border border-white bg-[#3A4F39] px-4 py-2 text-white">
                 Sign In
-              </button>
-              <button className="flex w-full items-center justify-center rounded-lg border border-[#3A4F39] bg-white px-4 py-2 text-[#2B5845]">
-                Volunteer
-                <svg
-                  className="ml-2 size-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 8l4 4m0 0l-4 4m4-4H3"
-                  />
-                </svg>
-              </button>
+              </button> */}
+              <VolunteerModal />
             </div>
           </div>
         )}
@@ -205,7 +190,7 @@ export default function LoginPage() {
 
         <div className="my-5 flex flex-col items-center justify-center px-4 md:flex-row md:items-center md:justify-center">
           <div className="relative w-full  md:w-2/4">
-            <h1 className="font-urbanist text-center text-[30px] font-normal text-[#000000] md:text-left  md:text-[70px] md:leading-[75px]">
+            <h1 className="text-center font-urbanist text-[30px] font-normal text-black md:text-left  md:text-[70px] md:leading-[75px]">
               A platform that <br /> bridges{" "}
               <span className="font-extrabold text-[#007664]">
                 Healthcare
@@ -251,13 +236,13 @@ export default function LoginPage() {
         </div>
 
         <div className="relative w-full bg-[#F4FFFB] md:w-1/3">
-          <h2 className="font-poppins mb-2 text-xl font-bold text-[#007664]">
+          <h2 className="mb-2 font-poppins text-xl font-bold text-[#007664]">
             ABOUT US
           </h2>
-          <h3 className="font-urbanist mb-4 text-wrap text-[32px] font-semibold md:text-nowrap">
+          <h3 className="mb-4 text-wrap font-urbanist text-[32px] font-semibold md:text-nowrap">
             Strengthening Healthcare Systems
           </h3>
-          <p className="font-urbanist mb-8 text-[18px] font-medium text-[#007664]">
+          <p className="mb-8 font-urbanist text-[18px] font-medium text-[#007664]">
             Built to integrate seamlessly into existing healthcare systems,
             e-Likita strengthens frontline healthcare workers with intuitive
             digital tools and enables real-time collaboration with experts.
@@ -275,7 +260,7 @@ export default function LoginPage() {
                 quality healthcare more accessible, efficient, and
                 sustainable&quot;
               </p>
-              <p className="font-urbanist mt-1 text-[14px] font-medium text-[#3A4F39]">
+              <p className="mt-1 font-urbanist text-[14px] font-medium text-[#3A4F39]">
                 Dr. Muhammad Saddiq
               </p>
             </div>
@@ -295,13 +280,13 @@ export default function LoginPage() {
         />
         <div className="relative w-full  md:w-1/3">
           <div className="mb-16 w-full">
-            <h2 className="font-poppins mb-2 text-xl font-bold text-[#007664]">
+            <h2 className="mb-2 font-poppins text-xl font-bold text-[#007664]">
               Services
             </h2>
-            <h3 className="font-urbanist mb-4 text-4xl font-bold text-[#042B20]">
+            <h3 className="mb-4 font-urbanist text-4xl font-bold text-[#042B20]">
               We have a wide range of features
             </h3>
-            <p className="font-urbanist w-4/5 font-normal text-[#3A4F39]">
+            <p className="w-4/5 font-urbanist font-normal text-[#3A4F39]">
               Through e-Likita, we are bridging healthcare delivery gaps,
               ensuring quality healthcare reaches underserved communities while
               fostering continuous learning and knowledge sharing.
@@ -315,7 +300,7 @@ export default function LoginPage() {
                 className={`flex w-full flex-col items-center justify-center gap-1 rounded-lg ${index === 1 ? "bg-[#FFFBF2]" : "border  border-[#006633] bg-[#F4FFFB]"} p-6 text-[#006633] shadow-md transition-shadow hover:shadow-lg`}
               >
                 <div className="font-bold">{service.icon}</div>
-                <h4 className="font-inter text-center text-[12px] font-bold ">
+                <h4 className="text-center font-inter text-[12px] font-bold ">
                   {service.title}
                 </h4>
               </div>
@@ -354,13 +339,13 @@ export default function LoginPage() {
                   className="size-12 rounded-full border"
                 />
               </div>
-              <div className="w-ful flex flex-col  items-center justify-center text-center">
+              <div className="flex w-full flex-col  items-center justify-center text-center">
                 <Link href="https://ahdt.co.uk/">
                   <h2 className="mt-4 text-xl font-bold text-[#1a3b2d]">
                     Africa Health Care Development Trust
                   </h2>
                 </Link>
-                <p className="font-urbanist text-center text-xl  leading-relaxed text-[#5D775B]">
+                <p className="text-center font-urbanist text-xl  leading-relaxed text-[#5D775B]">
                   A network of expert healthcare specialists offering medical
                   guidance and mentorship.
                 </p>
@@ -381,7 +366,7 @@ export default function LoginPage() {
                     Dechi Health Trust Fund
                   </h2>
                 </Link>
-                <p className="font-urbanist mb-4 text-center text-xl leading-relaxed text-[#5D775B] ">
+                <p className="mb-4 text-center font-urbanist text-xl leading-relaxed text-[#5D775B] ">
                   The pioneer behind this digital health initiative, dedicated
                   to ensuring equitable access to quality healthcare and
                   affordability in rural Nigeria.
@@ -403,7 +388,7 @@ export default function LoginPage() {
                     DAALITech
                   </h2>
                 </Link>
-                <p className="font-urbanist text-center text-xl leading-relaxed text-[#5D775B]">
+                <p className="text-center font-urbanist text-xl leading-relaxed text-[#5D775B]">
                   A Data and AI startup spearheading the technological
                   development of the project.
                 </p>
@@ -413,10 +398,10 @@ export default function LoginPage() {
         </div>
 
         <div className="relative flex w-full flex-col items-center  justify-center p-4 md:w-1/3 md:items-start">
-          <h2 className="font-poppins mb-2 text-center text-xl font-bold text-[#007664] md:text-left">
+          <h2 className="mb-2 text-center font-poppins text-xl font-bold text-[#007664] md:text-left">
             Collaborations
           </h2>
-          <h3 className="font-urbanist mb-6 text-wrap text-center text-4xl font-semibold md:text-nowrap md:text-left">
+          <h3 className="mb-6 text-wrap text-center font-urbanist text-4xl font-semibold md:text-nowrap md:text-left">
             Partners & Supporters
           </h3>
           <p className="font-urbanist text-[18px] font-normal text-[#3A4F39]">
@@ -436,7 +421,7 @@ export default function LoginPage() {
           <h2 className="mb-2 text-center text-[36px] font-semibold text-[#042B20]">
             Stay in touch
           </h2>
-          <p className="font-urbanist mb-8 text-center font-medium text-[#3A4F39]">
+          <p className="mb-8 text-center font-urbanist font-medium text-[#3A4F39]">
             Subscribe to get access to exclusive updates and stay tuned for news
           </p>
           <form
@@ -463,7 +448,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <footer className="relative bg-[#007664] py-16 text-[#FFFFFF] ">
+      <footer className="relative flex bg-[#007664] py-16 text-[#FFFFFF]">
         <Image
           src={bgfooterImage}
           alt="bg hero"
@@ -566,7 +551,7 @@ export default function LoginPage() {
         </div>
       </footer>
 
-      <div className=" flex flex-col items-center justify-between border-t border-gray-700 bg-[#3A4F39] px-20  py-8 md:flex-row">
+      <div className=" flex flex-col items-center justify-between border-t border-gray-700 bg-[#3A4F39] px-2 py-8  md:flex-row md:px-20">
         <p className="text-sm text-gray-400">
           e-Likita Copyright 2025 | All Rights Reserved
         </p>

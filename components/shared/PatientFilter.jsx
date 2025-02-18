@@ -62,25 +62,25 @@ export const PatientFilter = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-xl bg-white rounded-2xl shadow-2xl border-none">
-        <DialogHeader className="bg-gradient-to-r from-teal-500 to-emerald-600 p-6 rounded-t-2xl">
+      <DialogContent className="max-w-xl rounded-2xl border-none bg-white shadow-2xl">
+        <DialogHeader className="rounded-t-2xl bg-gradient-to-r from-teal-500 to-emerald-600 p-6">
           <div className="flex items-center space-x-4">
             <Filter className="size-8 text-white" />
             <div>
               <DialogTitle className="text-2xl font-bold text-white">
                 Patient Filters
               </DialogTitle>
-              <DialogDescription className="text-white/80 mt-1">
+              <DialogDescription className="mt-1 text-white/80">
                 Refine your patient search with precision
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
   
-        <div className="p-6 space-y-6">
+        <div className="space-y-6 p-6">
           {/* Progress Filter */}
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 w-1/4">
+            <div className="flex w-1/4 items-center space-x-2">
               <Stethoscope className="size-5 text-teal-600" />
               <label className="font-medium text-gray-700">Progress</label>
             </div>
@@ -88,7 +88,7 @@ export const PatientFilter = ({
               name="progress"
               value={filters.progress}
               onChange={handleFilterChange}
-              className="flex-grow border-2 border-teal-100 rounded-lg p-2 focus:ring-2 focus:ring-teal-300 transition-all duration-300"
+              className="grow rounded-lg border-2 border-teal-100 p-2 transition-all duration-300 focus:ring-2 focus:ring-teal-300"
             >
               <option value="" className="text-gray-500">All Progresses</option>
               <option value="Initial Assessment">Initial Assessment</option>
@@ -102,7 +102,7 @@ export const PatientFilter = ({
   
           {/* Status Filter */}
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 w-1/4">
+            <div className="flex w-1/4 items-center space-x-2">
               <CheckCircle2 className="size-5 text-emerald-600" />
               <label className="font-medium text-gray-700">Status</label>
             </div>
@@ -110,7 +110,7 @@ export const PatientFilter = ({
               name="status"
               value={filters.status}
               onChange={handleFilterChange}
-              className="flex-grow border-2 border-emerald-100 rounded-lg p-2 focus:ring-2 focus:ring-emerald-300 transition-all duration-300"
+              className="grow rounded-lg border-2 border-emerald-100 p-2 transition-all duration-300 focus:ring-2 focus:ring-emerald-300"
             >
               <option value="" className="text-gray-500">All Statuses</option>
               <option value="Active">Active</option>
@@ -122,7 +122,7 @@ export const PatientFilter = ({
   
           {/* Condition Filter */}
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 w-1/4">
+            <div className="flex w-1/4 items-center space-x-2">
               <Stethoscope className="size-5 text-blue-600" />
               <label className="font-medium text-gray-700">Condition</label>
             </div>
@@ -132,17 +132,17 @@ export const PatientFilter = ({
               value={filters.condition}
               onChange={handleFilterChange}
               placeholder="Enter medical condition"
-              className="flex-grow border-2 border-blue-100 rounded-lg p-2 focus:ring-2 focus:ring-blue-300 transition-all duration-300"
+              className="grow rounded-lg border-2 border-blue-100 p-2 transition-all duration-300 focus:ring-2 focus:ring-blue-300"
             />
           </div>
   
           {/* Date Range Filter */}
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 w-1/4">
+            <div className="flex w-1/4 items-center space-x-2">
               <Calendar className="size-5 text-purple-600" />
               <label className="font-medium text-gray-700">Date Range</label>
             </div>
-            <div className="flex space-x-4 flex-grow">
+            <div className="flex grow space-x-4">
               <div className="flex-1">
                 <input 
                   type="date"
@@ -155,7 +155,7 @@ export const PatientFilter = ({
                       from: e.target.value
                     }
                   }))}
-                  className="w-full border-2 border-purple-100 rounded-lg p-2 focus:ring-2 focus:ring-purple-300 transition-all duration-300"
+                  className="w-full rounded-lg border-2 border-purple-100 p-2 transition-all duration-300 focus:ring-2 focus:ring-purple-300"
                 />
               </div>
               <div className="flex-1">
@@ -170,25 +170,25 @@ export const PatientFilter = ({
                       to: e.target.value
                     }
                   }))}
-                  className="w-full border-2 border-purple-100 rounded-lg p-2 focus:ring-2 focus:ring-purple-300 transition-all duration-300"
+                  className="w-full rounded-lg border-2 border-purple-100 p-2 transition-all duration-300 focus:ring-2 focus:ring-purple-300"
                 />
               </div>
             </div>
           </div>
         </div>
         
-        <div className="bg-gray-50 p-6 rounded-b-2xl flex justify-end space-x-4">
+        <div className="flex justify-end space-x-4 rounded-b-2xl bg-gray-50 p-6">
           <Button 
             variant="outline" 
             onClick={handleResetFilter}
-            className="flex items-center space-x-2 border-2 border-gray-300 hover:bg-gray-100 transition-colors"
+            className="flex items-center space-x-2 border-2 border-gray-300 transition-colors hover:bg-gray-100"
           >
             <RefreshCw className="size-4" />
             <span>Reset</span>
           </Button>
           <Button 
             onClick={handleApplyFilter}
-            className="bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 transition-all duration-300 flex items-center space-x-2"
+            className="flex items-center space-x-2 bg-gradient-to-r from-teal-500 to-emerald-600 transition-all duration-300 hover:from-teal-600 hover:to-emerald-700"
           >
             <Filter className="size-4" />
             <span>Apply Filters</span>

@@ -127,13 +127,13 @@ const PatientsForms = ({ form }) => {
 
   return (
     <div className="mx-auto max-w-4xl space-y-8 p-6" style={{ width: "65vw" }}>
-      <div className="grid grid-cols-1 gap-4 bg-white shadow-lg md:grid-cols-1 p-6 rounded-lg">
-        <div className="flex flex-row items-center justify-between rounded-t-lg bg-teal-700 text-white p-4">
+      <div className="grid grid-cols-1 gap-4 rounded-lg bg-white p-6 shadow-lg md:grid-cols-1">
+        <div className="flex flex-row items-center justify-between rounded-t-lg bg-teal-700 p-4 text-white">
           <h2 className="text-2xl">{form?.id ? "Update Patient" : "New Patient Entry"}</h2>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Name and Gender */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <label className="block text-sm font-medium text-teal-700">
                 First Name <span className="text-red-500">*</span>
@@ -145,7 +145,7 @@ const PatientsForms = ({ form }) => {
                 onChange={handleInputChange}
                 className="w-full rounded-md border p-2 focus:ring-2 focus:ring-teal-500"
               />
-              {errors.firstName && <p className="text-red-500 text-sm">{errors.firstName}</p>}
+              {errors.firstName && <p className="text-sm text-red-500">{errors.firstName}</p>}
             </div>
 
             <div className="space-y-2">
@@ -159,12 +159,12 @@ const PatientsForms = ({ form }) => {
                 onChange={handleInputChange}
                 className="w-full rounded-md border p-2 focus:ring-2 focus:ring-teal-500"
               />
-              {errors.lastName && <p className="text-red-500 text-sm">{errors.lastName}</p>}
+              {errors.lastName && <p className="text-sm text-red-500">{errors.lastName}</p>}
             </div>
           </div>
 
           {/* Gender and Birth Date */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <label className="block text-sm font-medium text-teal-700">
                 Gender <span className="text-red-500">*</span>
@@ -180,7 +180,7 @@ const PatientsForms = ({ form }) => {
                 <option value="Female">Female</option>
                 <option value="Other">Other</option>
               </select>
-              {errors.gender && <p className="text-red-500 text-sm">{errors.gender}</p>}
+              {errors.gender && <p className="text-sm text-red-500">{errors.gender}</p>}
             </div>
 
             <div className="space-y-2">
@@ -194,7 +194,7 @@ const PatientsForms = ({ form }) => {
                 onChange={handleInputChange}
                 className="w-full rounded-md border p-2 focus:ring-2 focus:ring-teal-500"
               />
-              {errors.birthDate && <p className="text-red-500 text-sm">{errors.birthDate}</p>}
+              {errors.birthDate && <p className="text-sm text-red-500">{errors.birthDate}</p>}
             </div>
           </div>
 
@@ -210,10 +210,10 @@ const PatientsForms = ({ form }) => {
               onChange={handleInputChange}
               className="w-full rounded-md border p-2 focus:ring-2 focus:ring-teal-500"
             />
-            {errors.address && <p className="text-red-500 text-sm">{errors.address}</p>}
+            {errors.address && <p className="text-sm text-red-500">{errors.address}</p>}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <label className="block text-sm font-medium text-teal-700">
                 Phone <span className="text-red-500">*</span>
@@ -225,7 +225,7 @@ const PatientsForms = ({ form }) => {
                 onChange={handleInputChange}
                 className="w-full rounded-md border p-2 focus:ring-2 focus:ring-teal-500"
               />
-              {errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
+              {errors.phone && <p className="text-sm text-red-500">{errors.phone}</p>}
             </div>
 
             <div className="space-y-2">
@@ -241,7 +241,7 @@ const PatientsForms = ({ form }) => {
           </div>
 
           {/* New fields */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="space-y-2">
   <label className="block text-sm font-medium text-teal-700">
     Marital Status <span className="text-red-500">*</span>
@@ -258,7 +258,7 @@ const PatientsForms = ({ form }) => {
     <option value="Divorced">Divorced</option>
     <option value="Widowed">Widowed</option>
   </select>
-  {errors.maritalStatus && <p className="text-red-500 text-sm">{errors.maritalStatus}</p>}
+  {errors.maritalStatus && <p className="text-sm text-red-500">{errors.maritalStatus}</p>}
 </div>
 
             <div className="space-y-2">
@@ -272,11 +272,11 @@ const PatientsForms = ({ form }) => {
                 onChange={handleInputChange}
                 className="w-full rounded-md border p-2 focus:ring-2 focus:ring-teal-500"
               />
-              {errors.emergencyContact && <p className="text-red-500 text-sm">{errors.emergencyContact}</p>}
+              {errors.emergencyContact && <p className="text-sm text-red-500">{errors.emergencyContact}</p>}
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <label className="block text-sm font-medium text-teal-700">
                 Insurance Provider <span className="text-red-500">*</span>
@@ -288,7 +288,7 @@ const PatientsForms = ({ form }) => {
                 onChange={handleInputChange}
                 className="w-full rounded-md border p-2 focus:ring-2 focus:ring-teal-500"
               />
-              {errors.insuranceProvider && <p className="text-red-500 text-sm">{errors.insuranceProvider}</p>}
+              {errors.insuranceProvider && <p className="text-sm text-red-500">{errors.insuranceProvider}</p>}
             </div>
 
             <div className="space-y-2">
@@ -303,7 +303,7 @@ const PatientsForms = ({ form }) => {
                 className="w-full rounded-md border p-2 focus:ring-2 focus:ring-teal-500"
                 disabled
               />
-              {errors.patientReference && <p className="text-red-500 text-sm">{errors.patientReference}</p>}
+              {errors.patientReference && <p className="text-sm text-red-500">{errors.patientReference}</p>}
             </div>
           </div>
 

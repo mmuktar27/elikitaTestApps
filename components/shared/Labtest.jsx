@@ -413,7 +413,7 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
                             <h4 className="font-medium text-teal-800">Test Selections</h4>
                             {test.testSelections && test.testSelections.length > 0 ? (
                               test.testSelections.map((selection, index) => (
-                                <div key={index} className="p-2 bg-white rounded text-sm text-gray-700">
+                                <div key={index} className="rounded bg-white p-2 text-sm text-gray-700">
                                   <strong>Category:</strong> {selection.category || "N/A"}
                                   <br />
                                   <strong>Tests:</strong> {selection.tests.length > 0 ? selection.tests.join(", ") : "N/A"}
@@ -425,7 +425,7 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
                                 </div>
                               ))
                             ) : (
-                              <p className="p-2 bg-white rounded text-sm text-gray-700">No test selections available.</p>
+                              <p className="rounded bg-white p-2 text-sm text-gray-700">No test selections available.</p>
                             )}
                           </div>
     
@@ -688,7 +688,7 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
       checked={labtestFormData.priority === priority} // ✅ Ensure the correct one is selected
       onChange={handleChange}
       disabled={!isEditing && isAIEnabled}
-      className="form-radio text-blue-600"
+      className=" text-blue-600"
     />
     <span className="ml-2 text-gray-700">{priority}</span>
   </label>
@@ -696,7 +696,7 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
 ))} 
                       </div>
                       {errors.priority && (
-  <p className="text-red-500 text-sm">{errors.priority}</p>
+  <p className="text-sm text-red-500">{errors.priority}</p>
 )}
                     </div>
                   </div>
@@ -795,7 +795,7 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
                     )}
                   </div>
                   {errors.priority && (
-  <p className="text-red-500 text-sm">{errors.testsRequested}</p>
+  <p className="text-sm text-red-500">{errors.testsRequested}</p>
 )}
                 </div>
 
@@ -953,11 +953,11 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
                    <button
                         disabled={isLoading}
                         onClick={handleSubmitClick}
-                        className="flex items-center justify-center gap-2 rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#007664]/80 disabled:bg-[#007664]/50 min-w-[120px]"
+                        className="flex min-w-[120px] items-center justify-center gap-2 rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#007664]/80 disabled:bg-[#007664]/50"
                       >
                         {isLoading ? (
                           <>
-                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <Loader2 className="size-4 animate-spin" />
                             {buttonText === "Update" ? "Updating..." : "Submitting..."}
                           </>
                         ) : (
@@ -970,11 +970,11 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
                 <button
                         disabled={isLoading}
                         onClick={handleSubmitClick}
-                        className="flex items-center justify-center gap-2 rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#007664]/80 disabled:bg-[#007664]/50 min-w-[120px]"
+                        className="flex min-w-[120px] items-center justify-center gap-2 rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#007664]/80 disabled:bg-[#007664]/50"
                       >
                         {isLoading ? (
                           <>
-                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <Loader2 className="size-4 animate-spin" />
                             {buttonText === "Update" ? "Updating..." : "Submitting..."}
                           </>
                         ) : (
@@ -1068,7 +1068,7 @@ export function ViewLabTest({ labtest, isOpen, onClose }) {
     {labtest.testSelections && labtest.testSelections.length > 0 ? (
       labtest.testSelections.map((selection, index) => (
         <div key={index} className="space-y-2">
-          <p className="font-bold text-sm text-gray-700">{selection.category}</p>
+          <p className="text-sm font-bold text-gray-700">{selection.category}</p>
           {selection.tests && selection.tests.length > 0 ? (
             selection.tests.map((test, testIndex) => (
               <p key={`${index}-${testIndex}`} className="text-sm text-gray-700">

@@ -1,6 +1,6 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
-import { ChevronDown, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import { ChevronDown, ChevronLeft, ChevronRight, Plus,Link as LinkIcon  } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -29,6 +29,7 @@ import {
 } from "@/hooks/publicevents.hook";
 import { platform } from "os";
 import { useSession, signOut } from "next-auth/react";
+import BookingsURLManagement from "../admin/BookingUrl";
 
 const hours = Array.from({ length: 13 }, (_, i) => i + 8);
 const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri"];
@@ -38,6 +39,8 @@ const tomorrow = addDays(today, 1);
 
 export function Calendar() {
   const session = useSession();
+  const [bookingDialogOpen, setBookingDialogOpen] = React.useState(false);
+
   const roles = session?.data?.user?.roles || [];
   const { data: eventsData, isLoading, error } = useGetEventsByParticipant();
   const canCreate = roles.includes("system admin");
@@ -198,6 +201,24 @@ export function Calendar() {
           <Button variant="outline" onClick={() => setCurrentDate(new Date())}>
             Today
           </Button>
+          <Dialog open={bookingDialogOpen} onOpenChange={setBookingDialogOpen}>
+      <DialogTrigger asChild>
+      <Button 
+  variant="outline" 
+  className="flex items-center border-[#007664] text-[#007664] transition-colors duration-300 hover:bg-[#004d40] hover:text-white"
+>
+  <LinkIcon className="mr-2 size-4" />
+  Manage Booking URL
+</Button>
+
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl p-0">
+        <BookingsURLManagement 
+          open={bookingDialogOpen} 
+          onOpenChange={setBookingDialogOpen}
+        />
+      </DialogContent>
+    </Dialog>
           {canCreate && (
             <Dialog open={openDialog} onOpenChange={setOpenDialog}>
               <DialogTrigger asChild>
@@ -222,7 +243,7 @@ export function Calendar() {
         {/* Time column */}
         <div
           ref={timeColumnRef}
-          className="scrollbar-hide w-16 flex-none overflow-y-scroll border-r bg-gray-50"
+          className="w-16 flex-none overflow-y-scroll border-r bg-gray-50"
         >
           <div className="h-12 border-b" />
           {hours.map((hour) => (

@@ -23,7 +23,7 @@ const Referral = () => {
   
       fetchCurrentUser();
   
-  }, []);
+  }, [session?.data?.user?.microsoftId]);
   return <ReferralsPage  currentUser={currentUser} currentDashboard={currentDashboard}/>;
 };
 

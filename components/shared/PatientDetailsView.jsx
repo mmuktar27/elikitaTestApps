@@ -160,7 +160,6 @@ import { NewDiagnosisForm, ViewDiagnosis } from "../shared";
 import { NewLabTestForm, ViewLabTest } from "../shared";
 import { NewExamination, ViewExamination } from "../shared";
 
-import { VideoMeetingPage, MeetingDialog } from "../shared";
 import { fetchVisitsByPatient, addVisitHistory } from "../shared/api";
 //loading and sening data to api
 
@@ -283,7 +282,7 @@ const PatientDetailsView = ({ patient, onClose, SelectedPatient,currentUser }) =
 
     fetchallStaff();
     console.log(allStaff)
-}, []);
+}, [allStaff]);
 
 
 useEffect(() => {
@@ -382,7 +381,7 @@ useEffect(() => {
                 <CheckCircle className="size-5" />
               </div>
               <div 
-                  className="rounded-full bg-red-100 p-2 text-red-700 cursor-pointer" 
+                  className="cursor-pointer rounded-full bg-red-100 p-2 text-red-700" 
                   onClick={onClose}
                 >
                   <XCircle className="size-5" />
@@ -803,7 +802,7 @@ useEffect(() => {
                        <h4 className="mb-3 font-medium text-gray-700">Selected Tests</h4>
                        <ul className="list-inside list-disc space-y-1">
                        {visit.details.testSelections.map((test, index) => (
-  <li key={index} className="text-gray-700 space-y-1">
+  <li key={index} className="space-y-1 text-gray-700">
     <div className="font-semibold">{test.category}</div>
     <div className="pl-4">
       Tests: {test.tests.join(', ')}
@@ -909,7 +908,7 @@ const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
 //console.log('test visit2')
 return (
-  <div className="flex items-center justify-center bg-transparent border-none shadow-none">
+  <div className="flex items-center justify-center border-none bg-transparent shadow-none">
     <div className="w-full overflow-hidden rounded-2xl bg-white shadow-2xl">
       <div className="flex items-center justify-between bg-gradient-to-r from-[#007664] to-[#009882] p-6 text-white">
         <h2 className="text-2xl font-bold">Patient Visit History</h2>
@@ -966,7 +965,7 @@ return (
               <button
                 key={index + 1}
                 onClick={() => paginate(index + 1)}
-                className={`h-8 w-8 rounded ${
+                className={`size-8 rounded ${
                   currentPage === index + 1
                     ? 'bg-[#007664] text-white'
                     : 'text-[#007664] hover:bg-gray-100'
@@ -1159,47 +1158,7 @@ return (
     return mergedRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
   };
 
-  const handleFetchPatientVisitshistory = async () => {
-    if (!SelectedPatient) {
-      console.log("⚠️ SelectedPatient is undefined or null");
-      return; // Ensure patient ID is valid before fetching
-    }
 
-    console.log(
-      "ℹ️ Fetching visit history for patient ID:",
-      SelectedPatient._id,
-    ); // Log Patient ID
-
-    try {
-      console.log("🔄 Initiating fetch request...");
-      const result = await fetchVisitsByPatient(SelectedPatient._id);
-
-      console.log("📩 Fetch result received:", result); // Log full result
-
-      if (!result) {
-        console.error("❌ Fetch returned null or undefined.");
-        return;
-      }
-
-      if (result.error) {
-        console.error("❌ Error fetching visits:", result.error);
-        return;
-      }
-
-      if (typeof result !== "object") {
-        console.error("⚠️ Unexpected response format:", result);
-        return;
-      }
-
-      console.log("✅ Valid response received, processing data...");
-
-      setIsvisithistory(result);
-
-      console.log("✅ Visit history updated successfully");
-    } catch (error) {
-      console.error("🚨 Fetch failed:", error);
-    }
-  };
 
   useEffect(() => {
     if (!SelectedPatient?._id) {
@@ -1279,6 +1238,47 @@ return (
   };
 
   useEffect(() => {
+    const handleFetchPatientVisitshistory = async () => {
+      if (!SelectedPatient) {
+        console.log("⚠️ SelectedPatient is undefined or null");
+        return; // Ensure patient ID is valid before fetching
+      }
+  
+      console.log(
+        "ℹ️ Fetching visit history for patient ID:",
+        SelectedPatient._id,
+      ); // Log Patient ID
+  
+      try {
+        console.log("🔄 Initiating fetch request...");
+        const result = await fetchVisitsByPatient(SelectedPatient._id);
+  
+        console.log("📩 Fetch result received:", result); // Log full result
+  
+        if (!result) {
+          console.error("❌ Fetch returned null or undefined.");
+          return;
+        }
+  
+        if (result.error) {
+          console.error("❌ Error fetching visits:", result.error);
+          return;
+        }
+  
+        if (typeof result !== "object") {
+          console.error("⚠️ Unexpected response format:", result);
+          return;
+        }
+  
+        console.log("✅ Valid response received, processing data...");
+  
+        setIsvisithistory(result);
+  
+        console.log("✅ Visit history updated successfully");
+      } catch (error) {
+        console.error("🚨 Fetch failed:", error);
+      }
+    };
     if (!SelectedPatient || !SelectedPatient._id) return;
 
     console.log("Fetching visit history for:", SelectedPatient._id); // Debugging
@@ -1629,8 +1629,8 @@ return (
     if (!show) return null;
 
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-        <div className="rounded bg-white p-6 shadow-md">
+<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+<div className="rounded bg-white p-6 shadow-md">
           <h2 className="text-lg font-bold">Confirm Deletion</h2>
           <p className="mt-2">Are you sure you want to delete this item?</p>
           <div className="mt-4 flex justify-end space-x-4">
@@ -2435,7 +2435,7 @@ return (
         {SelectedPatient.address}
       </p>
       {SelectedPatient.preferredLanguage && (  
-        <p className="text-sm font-medium text-gray-500 mt-2">Preferred Language</p>
+        <p className="mt-2 text-sm font-medium text-gray-500">Preferred Language</p>
       )}
       {SelectedPatient.preferredLanguage && (
         <p className="text-sm font-semibold text-[#007664]">
@@ -2791,55 +2791,27 @@ const medTotalPages = Math.ceil(medications.length / medRecordsPerPage);
 
 
 
-const BookingButton = ({ onBookingSelect, internalUrl, externalUrl }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
+const BookingButton = ({ externalUrl }) => {
   const openUrl = (url) => {
     if (!url) return;
     
     const formattedUrl = url.startsWith("http") ? url : `https://${url}`;
     window.open(formattedUrl, "_blank");
-    setIsOpen(false);
   };
-  
-  const handleInternalBooking = () => openUrl(internalUrl);
-  const handleExternalBooking = () => openUrl(externalUrl);
 
   return (
-    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-      <DropdownMenuTrigger asChild>
-        <Button 
-          className="flex w-full items-center justify-center gap-2 bg-[#007664] text-white hover:bg-[#007664]/90 sm:w-40 transition-all duration-300"
-        >
-          <Calendar className="size-4" />
-          <span>Book Now</span>
-          <ChevronDown className="size-4 ml-1" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-48">
-        <DropdownMenuItem
-          onClick={handleInternalBooking}
-          className="flex items-center gap-2 cursor-pointer hover:bg-[#007664] hover:text-white transition-colors duration-200"
-        >
-          <Calendar className="size-4" />
-          <span>Internal Booking</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={handleExternalBooking}
-          className="flex items-center gap-2 cursor-pointer hover:bg-[#007664] hover:text-white transition-colors duration-200"
-        >
-          <Calendar className="size-4" />
-          <span>External Booking</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <Button 
+      onClick={() => openUrl(externalUrl)}
+      className="flex w-full items-center justify-center gap-2 bg-[#007664] text-white transition-all duration-300 hover:bg-[#007664]/90 sm:w-40"
+    >
+      <Calendar className="size-4" />
+      <span>Book Now</span>
+    </Button>
   );
 };
 
 
-console.log('urls')
-console.log(bookingUrls)
-console.log('urls')
+
   return (
     <div>
       {activeTab === "summary" && (
@@ -2868,8 +2840,7 @@ console.log('urls')
         <>
         
         <BookingButton 
-        
-        internalUrl={bookingUrls.internal}
+
         externalUrl ={bookingUrls.external}
         /></>
       )}
@@ -2890,8 +2861,12 @@ console.log('urls')
     </div>
             </CardHeader>
             {/* Modal for selection */}
-            <Modal isOpen={refmodalIsOpen} onRequestClose={closerefModal} className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50" >
-  <div className="w-full sm:w-[90%] md:max-w-lg mx-auto rounded-lg bg-white p-6 shadow-md">
+            <Modal
+  isOpen={refmodalIsOpen}
+  onRequestClose={closerefModal}
+  className="fixed inset-0 flex items-center justify-center bg-black/50"
+>
+  <div className="mx-auto w-full rounded-lg bg-white p-6 shadow-md sm:w-[90%] md:max-w-lg">
     <h2 className="mb-4 text-2xl font-bold text-[#007664]">Select Referral Type</h2>
 
     <select
@@ -2979,17 +2954,9 @@ console.log('urls')
                         message={statusDialog.message}
                       />
 <div>
-                      <MeetingDialog
-                        isOpen={isDialogOpen}
-                        onOpenChange={setIsDialogOpen}
-                        onStartMeeting={handleStartMeeting}
-                      />
+                  
 
-                      <VideoMeetingPage
-                        isOpen={isVideoMeetingOpen}
-                        onOpenChange={setIsVideoMeetingOpen}
-                        onEndCall={handleEndCall}
-                      />
+                    
                     </div>
             <CardContent>
               <PatientInfoSection SelectedPatient={SelectedPatient} />
@@ -3218,14 +3185,79 @@ console.log('urls')
             >
               <Eye className="size-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-[#007664] hover:text-[#007664]/80"
-              onClick={() => handleEditExam(examination)}
-            >
-              <Edit className="size-4" />
-            </Button>
+            <Dialog
+                                    open={viewExamState.isOpen}
+                                    onOpenChange={(isOpen) =>
+                                      !isOpen && handleDialogClose()
+                                    }
+                                  >
+                                    <DialogTrigger asChild></DialogTrigger>
+
+                                    <DialogContent className="max-h-[90vh] max-w-full overflow-y-auto sm:max-w-2xl">
+                                      <DialogHeader>
+                                        <DialogTitle>
+                                          Examination Details
+                                        </DialogTitle>
+                                      </DialogHeader>
+
+                                      <ViewExamination
+                                        examination={
+                                          viewExamState.selectedExamination
+                                        }
+                                        isOpen={viewExamState.isOpen}
+                                        onClose={handleDialogClose}
+                                      />
+                                    </DialogContent>
+                                  </Dialog>
+
+                                  <Dialog
+                                    open={editExamState.isOpen}
+                                    onOpenChange={(isOpen) =>
+                                      !isOpen && handleDialogClose()
+                                    }
+                                  >
+                                    <DialogTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="text-[#007664] hover:text-[#007664]/80"
+                                        onClick={() =>
+                                          handleEditExam(examination)
+                                        }
+                                      >
+                                        <Edit className="size-4" />
+                                      </Button>
+                                    </DialogTrigger>
+
+                                    <DialogContent className="max-h-[90vh] max-w-full overflow-y-auto sm:max-w-5xl">
+                                      <DialogHeader>
+                                        <div className="flex items-center justify-center ">
+                                          <DialogTitle className="text-teal-800">
+                                            <div className="mb-0 text-center">
+                                              <h2 className="bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-3xl font-bold text-transparent">
+                                                Edit Examination
+                                              </h2>
+                                            </div>
+                                          </DialogTitle>
+                                        </div>
+                                      </DialogHeader>
+
+                                      <NewExamination
+                                        onTabChange={handleTabtriggerChange}
+                                        patient={patient._id}
+                                        initialExamination={
+                                          editExamState.selectedExamination
+                                        }
+                                        onClose={handleDialogClose}
+                                        onSubmit={(status, message) =>
+                                          handleExamSubmit(status, message)
+                                        }
+                                         buttonText="Update"
+                                      />
+                                    </DialogContent>
+                                  </Dialog>
+
+
             <Button
               variant="ghost"
               size="icon"
@@ -3243,11 +3275,11 @@ console.log('urls')
 
 {/* Pagination Controls */}
 {examinations.length > 10 && (
-  <div className="flex justify-between items-center mt-4">
+  <div className="mt-4 flex items-center justify-between">
     <button
       onClick={() => setExamCurrentPage((prev) => Math.max(prev - 1, 1))}
       disabled={examCurrentPage === 1}
-      className="px-4 py-2 bg-teal-500 text-white rounded disabled:opacity-50"
+      className="rounded bg-teal-500 px-4 py-2 text-white disabled:opacity-50"
     >
       Previous
     </button>
@@ -3257,7 +3289,7 @@ console.log('urls')
     <button
       onClick={() => setExamCurrentPage((prev) => Math.min(prev + 1, examTotalPages))}
       disabled={examCurrentPage === examTotalPages}
-      className="px-4 py-2 bg-teal-500 text-white rounded disabled:opacity-50"
+      className="rounded bg-teal-500 px-4 py-2 text-white disabled:opacity-50"
     >
       Next
     </button>
@@ -3375,14 +3407,75 @@ console.log('urls')
             >
               <Eye className="size-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-[#007664] hover:text-[#007664]/80"
-              onClick={() => handleEditDiag(diagnosis)}
-            >
-              <Edit className="size-4" />
-            </Button>
+            <Dialog
+                                    open={viewDiagState.isOpen}
+                                    onOpenChange={(isOpen) =>
+                                      !isOpen && handleDialogClose()
+                                    }
+                                  >
+                                    <DialogTrigger asChild></DialogTrigger>
+
+                                    <DialogContent className="max-h-[90vh] max-w-full overflow-y-auto sm:max-w-2xl">
+                                      <DialogHeader>
+                                        <DialogTitle>
+                                          Diagnosis Details
+                                        </DialogTitle>
+                                      </DialogHeader>
+
+                                      <ViewDiagnosis
+                                        diagnosis={
+                                          viewDiagState.selectedDiagnoses
+                                        }
+                                        isOpen={viewDiagState.isOpen}
+                                        onClose={handleDialogClose}
+                                      />
+                                    </DialogContent>
+                                  </Dialog>
+
+                                  <Dialog
+                                    open={editDiagState.isOpen}
+                                    onOpenChange={(isOpen) =>
+                                      !isOpen && handleDialogClose()
+                                    }
+                                  >
+                                    <DialogTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="text-[#007664] hover:text-[#007664]/80"
+                                        onClick={() =>
+                                          handleEditDiag(diagnosis)
+                                        }
+                                      >
+                                        <Edit className="size-4" />
+                                      </Button>
+                                    </DialogTrigger>
+
+                                    <DialogContent className="max-h-[90vh] max-w-full overflow-y-auto sm:max-w-5xl">
+                                      <DialogHeader>
+                                        <DialogTitle>
+                                          <div className="mb-0 text-center">
+                                            <h2 className="bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-3xl font-bold text-transparent">
+                                              Edit Diagnosis
+                                            </h2>
+                                          </div>
+                                        </DialogTitle>
+                                      </DialogHeader>
+
+                                      <NewDiagnosisForm
+                                        onTabChange={handleTabtriggerChange}
+                                        diagnoses={diagnoses}
+                                        patient={patient._id}
+                                        onSubmit={(status, message) =>
+                                          handleDiagnosisSubmit(status, message)
+                                        }
+                                        initialDiagnosis={
+                                          editDiagState.selectedDiagnoses
+                                        }
+                                        buttonText="Update"
+                                      />
+                                    </DialogContent>
+                                  </Dialog>
             <Button
               variant="ghost"
               size="icon"
@@ -3533,14 +3626,68 @@ console.log('urls')
               >
                 <Eye className="size-4" />
               </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-[#007664] hover:text-[#007664]/80"
-                onClick={() => handleEditLab(test)}
-              >
-                <Edit className="size-4" />
-              </Button>
+              <Dialog
+                                    open={viewLabState.isOpen}
+                                    onOpenChange={(isOpen) =>
+                                      !isOpen && handleDialogClose()
+                                    }
+                                  >
+                                    <DialogTrigger asChild></DialogTrigger>
+
+                                    <DialogContent className="max-h-[90vh] max-w-full overflow-y-auto sm:max-w-2xl">
+                                      <DialogHeader>
+                                        <DialogTitle>Lab Test</DialogTitle>
+                                      </DialogHeader>
+
+                                      <ViewLabTest
+                                        labtest={viewLabState.selectedLabtest}
+                                        isOpen={viewLabState.isOpen}
+                                        onClose={handleDialogClose}
+                                      />
+                                    </DialogContent>
+                                  </Dialog>
+
+                                  <Dialog
+                                    open={editLabState.isOpen}
+                                    onOpenChange={(isOpen) =>
+                                      !isOpen && handleDialogClose()
+                                    }
+                                  >
+                                    <DialogTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="text-[#007664] hover:text-[#007664]/80"
+                                        onClick={() => handleEditLab(test)}
+                                      >
+                                        <Edit className="size-4" />
+                                      </Button>
+                                    </DialogTrigger>
+
+                                    <DialogContent className="max-h-[90vh] max-w-full overflow-y-auto sm:max-w-5xl">
+                                      <DialogHeader>
+                                        <DialogTitle>
+                                          <div className="mb-0 text-center">
+                                            <h2 className="bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-3xl font-bold text-transparent">
+                                              Edit Lab Test
+                                            </h2>
+                                          </div>
+                                        </DialogTitle>
+                                      </DialogHeader>
+                                      <NewLabTestForm
+                                        onTabChange={handleTabtriggerChange}
+                                        patient={patient._id}
+                                        onSubmit={(status, message) =>
+                                          handleDiagnosisSubmit(status, message)
+                                        }
+                                        initialLabtest={
+                                          editLabState.selectedLabtest
+                                        }
+                                        buttonText="Update"
+                                        labTests={labTests}
+                                      />
+                                    </DialogContent>
+                                  </Dialog>
               <Button
                 variant="ghost"
                 size="icon"
@@ -3559,11 +3706,11 @@ console.log('urls')
 
 {/* Pagination Controls */}
 {labTests.length > 10 && (
-  <div className="flex justify-between items-center mt-4">
+  <div className="mt-4 flex items-center justify-between">
     <button
       onClick={() => setLabTestCurrentPage((prev) => Math.max(prev - 1, 1))}
       disabled={labTestCurrentPage === 1}
-      className="px-4 py-2 bg-teal-500 text-white rounded disabled:opacity-50"
+      className="rounded bg-teal-500 px-4 py-2 text-white disabled:opacity-50"
     >
       Previous
     </button>
@@ -3573,7 +3720,7 @@ console.log('urls')
     <button
       onClick={() => setLabTestCurrentPage((prev) => Math.min(prev + 1, labTestTotalPages))}
       disabled={labTestCurrentPage === labTestTotalPages}
-      className="px-4 py-2 bg-teal-500 text-white rounded disabled:opacity-50"
+      className="rounded bg-teal-500 px-4 py-2 text-white disabled:opacity-50"
     >
       Next
     </button>
@@ -3598,7 +3745,7 @@ console.log('urls')
                           Add Medication
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-h-[90vh] max-w-full overflow-y-auto sm:max-w-5xl pb-0 !mb-0">
+                      <DialogContent className="!mb-0 max-h-[90vh] max-w-full overflow-y-auto pb-0 sm:max-w-5xl">
                 
                                               
                         <NewMedicationForm
@@ -3677,14 +3824,71 @@ console.log('urls')
             >
               <Eye className="size-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-[#007664] hover:text-[#007664]/80"
-              onClick={() => handleEditMed(medication)}
-            >
-              <Edit className="size-4" />
-            </Button>
+            <Dialog
+                                    open={viewMedState.isOpen}
+                                    onOpenChange={(isOpen) =>
+                                      !isOpen && handleDialogClose()
+                                    }
+                                  >
+                                    <DialogTrigger asChild></DialogTrigger>
+
+                                    <DialogContent className="max-h-[90vh] max-w-full overflow-y-auto sm:max-w-2xl">
+                                      <DialogHeader>
+                                        <DialogTitle>
+                                          Medication Details
+                                        </DialogTitle>
+                                      </DialogHeader>
+
+                                      <ViewMedication
+                                        medic={viewMedState.selectedMedication}
+                                        isOpen={viewMedState.isOpen}
+                                        onClose={handleDialogClose}
+                                      />
+                                    </DialogContent>
+                                  </Dialog>
+                                  <Dialog
+                                    open={editMedState.isOpen}
+                                    onOpenChange={(isOpen) =>
+                                      !isOpen && handleDialogClose()
+                                    }
+                                  >
+                                    <DialogTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="text-[#007664] hover:text-[#007664]/80"
+                                        onClick={() =>
+                                          handleEditMed(medication)
+                                        }
+                                      >
+                                        <Edit className="size-4" />
+                                      </Button>
+                                    </DialogTrigger>
+
+                                    <DialogContent className="max-h-[90vh] max-w-full overflow-y-auto sm:max-w-5xl">
+                                      <DialogHeader>
+                                        <DialogTitle>
+                                          <div className="mb-0 text-center">
+                                            <h2 className="bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-3xl font-bold text-transparent">
+                                              Edit Medication
+                                            </h2>
+                                          </div>
+                                        </DialogTitle>
+                                      </DialogHeader>
+
+                                      <NewMedicationForm
+                                        medications={medications}
+                                        patient={patient._id}
+                                        onClose={handleDialogClose}
+                                        onSubmit={(status, message) =>
+                                          handleMedSubmit(status, message)
+                                        }
+                                        initialMedication={
+                                          editMedState.selectedMedication
+                                        }
+                                      />
+                                    </DialogContent>
+                                  </Dialog>
             <Button
               variant="ghost"
               size="icon"
@@ -3702,11 +3906,11 @@ console.log('urls')
 
 {/* Pagination Controls */}
 {medications.length > 10 && (
-  <div className="flex justify-between items-center mt-4">
+  <div className="mt-4 flex items-center justify-between">
     <button
       onClick={() => setMedCurrentPage((prev) => Math.max(prev - 1, 1))}
       disabled={medCurrentPage === 1}
-      className="px-4 py-2 bg-teal-500 text-white rounded disabled:opacity-50"
+      className="rounded bg-teal-500 px-4 py-2 text-white disabled:opacity-50"
     >
       Previous
     </button>
@@ -3716,7 +3920,7 @@ console.log('urls')
     <button
       onClick={() => setMedCurrentPage((prev) => Math.min(prev + 1, medTotalPages))}
       disabled={medCurrentPage === medTotalPages}
-      className="px-4 py-2 bg-teal-500 text-white rounded disabled:opacity-50"
+      className="rounded bg-teal-500 px-4 py-2 text-white disabled:opacity-50"
     >
       Next
     </button>

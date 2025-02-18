@@ -58,7 +58,7 @@ const HealthTips = () => {
   return (
     <div className="fixed bottom-4 right-4 flex flex-col items-end">
       <div
-        className={`transform transition-all duration-300 ease-in-out ${
+        className={`transition-all duration-300 ease-in-out${
           isVisible
             ? "translate-y-0 opacity-100"
             : "pointer-events-none -translate-y-4 opacity-0"
@@ -72,7 +72,7 @@ const HealthTips = () => {
             <div className="mb-2 flex items-center justify-between">
               <div className="flex items-center">
                 {React.createElement(currentTip.icon, {
-                  className: "h-5 w-5 text-white mr-2",
+                  className: "size-5 text-white mr-2",
                 })}
                 <h3 className="text-sm font-medium text-white">
                   {currentTip.title}
@@ -82,7 +82,7 @@ const HealthTips = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="size-6 text-white hover:bg-white hover:bg-opacity-20"
+                  className="size-6 text-white hover:bg-white/20"
                   onClick={handlePreviousTip}
                 >
                   <ChevronLeft className="size-4" />
@@ -93,7 +93,7 @@ const HealthTips = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="size-6 text-white hover:bg-white hover:bg-opacity-20"
+                  className="size-6 text-white hover:bg-white/20"
                   onClick={handleNextTip}
                 >
                   <ChevronRight className="size-4" />
@@ -113,7 +113,7 @@ const HealthTips = () => {
       <Button
         variant="ghost"
         size="sm"
-        className="flex h-8 w-8 transform items-center justify-center rounded-full shadow-md transition-transform hover:scale-105"
+        className="flex size-8 items-center justify-center rounded-full shadow-md transition-transform hover:scale-105"
         style={{ backgroundColor: "#007664" }}
         onClick={() => setIsVisible(!isVisible)}
       >

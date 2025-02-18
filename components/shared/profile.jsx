@@ -48,9 +48,8 @@ export default function ProfilePage() {
 
   console.log("session", session);
 
-  const userData = {};
-
   useEffect(() => {
+    const userData = {};
     if (userData) {
       setUser({
         name: userData?.name || "",

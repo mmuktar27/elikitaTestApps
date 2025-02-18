@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { getCurrentBookingUrlConfig, createBookingUrlConfig, updateBookingUrlConfig } from "../shared/api"
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent,CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ExternalLink, Save, Edit, X ,Loader2 ,Check,AlertCircle} from "lucide-react";
@@ -64,247 +64,218 @@ const StatusDialog = ({ isOpen, onClose, status, message }) => {
     );
   };
   
-const BookingsURLManagement = () => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [urls, setUrls] = useState({ internal: "", external: "" });
-  const [editedUrls, setEditedUrls] = useState(urls);
-  const [loading, setLoading] = useState(true);
-  const [configId, setConfigId] = useState(null);
-  const session = useSession();
-  const [isLoading, setIsLoading] = useState(false);
-  const [statusDialog, setStatusDialog] = useState({
+  
+  const BookingsURLManagement = () => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [urls, setUrls] = useState({ internal: "", external: "" });
+    const [editedUrls, setEditedUrls] = useState(urls);
+    const [loading, setLoading] = useState(true);
+    const [configId, setConfigId] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [statusDialog, setStatusDialog] = useState({
       isOpen: false,
       status: null,
       message: "",
     });
-
-    const callStatusDialog = (status, message) => {
-        setStatusDialog({
-          isOpen: true,
-          status: status === "success" ? "success" : "error",
-          message:
-            message ||
-            (status === "success"
-              ? "URL added successfully!"
-              : "Failed to add URL"),
-        });
-      };
-  const [message, setMessage] = useState("");
-
-  // ✅ Fetch current booking URLs
-  useEffect(() => {
-    const fetchUrls = async () => {
-      try {
-        const config = await getCurrentBookingUrlConfig();
-        if (config) {
-          setUrls({ internal: config.internalBookingUrl, external: config.externalBookingUrl });
-          setEditedUrls({ internal: config.internalBookingUrl, external: config.externalBookingUrl });
-          setConfigId(config._id);
+    const session = useSession();
+  
+    useEffect(() => {
+      const fetchUrls = async () => {
+        try {
+          const config = await getCurrentBookingUrlConfig();
+          if (config) {
+            setUrls({ internal: config.internalBookingUrl, external: config.externalBookingUrl });
+            setEditedUrls({ internal: config.internalBookingUrl, external: config.externalBookingUrl });
+            setConfigId(config._id);
+          }
+        } catch (error) {
+          console.warn("No existing configuration found.");
+        } finally {
+          setLoading(false);
         }
+      };
+      fetchUrls();
+    }, []);
+  
+
+    const callStatusdialog = (status,message) => {
+      setStatusDialog({
+        isOpen: true,
+        status: status === "success" ? "success" : "error",
+        message:
+          message ||
+          (status === "success"
+            ? "Url added successfully!"
+            : "Failed to add Url"),
+      });
+    };
+
+
+    const handleSaveURLs = async () => {
+      setIsLoading(true);
+      try {
+        const data = {
+          internalBookingUrl: editedUrls.internal,
+          externalBookingUrl: editedUrls.external,
+          updatedBy: session?.data?.user?.id,
+        };
+  
+        if (configId) {
+          await updateBookingUrlConfig(configId, data);
+          callStatusdialog('success','Url Updated Successfully')
+        } else {
+          const newConfig = await createBookingUrlConfig(data);
+          setConfigId(newConfig._id);
+          callStatusdialog('success','Url Added Successfully')
+        }
+  
+        setUrls(editedUrls);
+        setIsEditing(false);
       } catch (error) {
-        console.warn("No existing configuration found.");
+        console.error("Failed to save booking URLs.");
+        callStatusdialog('error','Failed to save booking URLs')
+
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
-    fetchUrls();
-  }, []);
+  
 
-  const handleSaveURLs = async () => {
-    setMessage("");
-    setIsLoading(true);
-    try {
-      const data = {
-        internalBookingUrl: editedUrls.internal,
-        externalBookingUrl: editedUrls.external,
-        updatedBy: session?.data?.user?.id,
-      };
-
-      if (configId) {
-        await updateBookingUrlConfig(configId, data);
-        setMessage("Booking URLs updated successfully!");
-        callStatusDialog('success','Booking URLs updated successfully!')
-      } else {
-        const newConfig = await createBookingUrlConfig(data);
-        setConfigId(newConfig._id);
-        setMessage("Booking URLs created successfully!");
-        callStatusDialog('success','Booking URLs created successfully!')
-
-      }
-
-      setUrls(editedUrls);
+   
+    const handleCancelEdit = () => {
+      setEditedUrls(urls);
       setIsEditing(false);
-    } catch (error) {
-      setMessage("Failed to save booking URLs.");
-      callStatusDialog('error','Failed to save booking URLs.')
-
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleCancelEdit = () => {
-    setEditedUrls(urls);
-    setIsEditing(false);
-  };
-
-  const handleOpenURL = (url) => {
-    if (!url.startsWith("http://") && !url.startsWith("https://")) {
-      url = `https://${url}`; // Ensure the URL has a protocol
-    }
-    window.open(url, "_blank");
-  }
-
-  return (
-    <div className="min-h-screen bg-[#F7F7F7]">
-      <div className="mx-auto max-w-4xl p-4 md:p-6">
-        {/* Header Section */}
-        <div className="mb-6 rounded-lg bg-gradient-to-r from-[#007664] to-[#75C05B] p-4 md:p-6">
+    };
+  
+    const handleOpenURL = (url) => {
+      if (!url.startsWith("http://") && !url.startsWith("https://")) {
+        url = `https://${url}`;
+      }
+      window.open(url, "_blank");
+    };
+  
+    return (
+      <div className="max-h-[90vh] overflow-y-auto">
+      <Card className="border-none">
+        <CardHeader className="rounded-t-lg bg-gradient-to-r from-[#007664] to-[#75C05B] p-6 text-white">
           <div className="flex items-center gap-2">
-            <span className="text-2xl font-extrabold tracking-tight text-white md:text-3xl">e</span>
-            <span 
-              className="text-2xl font-bold tracking-wider text-white md:text-3xl" 
-              style={{ letterSpacing: "0.3em" }}
-            >
-              LIKITA
-            </span>
-          </div>
-          <p className="mt-2 text-sm text-gray-100 opacity-90 md:text-base">
-            Manage and access internal and external booking pages
-          </p>
-        </div>
-
-        {/* Main Content */}
-        <Card className="border-0 shadow-lg">
-          <CardContent className="space-y-6 p-4 md:p-6">
+              <span className="text-3xl font-extrabold tracking-tight">e</span>
+              <span className="text-3xl font-bold tracking-wider" style={{ letterSpacing: "0.3em" }}>
+                LIKITA
+              </span>
+            </div>
+            <p className="mt-2 text-gray-100 opacity-90">
+              Manage and access internal and external booking pages
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-8 p-8">
             {loading ? (
-              // ✅ Skeleton loader instead of "Loading..."
-              <div className="space-y-4">
-                <div className="h-6 w-3/4 bg-gray-200 animate-pulse rounded-md"></div>
-                <div className="h-10 w-full bg-gray-200 animate-pulse rounded-md"></div>
-                <div className="h-6 w-3/4 bg-gray-200 animate-pulse rounded-md"></div>
-                <div className="h-10 w-full bg-gray-200 animate-pulse rounded-md"></div>
+              <div className="animate-pulse space-y-4">
+                <div className="h-6 w-3/4 rounded-md bg-gray-200"></div>
+                <div className="h-10 w-full rounded-md bg-gray-200"></div>
+                <div className="h-6 w-3/4 rounded-md bg-gray-200"></div>
+                <div className="h-10 w-full rounded-md bg-gray-200"></div>
               </div>
             ) : (
               <>
-                {/* Internal URL Section */}
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-[#007664] md:text-base">
-                    Internal Booking URL
-                  </label>
-                  <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+                {/* Internal Booking URL */}
+                <div className="space-y-3">
+                  <label className="text-base font-semibold text-[#007664]">Internal Booking URL</label>
+                  <div className="flex gap-3">
                     {isEditing ? (
                       <Input
                         value={editedUrls.internal}
                         onChange={(e) => setEditedUrls({ ...editedUrls, internal: e.target.value })}
-                        className="flex-1 border-2 border-gray-200 text-sm focus:border-[#007664] focus:ring-2 focus:ring-[#007664] focus:ring-opacity-20 md:text-base"
+                        className="flex-1 border-2 border-gray-200 focus:border-[#007664] focus:ring-2 focus:ring-[#007664]/20"
                         disabled={isLoading}
                       />
                     ) : (
-                      <div className="flex-1 break-all rounded-lg border-2 border-gray-200 p-2 text-sm text-gray-700 md:p-3 md:text-base">
+                      <div className="flex-1 break-all rounded-lg p-2 text-sm text-gray-700">
                         {urls.internal}
                       </div>
                     )}
                     <Button
                       variant="outline"
                       onClick={() => handleOpenURL(urls.internal)}
-                      className="flex items-center gap-2 border-2 border-[#007664] text-sm text-[#007664] transition-colors duration-300 hover:bg-[#007664] hover:text-white sm:min-w-24 md:text-base"
-                      disabled={isLoading}
+                      className="flex items-center gap-2 border-2 border-[#007664] text-[#007664] transition-colors duration-300 hover:bg-[#007664] hover:text-white"
                     >
                       <ExternalLink className="size-4" />
                       Open
                     </Button>
                   </div>
                 </div>
-
-                {/* External URL Section */}
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-[#007664] md:text-base">
-                    External Booking URL
-                  </label>
-                  <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+    
+                {/* External Booking URL */}
+                <div className="space-y-3">
+                  <label className="text-base font-semibold text-[#007664]">External Booking URL</label>
+                  <div className="flex gap-3">
                     {isEditing ? (
                       <Input
                         value={editedUrls.external}
                         onChange={(e) => setEditedUrls({ ...editedUrls, external: e.target.value })}
-                        className="flex-1 border-2 border-gray-200 text-sm focus:border-[#007664] focus:ring-2 focus:ring-[#007664] focus:ring-opacity-20 md:text-base"
+                        className="flex-1 border-2 border-gray-200 focus:border-[#007664] focus:ring-2 focus:ring-[#007664]/20"
                         disabled={isLoading}
                       />
                     ) : (
-                      <div className="flex-1 break-all rounded-lg border-2 border-gray-200 p-2 text-sm text-gray-700 md:p-3 md:text-base">
+                      <div className="flex-1 break-all rounded-lg p-2 text-sm text-gray-700">
                         {urls.external}
                       </div>
                     )}
                     <Button
                       variant="outline"
                       onClick={() => handleOpenURL(urls.external)}
-                      className="flex items-center gap-2 border-2 border-[#007664] text-sm text-[#007664] transition-colors duration-300 hover:bg-[#007664] hover:text-white sm:min-w-24 md:text-base"
-                      disabled={isLoading}
+                      className="flex items-center gap-2 border-2 border-[#007664] text-[#007664] transition-colors duration-300 hover:bg-[#007664] hover:text-white"
                     >
                       <ExternalLink className="size-4" />
                       Open
                     </Button>
                   </div>
                 </div>
-                <StatusDialog
-                      isOpen={statusDialog.isOpen}
-                      onClose={() => {
-                        setStatusDialog((prev) => ({ ...prev, isOpen: false }));
-                        if (statusDialog.status === "success") {
-                          //Refresh();
-                        }
-                      }}
-                      status={statusDialog.status}
-                      message={statusDialog.message}
-                    />
+    
                 {/* Action Buttons */}
                 {isEditing ? (
-                  <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
-                    <Button
-                      onClick={handleSaveURLs}
-                      className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#007664] p-3 text-sm text-white shadow-md transition-all duration-300 hover:bg-[#006154] hover:shadow-lg disabled:opacity-50 md:text-base"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="size-4 animate-spin" />
-                          {configId ? "Updating..." : "Saving..."}
-                        </>
-                      ) : (
-                        <>
-                          <Save className="size-4" />
-                          Save Changes
-                        </>
-                      )}
-                    </Button>
+                  <div className="flex gap-3">
+                   <Button
+  onClick={handleSaveURLs}
+  className="flex-1 bg-[#007664] text-white hover:bg-[#006154] disabled:opacity-50"
+  disabled={isLoading}
+>
+  {isLoading ? (
+    <>
+      <Loader2 className="size-4 animate-spin" /> Saving...
+    </>
+  ) : (
+    <>
+      <Save className="size-4" /> Save
+    </>
+  )}
+</Button>
+
                     <Button
                       onClick={handleCancelEdit}
                       variant="outline"
-                      className="flex items-center justify-center gap-2 rounded-lg border-2 border-red-500 p-3 text-sm text-red-500 shadow-md transition-all duration-300 hover:bg-red-500 hover:text-white hover:shadow-lg disabled:opacity-50 md:text-base"
+                      className="border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
                       disabled={isLoading}
                     >
-                      <X className="size-4" />
-                      Cancel
+                      <X className="size-4" /> Cancel
                     </Button>
                   </div>
                 ) : (
-                    <Button 
-                    onClick={() => setIsEditing(true)} 
-                    className="w-full bg-[#006154] text-white hover:bg-[#004d40] disabled:bg-gray-400"
-                    disabled={isLoading}
+                  <Button
+                    onClick={() => setIsEditing(true)}
+                    className="w-full bg-[#006154] text-white hover:bg-[#004d40]"
                   >
-                    <Edit className="size-4" />
-                    Edit URLs
+                    <Edit className="size-4" /> Edit URLs
                   </Button>
-                  
                 )}
               </>
             )}
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
-};
-
-export default BookingsURLManagement;
+    );
+    
+  };
+  
+  export default BookingsURLManagement;
+  

@@ -222,7 +222,7 @@ const PatientDetailsView = ({ patient, onClose, SelectedPatient }) => {
     if (!show) return null;
 
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
         <div className="rounded bg-white p-6 shadow-md">
           <h2 className="text-lg font-bold">Confirm Deletion</h2>
           <p className="mt-2">Are you sure you want to delete this item?</p>

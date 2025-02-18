@@ -15,7 +15,6 @@ export { ViewMedication,NewMedicationForm } from "./Medication";
 
 export {PatientFilter} from "./PatientFilter";
 
-export {VideoMeetingPage,MeetingDialog} from "./startCall";
 
 
 export {default as VitalsChart} from "./vitalsChart"

@@ -42,7 +42,7 @@ const VolunteerModal = () => {
               href="https://forms.office.com/r/YiuTjJ50z4"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full transform rounded-lg bg-[#2B5845] px-6 py-3 text-center text-white transition-transform hover:scale-105"
+              className="w-full rounded-lg bg-[#2B5845] px-6 py-3 text-center text-white transition-transform hover:scale-105"
             >
               Apply as Healthcare Expert
             </a>
@@ -50,7 +50,7 @@ const VolunteerModal = () => {
               href="https://forms.office.com/r/L22eGP9mrV"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full transform rounded-lg bg-[#3A4F39] px-6 py-3 text-center text-white transition-transform hover:scale-105"
+              className="w-full rounded-lg bg-[#3A4F39] px-6 py-3 text-center text-white transition-transform hover:scale-105"
             >
               Apply as Technical Expert
             </a>

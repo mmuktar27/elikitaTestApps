@@ -149,12 +149,7 @@ function DashboardPage({ children }) {
             active={routes === "/admin/events"}
             url={"/admin/events"}
           />
-          <NavItem
-  icon={Link2}
-  label="Manage Booking URLs"
-  active={routes === "/admin/bookingUrlMgt"}
-  url={"/admin/bookingUrlMgt"} 
-/>
+         
           <NavItem
             icon={FileBarChart}
             label="Report/Analytics"

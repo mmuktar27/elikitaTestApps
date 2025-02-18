@@ -126,10 +126,10 @@ export  function AvailabilityRegister() {
       <CardContent className="p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="mb-6">
-            <Label className="text-lg font-semibold text-gray-700 mb-3 block">
+            <Label className="mb-3 block text-lg font-semibold text-gray-700">
               Select Months for Availability
             </Label>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
               {months.map((month) => (
                 <div
                   key={month}
@@ -150,7 +150,7 @@ export  function AvailabilityRegister() {
 
           {selectedMonths.length > 0 && (
             <div className="space-y-4">
-              <div className="flex justify-between items-center">
+              <div className="flex items-center justify-between">
                 <Label className="text-lg font-semibold text-gray-700">
                   Set Weekly Schedule
                 </Label>

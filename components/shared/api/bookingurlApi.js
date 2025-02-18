@@ -1,7 +1,6 @@
 import axios from "axios";
 
-//const API_URL = "http://localhost:4000/api/v2/bookingurl";
-const API_URL = 'https://elikitawebservices-crdpgafxekayhkbe.southafricanorth-01.azurewebsites.net/api/v2/bookingurl'
+const API_URL = "http://localhost:4000/api/v2/bookingurl";
 
 
 // ✅ Create Booking URL Config (POST)

@@ -170,36 +170,36 @@ const isdoctor = () => {
     <div>
       
       {activepage === "referral" && (
-        <div className="bg-[#75C05B]/10 p-4 rounded-md shadow-md">
-          <div className="flex justify-between items-center w-full">
+        <div className="rounded-md bg-[#75C05B]/10 p-4 shadow-md">
+          <div className="flex w-full items-center justify-between">
             <div className="relative w-64">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+              <Search className="absolute left-2 top-2.5 size-4 text-gray-500" />
               <input
                 placeholder="Search referrals..."
-                className="pl-8 bg-white rounded-md p-2"
+                className="rounded-md bg-white p-2 pl-8"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
           </div>
 
-          <div className="overflow-x-auto mt-4">
+          <div className="mt-4 overflow-x-auto">
             <table className="min-w-full table-auto">
               <thead>
                 <tr>
-                  <th className="bg-[#007664] text-white p-2 text-left">Referral ID</th>
-                  <th className="bg-[#007664] text-white p-2 text-left">Source</th>
-                  <th className="bg-[#007664] text-white p-2 text-left">Date</th>
-                  <th className="bg-[#007664] text-white p-2 text-left">Status</th>
-                  <th className="bg-[#007664] text-white p-2 text-left">Patient</th>
-                  <th className="bg-[#007664] text-white p-2 text-left">Condition</th>
+                  <th className="bg-[#007664] p-2 text-left text-white">Referral ID</th>
+                  <th className="bg-[#007664] p-2 text-left text-white">Source</th>
+                  <th className="bg-[#007664] p-2 text-left text-white">Date</th>
+                  <th className="bg-[#007664] p-2 text-left text-white">Status</th>
+                  <th className="bg-[#007664] p-2 text-left text-white">Patient</th>
+                  <th className="bg-[#007664] p-2 text-left text-white">Condition</th>
                 </tr>
               </thead>
               <tbody>
               {filteredReferrals.map((referral) => (
   <tr
     key={referral._id}
-    className="hover:bg-green-50 transition-colors duration-200 cursor-pointer"
+    className="cursor-pointer transition-colors duration-200 hover:bg-green-50"
     onClick={() => handleViewReferralDetails(referral)}
   >
     <td className="p-2">{referral.referralID}</td>
@@ -225,39 +225,39 @@ const isdoctor = () => {
           {isReferralModalOpen && (
             
    <div
-   className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+   className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
    onClick={handleCloseReferralModal}
  >
    <div
-     className="bg-white p-6 rounded-md shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+     className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-md bg-white p-6 shadow-lg"
      onClick={(e) => e.stopPropagation()}
    >
-     <div className="flex justify-center mb-6">
+     <div className="mb-6 flex justify-center">
        <h2 className="text-xl font-semibold text-[#007664]">Referral Details</h2>
      </div>
 
      {selectedReferral && (
-       <div className="space-y-6 items-center">
+       <div className="items-center space-y-6">
          {/* Grid Layout for Referral Info */}
-         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-           <div className="flex items-center space-x-3 justify-center">
+         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+           <div className="flex items-center justify-center space-x-3">
              <Info size={24} color="#007664" />
              <div>
-               <h3 className="text-md font-medium text-black">Referral ID</h3>
+               <h3 className="font-medium text-black">Referral ID</h3>
                <p className="text-[#007664]">{selectedReferral.referralID}</p>
              </div>
            </div>
-           <div className="flex justify-center items-center space-x-3">
+           <div className="flex items-center justify-center space-x-3">
              <User size={24} color="#007664" />
              <div>
-               <h3 className="text-md font-medium text-black">Referral Source</h3>
+               <h3 className=" font-medium text-black">Referral Source</h3>
                <p className="text-[#007664]">{capitalize(selectedReferral.referredBy.firstName)} {capitalize(selectedReferral.referredBy.lastName)}</p>
              </div>
            </div>
-           <div className="flex justify-center items-center space-x-3">
+           <div className="flex items-center justify-center space-x-3">
              <Calendar size={24} color="#007664" />
              <div>
-               <h3 className="text-md font-medium text-black">Referral Date</h3>
+               <h3 className=" font-medium text-black">Referral Date</h3>
                <p className="text-[#007664]">
                  {new Date(selectedReferral.createdAt).toLocaleString("en-GB", {
                    dateStyle: "medium",
@@ -266,37 +266,37 @@ const isdoctor = () => {
                </p>
              </div>
            </div>
-           <div className="flex justify-center items-center space-x-3">
+           <div className="flex items-center justify-center space-x-3">
              <CheckCircle size={24} color="#007664" />
              <div>
-               <h3 className="text-md font-medium text-black">Referral Status</h3>
+               <h3 className="font-medium text-black">Referral Status</h3>
                <p className="text-[#007664]">{selectedReferral.status}</p>
              </div>
            </div>
-           <div className="flex justify-center items-center space-x-3">
+           <div className="flex items-center justify-center space-x-3">
              <User size={24} color="#007664" />
              <div>
-               <h3 className="text-md font-medium text-black">Patient</h3>
+               <h3 className="font-medium text-black">Patient</h3>
                <p className="text-[#007664]">
                  {selectedReferral.patient.firstName} {selectedReferral.patient.lastName}
                </p>
              </div>
            </div>
-           <div className="flex justify-center items-center space-x-3">
+           <div className="flex items-center justify-center space-x-3">
              <Info size={24} color="#007664" />
              <div>
-               <h3 className="text-md font-medium text-black">Condition</h3>
+               <h3 className="font-medium text-black">Condition</h3>
                <p className="text-[#007664]">{selectedReferral.patient.progress}</p>
              </div>
            </div>
          </div>
 
          {/* Referral Details */}
-         <div className="flex justify-center items-center">
-           <div className="flex items-center space-x-3 max-w-2xl w-full">
+         <div className="flex items-center justify-center">
+           <div className="flex w-full max-w-2xl items-center space-x-3">
              <Info size={24} color="#007664" />
              <div className="flex-1">
-               <h3 className="text-md font-medium text-black">Referral Details</h3>
+               <h3 className=" font-medium text-black">Referral Details</h3>
                <p className="text-[#007664]">{selectedReferral.referralReason}</p>
              </div>
            </div>
@@ -306,7 +306,7 @@ const isdoctor = () => {
          <div className="flex justify-center">
            <button
              onClick={() => handleViewMoreInfo(selectedReferral.patient)}
-             className="px-5 py-2 bg-[#007664] text-white rounded-md hover:bg-[#006054] transition-colors flex items-center space-x-2"
+             className="flex items-center space-x-2 rounded-md bg-[#007664] px-5 py-2 text-white transition-colors hover:bg-[#006054]"
            >
              <span>View More Information</span>
            </button>

@@ -348,7 +348,7 @@ const Patients = ({ setSelectedUser = () => {} }) => {
   const filteredPatients =
     patientsData?.data.filter(
       (patient) =>
-        patient.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        patient?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         patient.patientReference
           .toLowerCase()
           .includes(searchTerm.toLowerCase()) ||
@@ -457,20 +457,20 @@ const Patients = ({ setSelectedUser = () => {} }) => {
                           className="transition-colors duration-200 hover:bg-green-50"
                         >
                           <TableCell>{patient.patientReference}</TableCell>
-                          <TableCell>{`${patient.firstName} ${patient.lastName}`}</TableCell>
+                          <TableCell>{`${patient?.firstName} ${patient.lastName}`}</TableCell>
                           <TableCell>
-                            {new Date(patient.birthDate).toLocaleDateString()}
+                            {new Date(patient?.birthDate).toLocaleDateString()}
                           </TableCell>
                           <TableCell>
                             <div className="text-sm">
-                              <div>{patient.phone}</div>
+                              <div>{patient?.phone}</div>
                               <div className="text-gray-500">
-                                {patient.email}
+                                {patient?.email}
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell>{patient.medicalCondition}</TableCell>
-                          <TableCell>{patient.progress}</TableCell>
+                          <TableCell>{patient?.medicalCondition}</TableCell>
+                          <TableCell>{patient?.progress}</TableCell>
                           <TableCell>
                             <div className="flex space-x-2">
                               <Button
