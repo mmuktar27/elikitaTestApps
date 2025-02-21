@@ -2,7 +2,9 @@ import React from "react";
 import { Calendar } from "../../../components/events/calendar";
 
 const Events = () => {
-  return <Calendar />;
+  const currentDashboard="remote doctor"
+
+  return <Calendar currentDashboard={currentDashboard}/>;
 };
 
 export default Events;

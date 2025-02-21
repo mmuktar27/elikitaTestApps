@@ -281,8 +281,8 @@ const PatientDetailsView = ({ patient, onClose, SelectedPatient,currentUser }) =
     };
 
     fetchallStaff();
-    console.log(allStaff)
-}, [allStaff]);
+   
+}, []);
 
 
 useEffect(() => {
@@ -963,7 +963,7 @@ return (
           <div className="flex items-center gap-1">
             {[...Array(totalPages)].map((_, index) => (
               <button
-                key={index + 1}
+              key={`page-${index + 1}`}
                 onClick={() => paginate(index + 1)}
                 className={`size-8 rounded ${
                   currentPage === index + 1
@@ -1214,9 +1214,9 @@ return (
       const data = await fetchPatientData(SelectedPatient._id);
   
       if (isMounted) {
-        console.log('data');
-        console.log(data);
-        console.log('data');
+      //  console.log('data');
+       // console.log(data);
+        //console.log('data');
         setExaminations(data.examinations || []);
         setDiagnoses(data.diagnoses || []);
         setLabTests(data.labTests || []);
@@ -1410,8 +1410,15 @@ return (
       case "doctor":
         setList(doctors);
         break;
+        case "remotedoctor":
+          setList(remotedoctor);
+          break;
+        case "healthcareassistant":
+            setList(healthcareassistant);
+            break;
       case "labTech":
         setList(labTechnicians);
+        
         setReferralData(prev => ({
           ...prev,
           referralReason: ""
@@ -2307,33 +2314,54 @@ return (
   const doctors = [];
   const labTechnicians = [];
   const pharmacies = [];
-  
+  const healthcareassistant = [];
+  const remotedoctor = [];
   // Function to categorize staff
+  console.log('allStaff')
+  console.log(allStaff)
+  console.log('allStaff')
   const categorizeStaff = (allStaff) => {
     Object.values(allStaff).forEach((staff) => {
+      // Check each role independently without else statements
       if (staff.roles.includes("doctor")) {
-        doctors.push({ 
-          id: staff.id, 
+        doctors.push({
+          id: staff.id,
           name: `Dr. ${staff.firstName} ${staff.lastName}` // Append "Dr." to doctors
         });
-      } else if (staff.roles.includes("lab technician")) {
-        labTechnicians.push({ 
-          id: staff.id, 
-          name: `${staff.firstName} ${staff.lastName}` 
+      }
+      
+      if (staff.roles.includes("remote doctor")) {
+        remotedoctor.push({
+          id: staff.id,
+          name: `${staff.firstName} ${staff.lastName}`
         });
-      } else if (staff.roles.includes("Pharmacist")) {
-        pharmacies.push({ 
-          id: staff.id, 
-          name: `${staff.firstName} ${staff.lastName}` 
+      }
+      
+      if (staff.roles.includes("healthcare assistant")) {
+        healthcareassistant.push({
+          id: staff.id,
+          name: `${staff.firstName} ${staff.lastName}`
+        });
+      }
+      
+      if (staff.roles.includes("lab technician")) {
+        labTechnicians.push({
+          id: staff.id,
+          name: `${staff.firstName} ${staff.lastName}`
+        });
+      }
+      
+      if (staff.roles.includes("pharmacist")) {
+        pharmacies.push({
+          id: staff.id,
+          name: `${staff.firstName} ${staff.lastName}`
         });
       }
     });
   };
   categorizeStaff(allStaff);
 
-  console.log("Doctors:", doctors);
-  console.log("Lab Technicians:", labTechnicians);
-  console.log("Pharmacies:", pharmacies);
+
   const [selectedLabTest, setSelectedLabTest] = useState("cholesterol");
   const startSmartExam = () => {
     // Set the selected user for the call
@@ -2876,6 +2904,8 @@ const BookingButton = ({ externalUrl }) => {
     >
       <option value="">Select an option</option>
       <option value="doctor">Doctor</option>
+      <option value="remotedoctor">Remote Doctor</option>
+      <option value="healthcareassistant">Healthcare Assistant</option>
       <option value="labTech">Lab Technician</option>
       <option value="pharmacy">Pharmacy</option>
     </select>
@@ -2883,13 +2913,19 @@ const BookingButton = ({ externalUrl }) => {
     {selectedrefOption && (
       <div>
         <h3 className="mb-2 text-lg font-medium text-[#007664]">
-          {`Select ${
-            selectedrefOption === "doctor"
-              ? "Referring Doctor"
-              : selectedrefOption === "labTech"
-                ? "Lab Technician"
-                : "Pharmacy"
-          }`}
+        {`Select ${
+  selectedrefOption === "doctor"
+    ? "Referring Doctor"
+    : selectedrefOption === "labTech"
+    ? "Lab Technician"
+    : selectedrefOption === "pharmacy"
+    ? "Pharmacy"
+    : selectedrefOption === "remotedoctor"
+    ? "Remote Doctor"
+    : selectedrefOption === "healthcareassistant"
+    ? "Healthcare Assistant"
+    : "Role"
+}`}
         </h3>
         <select
           value={selectedRef}
@@ -2904,7 +2940,8 @@ const BookingButton = ({ externalUrl }) => {
           ))}
         </select>
 
-        {selectedrefOption === "doctor" && (
+        {(selectedrefOption === "doctor" || selectedrefOption === "remotedoctor" ||
+  selectedrefOption === "healthcareassistant") && (
           <div className="mb-4">
             <label htmlFor="referralReason" className="mb-2 block font-medium text-[#007664]">
               Referral Reason:

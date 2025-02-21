@@ -6,7 +6,7 @@ import { ReferralsPage } from "@/components/shared";
 import { getCurrentUser } from "@/components/shared/api";
 const Referral = () => {
   const session = useSession();
-  const currentDashboard="doctor"
+  const currentDashboard="healthcare assistant"
     const [currentUser, setCurrentUser] = useState(null);
     
     useEffect(() => {

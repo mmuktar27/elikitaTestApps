@@ -3,6 +3,7 @@ export { default as ProfilePage } from "./profile";
 export { default as Logout } from "./logout";
 
 export { default as PatientDetailsView } from "./PatientDetailsView";
+export { default as ReferralsPage } from "./Referrals";
 
 
 export { NewExamination ,ViewExamination } from "./Examination";
@@ -19,5 +20,7 @@ export {PatientFilter} from "./PatientFilter";
 
 export {default as VitalsChart} from "./vitalsChart"
 
+export {default as StatusDialog} from "./statusDialog"
 
 export {handleAddVisitHistory} from './visitHistoryTrackerFunction'
+export { PageProvider, usePage } from "./PageContext"

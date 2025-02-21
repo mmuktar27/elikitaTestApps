@@ -148,7 +148,11 @@ export function NewMedicationForm({
   onSubmit,
   initialMedication,
 }) {
-  //console.log(medication)
+
+
+
+
+
   const [currentPage, setCurrentPage] = useState(1);
   const [formData, setFormData] = useState({});
   const [selectedComplaints, setSelectedComplaints] = useState([]);
@@ -457,9 +461,7 @@ export function NewMedicationForm({
 
   const MedicationForm = () => {
     // Sample data for AI completion
-    console.log(patient);
-    console.log("dpppp");
-    console.log(patient);
+
     const medicationList = [
       "Paracetamol",
       "Ibuprofen",
@@ -774,6 +776,7 @@ export function NewMedicationForm({
       setIsAddDOpen(isOpen);
     }
   };
+const  requestedBy=session?.data?.user?.id
 
   const handleSubmitMedication = async () => {
     try {
@@ -785,6 +788,7 @@ export function NewMedicationForm({
         onSubmit,
         setmedFormData,
         generateMedicationId,
+        requestedBy
       });
     } catch (error) {
       console.error("Error in handleSubmitMedication:", error);
@@ -820,7 +824,7 @@ export function NewMedicationForm({
                 key={pageNum}
                 // onClick={() => setCurrentPage(pageNum)}
                 className={`
-          flex h-10 w-10 items-center justify-center rounded-full
+          flex size-10 items-center justify-center rounded-full
           border-2 border-teal-500 text-sm font-medium
           ${
             currentPage === pageNum

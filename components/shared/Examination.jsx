@@ -3680,7 +3680,7 @@ export function NewExamination({
                   key={pageNum}
                   //onClick={() => {setCurrentPage(pageNum);setCurrentInnerPage(0);}}
                   className={`
-                    flex h-10 w-10 items-center justify-center rounded-full
+                    flex size-10 items-center justify-center rounded-full
                     border-2 border-teal-500 text-sm font-medium
                     ${
                       currentPage === pageNum

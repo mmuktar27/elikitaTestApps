@@ -5,7 +5,7 @@ import {
   AlertTriangle,
   Bell,
   Camera,
-  ChevronDown,
+  ChevronDown,UserRoundPen,
   Database,
   FileBarChart,Link2,
   Home,
@@ -162,6 +162,12 @@ function DashboardPage({ children }) {
             active={routes === "/admin/audits"}
             url={"/admin/audits"}
           />
+                <NavItem
+            icon={UserRoundPen}
+            label="Profile"
+            active={routes === "/admin/profile"}
+            url={"/admin/profile"}
+          />
           <NavItem
             icon={Settings}
             label="Settings"
@@ -191,37 +197,36 @@ function DashboardPage({ children }) {
         )}
       </aside>
       <main className="flex-1 overflow-auto bg-gray-100 p-8">
-        <div className="mb-8 flex items-center justify-between">
-          <div className="flex items-center">
-            <button onClick={toggleSidebar} className="mr-4 md:hidden">
-              <Menu size={24} />
-            </button>
-            <h1 className="text-3xl font-bold text-[#007664]">Admin</h1>
+      <div className="fixed left-64 right-0 top-0 z-40 h-20 bg-gray-100 p-8">
+  <div className="flex h-full items-center justify-between"> 
+    <div className="flex items-center">
+      <button onClick={toggleSidebar} className="mr-4 md:hidden">
+        <Menu size={24} />
+      </button>
+      <h1 className="text-3xl font-bold text-[#007664]">System Admin </h1>
+    </div>
+    <div className="flex items-center space-x-4">
+      <div className="flex cursor-pointer items-center space-x-2">
+        <Link href="/admin/profile" className="flex items-center gap-2">
+          <Avatar
+            src={session?.data?.user?.image}
+            alt={session?.data?.user?.name}
+            fallback={"currUser?.displayName.charAt(0)"}
+          />
+          <div>
+            <p className="font-semibold">{session?.data?.user?.name}</p>
+            <p className="text-sm text-gray-500">
+              {session?.data?.user?.workEmail}
+            </p>
           </div>
-          <div className="flex items-center space-x-4">
-            {/*   <div className="relative">
-              <Bell className="size-6 cursor-pointer text-[#007664]" />
-              <span className="absolute -right-2 -top-2 flex size-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-                3
-              </span>
-            </div> */}
-            <div className="flex cursor-pointer items-center space-x-2">
-              <Avatar
-                src={session?.data?.user?.image}
-                alt={session?.data?.user?.name}
-                fallback={"currUser?.displayName.charAt(0)"}
-              />
-              <div>
-                <p className="font-semibold">{session?.data?.user?.name}</p>
-                <p className="text-sm text-gray-500">
-                  {session?.data?.user?.workEmail}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        </Link>
+      </div>
+    </div>
+  </div>
+</div>
+<div className="p-8 pt-20">
         {children}
-
+</div>
         <Logout
           isOpen={isLogoutConfirmationOpen}
           onClose={() => setIsLogoutConfirmationOpen(false)}

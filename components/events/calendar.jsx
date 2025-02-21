@@ -37,7 +37,7 @@ const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 const today = new Date();
 const tomorrow = addDays(today, 1);
 
-export function Calendar() {
+export function Calendar({currentDashboard}) {
   const session = useSession();
   const [bookingDialogOpen, setBookingDialogOpen] = React.useState(false);
 
@@ -201,6 +201,8 @@ export function Calendar() {
           <Button variant="outline" onClick={() => setCurrentDate(new Date())}>
             Today
           </Button>
+          {currentDashboard === "system admin" && session?.data?.user?.roles?.includes("system admin") && ( 
+
           <Dialog open={bookingDialogOpen} onOpenChange={setBookingDialogOpen}>
       <DialogTrigger asChild>
       <Button 
@@ -219,6 +221,8 @@ export function Calendar() {
         />
       </DialogContent>
     </Dialog>
+          )}
+
           {canCreate && (
             <Dialog open={openDialog} onOpenChange={setOpenDialog}>
               <DialogTrigger asChild>

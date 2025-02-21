@@ -11,10 +11,9 @@ const authOptions: NextAuthOptions = {
       clientSecret: process.env.AZURE_AD_B2C_CLIENT_SECRET as string,
       authorization: {
         params: {
-          scope: "openid profile user.Read email",
+          scope: "openid profile user.Read email User.ReadBasic.All",
           response_type: "code",
           response_mode: "query",
-
         },
       },
     }),
@@ -38,7 +37,7 @@ const authOptions: NextAuthOptions = {
               headers: {
                 Authorization: `Bearer ${token.accessToken}`,
               },
-            }
+            },
           );
 
           const userDetails = response.data[0];
@@ -67,7 +66,7 @@ const authOptions: NextAuthOptions = {
               headers: {
                 Authorization: `Bearer ${token.accessToken}`,
               },
-            }
+            },
           );
 
           const userDetails = response.data[0];
@@ -101,4 +100,3 @@ const authOptions: NextAuthOptions = {
 
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
-

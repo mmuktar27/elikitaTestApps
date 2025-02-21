@@ -8,6 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { updateStaff } from "@/components/shared/api";
+import { StatusDialog } from "@/components/shared";
+import { Skeleton } from "@/components/ui/skeleton"; // Assuming you have a Skeleton component
+
 import {
   Mail,
   Phone,
@@ -39,76 +43,155 @@ const initialUserState = {
   joinDate: "",
   avatarUrl: "",
 };
+const ProfileSkeleton = () => {
+  return (
+    <div className="container mx-auto max-w-4xl p-6">
+      <h1 className="mb-6 text-3xl font-bold text-[#007664]">My Profile</h1>
 
-export default function ProfilePage() {
-  const { data: session, status } = useSession();
+      <div className="mb-6 rounded-lg bg-[#75C05B]/10 p-6">
+        <div className="flex flex-col items-center gap-6 md:flex-row md:items-start">
+          <Skeleton className="size-32 rounded-full" />
+          <div className="grow text-center md:text-left">
+            <Skeleton className="mb-2 h-6 w-32" />
+            <Skeleton className="mb-2 h-4 w-24" />
+            <Skeleton className="mb-4 h-4 w-20" />
+            <div className="flex flex-wrap justify-center gap-2 md:justify-start">
+              <Skeleton className="h-6 w-16 rounded-md" />
+              <Skeleton className="h-6 w-20 rounded-md" />
+            </div>
+          </div>
+          <Skeleton className="h-10 w-28 rounded-md" />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="rounded-lg bg-[#75C05B]/10 p-6">
+          <Skeleton className="mb-4 h-6 w-40" />
+          <Skeleton className="mb-3 h-10 w-full" />
+          <Skeleton className="mb-3 h-10 w-full" />
+          <Skeleton className="mb-3 h-10 w-full" />
+          <Skeleton className="mb-3 h-10 w-full" />
+        </div>
+
+        <div className="rounded-lg bg-[#B24531]/10 p-6">
+          <Skeleton className="mb-4 h-6 w-40" />
+          <Skeleton className="mb-3 h-10 w-full" />
+          <Skeleton className="mb-3 h-10 w-full" />
+          <Skeleton className="mb-3 h-10 w-full" />
+          <Skeleton className="mb-3 h-10 w-full" />
+        </div>
+
+        <div className="rounded-lg bg-[#8FD573]/10 p-6 md:col-span-2">
+          <Skeleton className="mb-4 h-6 w-40" />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <Skeleton className="mb-3 h-10 w-full" />
+            <Skeleton className="mb-3 h-10 w-full" />
+            <Skeleton className="mb-3 h-10 w-full" />
+            <Skeleton className="mb-3 h-10 w-full" />
+            <Skeleton className="mb-3 h-10 w-full" />
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-6 flex justify-end gap-4">
+        <Skeleton className="h-10 w-24 rounded-md" />
+        <Skeleton className="h-10 w-32 rounded-md" />
+      </div>
+    </div>
+  );
+};
+
+export default function ProfilePage({ currentUser }) {
+  const session= useSession();
+  const [loading, setLoading] = useState(true);
+
   const [isEditing, setIsEditing] = useState(false);
-  const [user, setUser] = useState(initialUserState);
+  const [statusDialog, setStatusDialog] = useState({
+    isOpen: false,
+    status: null,
+    message: "",
+  });
+  const [user, setUser] = useState(currentUser);
   const [isSaving, setIsSaving] = useState(false);
+  
 
-  console.log("session", session);
+ 
+  const [profileImage, setProfileImage] = useState(null);
 
   useEffect(() => {
-    const userData = {};
-    if (userData) {
-      setUser({
-        name: userData?.name || "",
-        employmentId: userData?.employmentId || "",
-        jobTitle: userData?.jobTitle || "",
-        department: userData?.department || "",
-        roles: userData?.roles || [],
-        email: userData?.email || "",
-        personalEmail: userData?.personalEmail || "",
-        businessPhone: userData?.businessPhone || "",
-        mobilePhone: userData?.mobilePhone || "",
-        streetAddress: userData?.streetAddress || "",
-        city: userData?.city || "",
-        state: userData?.state || "",
-        zipCode: userData?.zipCode || "",
-        country: userData?.country || "",
-        joinDate: userData?.joinDate || "",
-        avatarUrl: userData?.avatarUrl || "",
-      });
+    const fetchProfilePicture = async () => {
+      try {
+        console.log("Fetching profile picture...");
+        console.log("Session data:", session?.data);
+    
+        const accessToken = session?.data?.accessToken;
+        const microsoftId = session?.data?.user?.microsoftId; // Azure AD Object ID
+    
+        if (!accessToken || !microsoftId) {
+          console.error("Access token or Microsoft ID is missing!");
+          return;
+        }
+    
+        // Debug: Log Access Token
+        console.log("Access Token:", accessToken);
+    
+        const response = await fetch(
+          `https://graph.microsoft.com/v1.0/users/${microsoftId}/photo/$value`,
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        );
+    
+        console.log("Response status:", response.status);
+    
+        if (!response.ok) {
+          throw new Error(`Failed to fetch image - ${response.statusText}`);
+        }
+    
+        const imageBlob = await response.blob();
+        const imageUrl = URL.createObjectURL(imageBlob);
+    
+        console.log("Image successfully fetched:", imageUrl);
+        setProfileImage(imageUrl);
+      } catch (error) {
+        console.error("Error fetching profile picture:", error);
+      }
+    };
+    
+    
+  
+    fetchProfilePicture();
+  }, [session]);
+  
+  console.log("Profile Image URL:", profileImage);
+  
+
+  console.log(session?.data?.user?.image);
+    console.log("session2", user);
+
+  useEffect(() => {
+    if (currentUser) {
+      setUser(currentUser);
+      setLoading(false);
     }
-  }, []);
+  }, [currentUser]);
 
-  /*  if (status === "loading" || isLoading) {
-    return (
-      <div className="flex h-[50vh] items-center justify-center">
-        <Loader2 className="size-8 animate-spin text-[#007664]" />
-      </div>
-    );
+  if (loading || !user) {
+    return <ProfileSkeleton />;
   }
 
-  if (status === "unauthenticated") {
-    return (
-      <div className="flex h-[50vh] flex-col items-center justify-center gap-4">
-        <p className="text-lg text-gray-600">
-          Please sign in to view your profile
-        </p>
-        <Button
-          onClick={() => signOut({ callbackUrl: "/auth/login" })}
-          className="bg-[#007664] hover:bg-[#007664]/80"
-        >
-          Sign In
-        </Button>
-      </div>
-    );
-  }
 
-  if (isError) {
-    return (
-      <div className="flex h-[50vh] flex-col items-center justify-center gap-4">
-        <p className="text-lg text-red-600">Failed to load profile data</p>
-        <Button
-          onClick={() => window.location.reload()}
-          className="bg-[#007664] hover:bg-[#007664]/80"
-        >
-          Retry
-        </Button>
-      </div>
-    );
-  } */
+  const callStatusDialog = (status, message) => {
+    setStatusDialog({
+      isOpen: true,
+      status: status === "success" ? "success" : "error",
+      message:
+        message ||
+        (status === "success"
+          ? "Action completed successfully"
+          : "Action failed"),
+    });
+  };
 
   const handleInputChange = (e) => {
     setUser({ ...user, [e.target.name]: e.target.value });
@@ -117,18 +200,20 @@ export default function ProfilePage() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const response = await API.put("/staff/me", user);
-      if (response.status === 200) {
-        toast.success("Profile updated successfully");
+      const response = await updateStaff(user.microsoftID, user);
+      if (response.success) {
         setIsEditing(false);
+        callStatusDialog("success", "Profile updated successfully");
+        console.log("Profile updated successfully:", response.data);
       }
     } catch (error) {
-      toast.error("Failed to update profile");
-      console.error("Error updating profile:", error);
+      console.error("Failed to update profile:", error);
+      callStatusDialog("error", "Failed to update profile");
     } finally {
       setIsSaving(false);
     }
   };
+
 
   return (
     <div className="container mx-auto max-w-4xl p-6">
@@ -139,12 +224,13 @@ export default function ProfilePage() {
           <div className="flex flex-col items-center gap-6 md:flex-row md:items-start">
             <div className="relative">
               <Avatar className="size-32">
-                <AvatarImage
-                  src={user.avatarUrl || "/placeholder-user.jpg"}
-                  alt={user.name}
-                />
+              <AvatarImage
+  src={profileImage}
+  alt={user?.firstName}
+  className="size-full object-cover"
+/>
                 <AvatarFallback>
-                  {user.name
+                  {user?.firstName
                     .split(" ")
                     .map((n) => n[0])
                     .join("")}
@@ -153,11 +239,11 @@ export default function ProfilePage() {
             </div>
 
             <div className="grow text-center md:text-left">
-              <h2 className="text-2xl font-bold">{user.name}</h2>
-              <p className="text-[#007664]">{user.jobTitle}</p>
-              <p className="text-sm text-gray-600">{user.department}</p>
+              <h2 className="text-2xl font-bold">{user?.name}</h2>
+              <p className="text-[#007664]">{user?.jobTitle}</p>
+              <p className="text-sm text-gray-600">{user?.department}</p>
               <div className="mt-2 flex flex-wrap justify-center gap-2 md:justify-start">
-                {user.roles.map((role, index) => (
+                {user?.roles.map((role, index) => (
                   <Badge key={index} variant="secondary">
                     {role}
                   </Badge>
@@ -190,7 +276,7 @@ export default function ProfilePage() {
               <Input
                 id="employmentId"
                 name="employmentId"
-                value={user.employmentId}
+                value={user?.employeeID}
                 disabled
               />
             </div>
@@ -199,7 +285,7 @@ export default function ProfilePage() {
               <Input
                 id="jobTitle"
                 name="jobTitle"
-                value={user.jobTitle}
+                value={user?.jobTitle}
                 disabled
               />
             </div>
@@ -208,7 +294,7 @@ export default function ProfilePage() {
               <Input
                 id="department"
                 name="department"
-                value={user.department}
+                value={user?.department}
                 disabled
               />
             </div>
@@ -217,7 +303,11 @@ export default function ProfilePage() {
               <Input
                 id="joinDate"
                 name="joinDate"
-                value={user.joinDate}
+                value={
+                  user?.hireDate
+                    ? new Date(user.hireDate).toISOString().substring(0, 10)
+                    : ""
+                }
                 disabled
               />
             </div>
@@ -233,15 +323,15 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="email">Business Email</Label>
-              <Input id="email" name="email" value={user.email} disabled />
+              <Label htmlFor="email">Work Email</Label>
+              <Input id="email" name="email" value={user?.workEmail} disabled />
             </div>
             <div>
               <Label htmlFor="personalEmail">Personal Email</Label>
               <Input
                 id="personalEmail"
-                name="personalEmail"
-                value={user.personalEmail}
+                name="email"
+                value={user?.email}
                 onChange={handleInputChange}
                 disabled={!isEditing}
               />
@@ -251,7 +341,7 @@ export default function ProfilePage() {
               <Input
                 id="businessPhone"
                 name="businessPhone"
-                value={user.businessPhone}
+                value={user?.businessPhone}
                 onChange={handleInputChange}
                 disabled={!isEditing}
               />
@@ -261,14 +351,22 @@ export default function ProfilePage() {
               <Input
                 id="mobilePhone"
                 name="mobilePhone"
-                value={user.mobilePhone}
+                value={user?.mobilePhone}
                 onChange={handleInputChange}
                 disabled={!isEditing}
               />
             </div>
           </CardContent>
         </Card>
-
+        <StatusDialog
+                      isOpen={statusDialog.isOpen}
+                      onClose={() => {
+                        setStatusDialog((prev) => ({ ...prev, isOpen: false }));
+                       
+                      }}
+                      status={statusDialog.status}
+                      message={statusDialog.message}
+                    />
         <Card className="bg-[#8FD573]/10 md:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-[#007664]">
@@ -282,7 +380,7 @@ export default function ProfilePage() {
               <Input
                 id="streetAddress"
                 name="streetAddress"
-                value={user.streetAddress}
+                value={user?.streetAddress}
                 onChange={handleInputChange}
                 disabled={!isEditing}
               />
@@ -292,7 +390,7 @@ export default function ProfilePage() {
               <Input
                 id="city"
                 name="city"
-                value={user.city}
+                value={user?.city}
                 onChange={handleInputChange}
                 disabled={!isEditing}
               />
@@ -302,7 +400,7 @@ export default function ProfilePage() {
               <Input
                 id="state"
                 name="state"
-                value={user.state}
+                value={user?.state}
                 onChange={handleInputChange}
                 disabled={!isEditing}
               />
@@ -312,7 +410,7 @@ export default function ProfilePage() {
               <Input
                 id="zipCode"
                 name="zipCode"
-                value={user.zipCode}
+                value={user?.zipCode}
                 onChange={handleInputChange}
                 disabled={!isEditing}
               />
@@ -322,7 +420,7 @@ export default function ProfilePage() {
               <Input
                 id="country"
                 name="country"
-                value={user.country}
+                value={user?.country}
                 onChange={handleInputChange}
                 disabled={!isEditing}
               />

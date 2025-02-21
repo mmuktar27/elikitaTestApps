@@ -11,7 +11,7 @@ import {
   Menu,
   Settings,
   UserCheck,
-  UserRoundPen,
+  UserRoundPen,UserPlus,
   Users,
   X,CalendarCheck
 } from "lucide-react";
@@ -27,8 +27,12 @@ import { Separator } from "@radix-ui/react-select";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { PageProvider, usePage } from "../../components/shared";
 
-const NavItem = ({ icon: Icon, label, active, url }) => (
+const NavItem = ({ icon: Icon, label, active, url, onClick }) => {
+  const router = useRouter();
+  const { setIsactivepage } = usePage();
+  return (
   <Link
     href={url}
     className={`flex w-full items-center space-x-2 rounded p-2 text-sm font-bold ${
@@ -36,11 +40,17 @@ const NavItem = ({ icon: Icon, label, active, url }) => (
         ? "bg-[#75C05B]/20 text-white"
         : "text-white hover:bg-[#75C05B]/20 hover:text-white"
     }`}
+    onClick={() => {
+      if (url === "/healthassistant/patients") {
+        setIsactivepage("patient"); // Reset inner page globally
+      }
+      router.push(url); // Navigate to the main page
+    }}
   >
     <Icon size={18} />
     <span>{label}</span>
   </Link>
-);
+);}
 
 const Avatar = ({ src, alt, fallback }) => (
   <div className="relative flex size-10 items-center justify-center overflow-hidden rounded-full bg-gray-300">
@@ -146,6 +156,8 @@ function DashboardPage({ children }) {
   };
 
   return (
+    <PageProvider>
+
     <div className="flex h-screen bg-[#007664]">
       <aside
         className={`${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} fixed inset-y-0 left-0 z-50 w-64 bg-[#007664] p-4 text-white transition-transform duration-300 ease-in-out md:relative md:translate-x-0`}
@@ -168,6 +180,14 @@ function DashboardPage({ children }) {
             label="Patients"
             active={routes === "/healthassistant/patients"}
             url={"/healthassistant/patients"}
+            onClick={() => setIsactivepage("patient")} // Reset inner page when clicked
+
+          />
+               <NavItem
+            icon={UserPlus}
+            label="Referrals"
+            active={routes === "/healthassistant/referrals"}
+            url={"/healthassistant/referrals"}
           />
           <NavItem
             icon={UserCheck}
@@ -216,39 +236,36 @@ function DashboardPage({ children }) {
           </div>
         )}
       </aside>
-      <main className="flex-1 overflow-auto bg-gray-100 p-8">
-        <div className="mb-8 flex items-center justify-between">
-          <div className="flex items-center">
-            <button onClick={toggleSidebar} className="mr-4 md:hidden">
-              <Menu size={24} />
-            </button>
-            <h1 className="text-3xl font-bold text-[#007664]">
-              Healthcare Assistant
-            </h1>
+      <main className="flex-1 overflow-auto bg-gray-100">
+      <div className="fixed left-64 right-0 top-0 z-40 h-20 bg-gray-100 p-8">
+  <div className="flex h-full items-center justify-between"> 
+    <div className="flex items-center">
+      <button onClick={toggleSidebar} className="mr-4 md:hidden">
+        <Menu size={24} />
+      </button>
+      <h1 className="text-3xl font-bold text-[#007664]">Healthcare Assistant</h1>
+    </div>
+    <div className="flex items-center space-x-4">
+      <div className="flex cursor-pointer items-center space-x-2">
+        <Link href="/healthassistan/profile" className="flex items-center gap-2">
+          <Avatar
+            src={session?.data?.user?.image}
+            alt={session?.data?.user?.name}
+            fallback={"currUser?.displayName.charAt(0)"}
+          />
+          <div>
+            <p className="font-semibold">{session?.data?.user?.name}</p>
+            <p className="text-sm text-gray-500">
+              {session?.data?.user?.workEmail}
+            </p>
           </div>
-          <div className="flex items-center space-x-4">
-            {/*   <div className="relative">
-              <Bell className="size-6 cursor-pointer text-[#007664]" />
-              <span className="absolute -right-2 -top-2 flex size-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-                3
-              </span>
-            </div> */}
-            <div className="flex cursor-pointer items-center space-x-2">
-              <Avatar
-                src={session?.data?.user?.image}
-                alt={session?.data?.user?.name}
-                fallback={"currUser?.displayName.charAt(0)"}
-              />
-              <div>
-                <p className="font-semibold">{session?.data?.user?.name}</p>
-                <p className="text-sm text-gray-500">
-                  {session?.data?.user?.workEmail}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-        {children}
+        </Link>
+      </div>
+    </div>
+  </div>
+</div>
+
+        <div className="p-8 pt-20">{children}</div>
 
         <Logout
           isOpen={isLogoutConfirmationOpen}
@@ -257,6 +274,8 @@ function DashboardPage({ children }) {
         />
       </main>
     </div>
+    </PageProvider>
+
   );
 }
 

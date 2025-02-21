@@ -11,8 +11,7 @@ export {fetchVisitsByPatient , addVisitHistory } from "./patientVisitHistoryTrac
 
 export {createReferral , fetchReferralsByConsultant,updateReferral,deleteReferral } from "./referralApi";
 
-export { availabilityService } from "./availabilityRegisterApi"
-export { getCurrentUser,getAllStaff } from "./StaffAPI"
+export { getCurrentUser,getAllStaff ,getTotalUserConsultations , updateStaff, fetchPendingConsultations} from "./StaffAPI"
 
 
 

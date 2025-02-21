@@ -82,3 +82,6 @@ export const deletePatient = async (id) => {
     throw new Error(error.response?.data?.message || "Failed to delete patient");
   }
 };
+
+
+

@@ -13,12 +13,13 @@ export const submitMedication = async ({
   onSubmit,
   setmedFormData,
   generateMedicationId,
+  requestedBy,
 }) => {
   const updatedMedFormData = {
     ...medformData,
     medicationId: medformData?.medicationId ?? generateMedicationId(),
-    requestedBy: medformData?.requestedBy ?? "Dr. John Doe",
-    patient: medformData?.patient ?? patient,
+    requestedBy: requestedBy,
+    patient: patient,
   };
 
   if (isEditMode) {
