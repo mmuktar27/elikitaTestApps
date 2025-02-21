@@ -1,7 +1,7 @@
 import axios from 'axios';
-const API_URL = 'http://localhost:4000/api/v2/staff';
+//const API_URL = 'http://localhost:4000/api/v2/staff';
 
-//const API_URL = 'https://elikitawebservices-crdpgafxekayhkbe.southafricanorth-01.azurewebsites.net/api/v2/staff';
+const API_URL = 'https://elikitawebservices-crdpgafxekayhkbe.southafricanorth-01.azurewebsites.net/api/v2/staff';
 
 export const getCurrentUser = async (userId) => {
     try {
