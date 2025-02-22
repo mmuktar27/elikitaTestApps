@@ -118,7 +118,7 @@ import axios from 'axios';
 
 
 
-export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest= null ,buttonText,labTests}) {
+export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest= null ,buttonText,labTests,  currentDashboard}) {
   const [currentPage, setCurrentPage] = useState(1);
   const [formData, setFormData] = useState(initialLabtest || {});
   const [errors,setErrors]= useState({});
@@ -864,7 +864,9 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
           resetForm,
           onSubmit,
           onTabChange,
-          session.data.user.id
+          session.data.user.id,
+          currentDashboard
+
         );
       } else if (buttonText === "Update") {
         await updateLabtestData(

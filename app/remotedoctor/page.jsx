@@ -2,7 +2,9 @@ import React from "react";
 import { Dashboard } from "@/components/remotedoctor";
 
 const RemoteDoctorPage = () => {
-  return <Dashboard />;
+  const currentDashboard="remote doctor"
+
+  return <Dashboard currentDashboard={currentDashboard} />;
 };
 
 export default RemoteDoctorPage;

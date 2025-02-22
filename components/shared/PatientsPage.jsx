@@ -277,6 +277,8 @@ const PatientsForms = ({ form, onSubmit, onClose, buttonText }) => {
     }
   };
 
+
+
   return (
     <div className="mx-auto max-w-4xl space-y-8 p-6" style={{ width: "65vw" }}>
       <div className="grid grid-cols-1 gap-4 rounded-lg bg-white p-6 shadow-lg md:grid-cols-1">
@@ -734,7 +736,10 @@ const Patients = ({ currentDashboard }) => {
     isOpen: false,
     patientData: null,
   });
-
+  const [newPatState, setNewPatState] = useState({
+    isOpen: false,
+    patientData: null,
+  });
   /*
   useEffect(() => {
     if (!triggerRefresh) return;
@@ -1199,12 +1204,15 @@ const Patients = ({ currentDashboard }) => {
     }
   };
   const handleNewPatient = () => {
-    setEditPatState({ isOpen: true, patientData: {} });
+    //setEditPatState({ isOpen: true, patientData: {} });
+    setNewPatState({ isOpen: true, patientData: {} })
   };
 
   // Function to close the modal
   const handleDialogClose = () => {
     setEditPatState({ isOpen: false, patientData: null });
+    setNewPatState({ isOpen: false, patientData: null });
+
   };
 
   const filteredPatients = useMemo(() => {
@@ -1314,6 +1322,7 @@ const Patients = ({ currentDashboard }) => {
           onClose={() => setIsDetailsViewOpen(false)}
           SelectedPatient={selectedPatient}
           currentUser={currentUser}
+          currentDashboard={currentDashboard}
         />
       )}
 
@@ -1371,7 +1380,7 @@ const Patients = ({ currentDashboard }) => {
                   />
                   {/* New Patient Button */}
                   <Dialog
-                    open={editPatState.isOpen}
+                    open={newPatState.isOpen}
                     onOpenChange={(isOpen) => !isOpen && handleDialogClose()}
                   >
                     <DialogTrigger asChild>
@@ -1393,16 +1402,14 @@ const Patients = ({ currentDashboard }) => {
                         <DialogTitle>
                           <div className="mb-0 text-center">
                             <h2 className="bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-3xl font-bold text-transparent">
-                              {editPatState.patientData?._id
-                                ? "Edit Patient"
-                                : "New Patient"}
+                             New Patient
                             </h2>
                           </div>
                         </DialogTitle>
                       </DialogHeader>
                       {/* Patients form component */}
                       <PatientsForms
-                        form={editPatState.patientData}
+                        form={newPatState.patientData}
                         onClose={handleDialogClose}
                         onSubmit={(status, message) =>
                           handleAddNewPatientDialog(status, message)

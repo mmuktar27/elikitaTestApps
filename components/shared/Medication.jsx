@@ -147,6 +147,7 @@ export function NewMedicationForm({
   onClose,
   onSubmit,
   initialMedication,
+  currentDashboard,
 }) {
 
 
@@ -679,7 +680,7 @@ export function NewMedicationForm({
 
                 <div className="space-y-2">
                   <label className="flex items-center text-sm font-medium text-teal-700">
-                    Treatment Duration
+                    Treatment Duration (Days)
                   </label>
                   <input
                     type="number"
@@ -788,7 +789,8 @@ const  requestedBy=session?.data?.user?.id
         onSubmit,
         setmedFormData,
         generateMedicationId,
-        requestedBy
+        requestedBy,
+        currentDashboard
       });
     } catch (error) {
       console.error("Error in handleSubmitMedication:", error);

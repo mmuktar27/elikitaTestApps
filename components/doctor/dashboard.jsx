@@ -15,7 +15,7 @@ import { fetchReferralsByConsultant } from "../shared/api";
 
 import { useSession } from "next-auth/react";
 
-const Dashboard = () => {
+const Dashboard = ({currentDashboard}) => {
   const { data, isLoading, isError, isSuccess } = useDoctorDashboard();
   const session = useSession();
   const [referrals, setReferrals] = useState([]);
@@ -44,7 +44,7 @@ const Dashboard = () => {
           ]);
 
         if (!isMounted) return;
-
+//console.log(consultations)
         setConsultations(consultations);
         setPendingConsultations(pendingPatients);
         setReferrals(referralsData.data.referrals);
@@ -70,28 +70,69 @@ const Dashboard = () => {
 
   const [pendingReferalCount, setPendingreferralCount] = useState(0);
 
-  useEffect(() => {
-    // Update pending count whenever referrals change
+  useEffect(() => { 
+    if (!Array.isArray(referrals)) {
+      console.error("Referrals data is not an array:", referrals);
+      return;
+    }
+  
+    // Normalize `currentDashboard` (remove spaces, lowercase)
+    const normalizedDashboard = currentDashboard.replace(/\s+/g, "").toLowerCase();
+  
+    // Filter referrals based on status and normalized referralType
     const count = referrals.filter(
-      (referral) => referral.status === "pending",
+      (referral) => 
+        referral.status === "pending" &&
+        referral.referralType.replace(/\s+/g, "").toLowerCase() === normalizedDashboard
     ).length;
+  
     setPendingreferralCount(count);
-  }, [referrals]);
+  
+    console.log("Filtered Pending Referrals:", count);
+  
+  }, [referrals, currentDashboard]); // Re-run when referrals or currentDashboard changes
+  
 
   const metrics = data?.data?.data;
 
+  const [totalFilteredConsultations, setTotalFilteredConsultations] = useState(0);
+
+  useEffect(() => {
+    if (!consultations || typeof consultations !== "object") {
+      console.error("Consultations data is invalid:", consultations);
+      return;
+    }
+  
+    // Extract arrays from the object
+    const { medications = [], labTests = [], diagnoses = [], examinations = [] } = consultations;
+  
+    // Filtering each array based on the requestedByAccType / diagnosedByAccType / examinedByAccType
+    const filteredMedications = medications.filter(med => med.requestedByAccType === currentDashboard);
+    const filteredLabTests = labTests.filter(lab => lab.requestedByAccType === currentDashboard);
+    const filteredDiagnoses = diagnoses.filter(diag => diag.diagnosedByAccType === currentDashboard);
+    const filteredExaminations = examinations.filter(exam => exam.examinedByAccType === currentDashboard);
+  
+    // Calculate total filtered consultations
+    const totalFiltered = filteredMedications.length + filteredLabTests.length + filteredDiagnoses.length + filteredExaminations.length;
+    setTotalFilteredConsultations(totalFiltered);
+ 
+  
+  }, [consultations, currentDashboard]);
+
+ // console.log('pendindConsultations')
+  //console.log(pendindConsultations.length)
 
   const cardData = [
     {
       title: "Total Consultations",
-      value: consultations?.totalConsultations || 0,
+      value: totalFilteredConsultations || 0,
       /*   description: "+20.1% from last month", */
       icon: <Stethoscope className="size-4 text-muted-foreground" />,
       bgColor: "bg-[#75C05B]/10",
     },
     {
       title: "Pending Consultations",
-      value: metrics?.pendingConsultations || 0,
+      value: pendindConsultations?.length || 0,
       /*   description: "+15% from yesterday", */
       icon: <Activity className="size-4 text-muted-foreground" />,
       bgColor: "bg-[#B24531]/10",

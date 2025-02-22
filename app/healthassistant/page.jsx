@@ -3,7 +3,9 @@
 import DashboardPage from "@/components/healthassistant/Dashboard";
 
 function Dashboard() {
-  return <DashboardPage />;
+  const currentDashboard="healthcare assistant"
+
+  return <DashboardPage currentDashboard={currentDashboard}/>;
 }
 
 export default Dashboard;

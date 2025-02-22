@@ -156,6 +156,8 @@ export function NewDiagnosisForm({
   onSubmit,
   initialDiagnosis = null,
   buttonText,
+ currentDashboard,
+
 }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [formData, setFormData] = useState(initialDiagnosis || {});
@@ -276,6 +278,7 @@ export function NewDiagnosisForm({
         patient: patient,
         diagnosisId: generateDiagnosisId(),
         diagnosedBy: session?.data?.user?.id,
+        requestedByAccType: currentDashboard,
         diagnosedAt: "Gembu Center",
         additionalDiagnoses: additionalDiagnoses,
       }));

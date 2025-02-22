@@ -1,12 +1,151 @@
 "use client";
+import React, { useState, useEffect, useMemo } from "react";
+import { useSession } from "next-auth/react";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, Stethoscope, UserPlus } from "lucide-react";
 import HealthTips from "./HealthTips";
 import { useDoctorDashboard } from "@/hooks/dashboard.hook";
 import SkeletonCard from "../ui/skeletoncard";
-
-const Dashboard = () => {
+import {
+  getTotalUserConsultations,
+  fetchPendingConsultations,
+} from "../shared/api"; // Adjust the import path as needed
+import { fetchReferralsByConsultant } from "../shared/api";
+const Dashboard = ({currentDashboard}) => {
+    const session = useSession();
+    const [referrals, setReferrals] = useState([]);
+  
+    const [consultations, setConsultations] = useState(null);
+    const [pendindConsultations, setPendingConsultations] = useState(null);
+    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(true);
   const { data, isLoading, isError, isSuccess } = useDoctorDashboard();
+
+  
+
+  useEffect(() => {
+    let isMounted = true;
+    const userId = session?.data?.user?.id;
+
+    if (!userId) return;
+
+    const loadData = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const [consultations, pendingPatients, referralsData] =
+          await Promise.all([
+            getTotalUserConsultations(userId),
+            fetchPendingConsultations(),
+            fetchReferralsByConsultant(userId),
+          ]);
+
+        if (!isMounted) return;
+//console.log(consultations)
+        setConsultations(consultations);
+        setPendingConsultations(pendingPatients);
+        setReferrals(referralsData.data.referrals);
+      } catch (error) {
+        if (!isMounted) return;
+
+        console.error("Failed to load data:", error);
+        setError(error.message);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadData();
+
+    // Cleanup function to prevent state updates after unmount
+    return () => {
+      isMounted = false;
+    };
+  }, [session?.data?.user?.id]);
+
+  const [pendingReferalCount, setPendingreferralCount] = useState(0);
+
+useEffect(() => { 
+    if (!Array.isArray(referrals)) {
+      console.error("Referrals data is not an array:", referrals);
+      return;
+    }
+  
+    // Normalize `currentDashboard` (remove spaces, lowercase)
+    const normalizedDashboard = currentDashboard.replace(/\s+/g, "").toLowerCase();
+  
+    // Filter referrals based on status and normalized referralType
+    const count = referrals.filter(
+      (referral) => 
+        referral.status === "pending" &&
+        referral.referralType.replace(/\s+/g, "").toLowerCase() === normalizedDashboard
+    ).length;
+  
+    setPendingreferralCount(count);
+  
+    console.log("Filtered Pending Referrals:", count);
+  
+  }, [referrals, currentDashboard]); // Re-run when referrals or currentDashboard changes
+  
+
+
+
+  const [totalFilteredConsultations, setTotalFilteredConsultations] = useState(0);
+
+  useEffect(() => {
+    if (!consultations || typeof consultations !== "object") {
+      console.error("Consultations data is invalid:", consultations);
+      return;
+    }
+  
+    // Extract arrays from the object
+    const { medications = [], labTests = [], diagnoses = [], examinations = [] } = consultations;
+  
+    // Filtering each array based on the requestedByAccType / diagnosedByAccType / examinedByAccType
+    const filteredMedications = medications.filter(med => med.requestedByAccType === currentDashboard);
+    const filteredLabTests = labTests.filter(lab => lab.requestedByAccType === currentDashboard);
+    const filteredDiagnoses = diagnoses.filter(diag => diag.diagnosedByAccType === currentDashboard);
+    const filteredExaminations = examinations.filter(exam => exam.examinedByAccType === currentDashboard);
+  
+    // Calculate total filtered consultations
+    const totalFiltered = filteredMedications.length + filteredLabTests.length + filteredDiagnoses.length + filteredExaminations.length;
+    setTotalFilteredConsultations(totalFiltered);
+ 
+  
+  }, [consultations, currentDashboard]);
+
+
+  const [totalPendingConsultations, setTotalPendingConsultations] = useState(0);
+  
+
+  
+  useEffect(() => {
+    if (!consultations || !referrals) return;
+  
+    // Extract patient IDs from ALL consultation categories
+    const consultedPatientIds = new Set([
+      ...(consultations.medications || []).map((med) => med.patient),
+      ...(consultations.labTests || []).map((lab) => lab.patient),
+      ...(consultations.diagnoses || []).map((diag) => diag.patient),
+      ...(consultations.examinations || []).map((exam) => exam.patient),
+    ]);
+  
+    // Filter referrals: Keep only those where the patient does NOT exist in consultations
+    const pendingConsultations = referrals.filter(
+      (referral) => !consultedPatientIds.has(referral.patient?._id)
+    );
+  
+    // Update the pending consultations count
+    setTotalPendingConsultations(pendingConsultations.length);
+  
+    console.log("Total Pending Consultations:", pendingConsultations.length);
+  }, [consultations, referrals]);
+  
+
 
   if (isLoading) {
     return <SkeletonCard />;
@@ -18,31 +157,40 @@ const Dashboard = () => {
     );
   }
 
+
+ 
+
+
   const metrics = data?.data?.data;
 
   const cardData = [
     {
       title: "Total Consultations",
-      value: metrics?.totalConsultations || 0,
+      value: totalFilteredConsultations || 0,
       /*   description: "+20.1% from last month", */
       icon: <Stethoscope className="size-4 text-muted-foreground" />,
       bgColor: "bg-[#75C05B]/10",
     },
     {
       title: "Pending Consultations",
-      value: metrics?.pendingConsultations || 0,
+      value: totalPendingConsultations || 0,
       /*   description: "+15% from yesterday", */
       icon: <Activity className="size-4 text-muted-foreground" />,
       bgColor: "bg-[#B24531]/10",
     },
     {
-      title: "Pending Referrals",
-      value: metrics?.pendingReferrals || 0,
+      title: "Pending Patient",
+      value: pendingReferalCount || 0,
       /*       description: "3 new since last week", */
       icon: <UserPlus className="size-4 text-muted-foreground" />,
       bgColor: "bg-[#007664]/10",
     },
   ];
+
+  
+  console.log('referrals')
+  console.log(referrals)
+  console.log(consultations)
 
   return (
     <div className="space-y-6">

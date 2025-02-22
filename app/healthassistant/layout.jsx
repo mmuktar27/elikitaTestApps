@@ -205,7 +205,7 @@ function DashboardPage({ children }) {
   <NavItem 
               icon={CalendarCheck} 
               label="Bookings" 
-              active={routes === bookingUrl} 
+              active={routes === `${bookingUrl}`} 
               url={bookingUrl} 
             />
           <NavItem

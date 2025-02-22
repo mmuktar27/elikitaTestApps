@@ -17,7 +17,7 @@ import {
 import { Bar, ResponsiveContainer } from "recharts";
 import { useHealthcareAdminDashboard } from "@/hooks/dashboard.hook";
 
-const HealthcareAdminDashboard = () => {
+const HealthcareAdminDashboard = ({currentDashboard}) => {
   const { data, isLoading, isError, isSuccess } = useHealthcareAdminDashboard();
 
   if (isLoading) {

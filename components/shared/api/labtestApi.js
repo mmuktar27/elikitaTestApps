@@ -2,18 +2,20 @@
 import axios from "axios";
 import {handleAddVisitHistory} from '../'
 
-//const API_URL = 'http://localhost:4000/api/v2/lab';
+const API_URL = 'http://localhost:4000/api/v2/lab';
 
-const API_URL = 'https://elikitawebservices-crdpgafxekayhkbe.southafricanorth-01.azurewebsites.net/api/v2/lab';
+//const API_URL = 'https://elikitawebservices-crdpgafxekayhkbe.southafricanorth-01.azurewebsites.net/api/v2/lab';
 
 
 
-export const createLabtest = async (mergedData, resetForm, onSubmit, onTabChange,requestedBy) => {
+export const createLabtest = async (mergedData, resetForm, onSubmit, onTabChange,requestedBy,  currentDashboard) => {
 
   
   const updatedLabData = {
     ...mergedData,
-    requestedBy: requestedBy, // Default to "Dr. John Doe" if not provided
+    requestedBy: requestedBy,
+    requestedByAccType: currentDashboard,
+    // Default to "Dr. John Doe" if not provided
   };
 
   try {

@@ -199,20 +199,34 @@ export default function ProfilePage({ currentUser }) {
 
   const handleSave = async () => {
     setIsSaving(true);
+    console.log("Saving profile..."); // Log when save starts
+    console.log("User data being sent:", user); // Log user data before sending
+
     try {
-      const response = await updateStaff(user.microsoftID, user);
-      if (response.success) {
-        setIsEditing(false);
-        callStatusDialog("success", "Profile updated successfully");
-        console.log("Profile updated successfully:", response.data);
-      }
+        const response = await updateStaff(user.microsoftID, user);
+        console.log("Raw API Response:", response); // Log full response
+
+        // Check if response is success
+        if (response?.success) {
+            setIsEditing(false);
+            callStatusDialog("success", "Profile updated successfully");
+            console.log("Profile updated successfully:", response.data);
+        } else {
+            console.warn("Update was successful but API returned false success:", response);
+            callStatusDialog("warning", "Profile update might not have worked fully");
+        }
     } catch (error) {
-      console.error("Failed to update profile:", error);
-      callStatusDialog("error", "Failed to update profile");
+        console.error("Failed to update profile:", error);
+        console.error("Error Response Data:", error.response?.data || "No response data");
+        console.error("Error Status:", error.response?.status || "Unknown status");
+        callStatusDialog("error", "Failed to update profile");
     } finally {
-      setIsSaving(false);
+        setIsSaving(false);
+        console.log("Save operation finished."); // Log when save ends
     }
-  };
+};
+
+
 
 
   return (
@@ -229,12 +243,11 @@ export default function ProfilePage({ currentUser }) {
   alt={user?.firstName}
   className="size-full object-cover"
 />
-                <AvatarFallback>
-                  {user?.firstName
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
-                </AvatarFallback>
+<AvatarFallback>
+  {user?.firstName?.split(" ").map((n) => n[0]).join("")}
+  {user?.lastName?.[0] || ""}
+</AvatarFallback>
+
               </Avatar>
             </div>
 

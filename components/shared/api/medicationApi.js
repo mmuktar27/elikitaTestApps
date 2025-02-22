@@ -1,9 +1,8 @@
 import axios from "axios";
-import {handleAddVisitHistory} from '../'
-//const API_URL = 'http://localhost:4000/api/v2/medication';
+import { handleAddVisitHistory } from "../";
+const API_URL = "http://localhost:4000/api/v2/medication";
 
-const API_URL = 'https://elikitawebservices-crdpgafxekayhkbe.southafricanorth-01.azurewebsites.net/api/v2/medication';
-
+//const API_URL = 'https://elikitawebservices-crdpgafxekayhkbe.southafricanorth-01.azurewebsites.net/api/v2/medication';
 
 export const submitMedication = async ({
   medformData,
@@ -14,11 +13,13 @@ export const submitMedication = async ({
   setmedFormData,
   generateMedicationId,
   requestedBy,
+  currentDashboard,
 }) => {
   const updatedMedFormData = {
     ...medformData,
     medicationId: medformData?.medicationId ?? generateMedicationId(),
     requestedBy: requestedBy,
+    requestedByAccType: currentDashboard,
     patient: patient,
   };
 
@@ -36,8 +37,10 @@ export const submitMedication = async ({
       if (objectId) {
         await handleAddVisitHistory(patient, objectId, "Medication");
       } else {
-        console.warn("No ObjectId found in response. Using medicationId instead.");
-       // await handleAddVisitHistory(patient, updatedMedFormData.medicationId, "Medication");
+        console.warn(
+          "No ObjectId found in response. Using medicationId instead.",
+        );
+        // await handleAddVisitHistory(patient, updatedMedFormData.medicationId, "Medication");
       }
       onClose();
       onSubmit("success", "Medication successfully added!");
@@ -61,9 +64,13 @@ export const submitMedication = async ({
 
 export const editMedication = async (medformData, onClose, onSubmit) => {
   try {
-    const response = await axios.put(`${API_URL}/${medformData._id}`, medformData, {
-      headers: { "Content-Type": "application/json" },
-    });
+    const response = await axios.put(
+      `${API_URL}/${medformData._id}`,
+      medformData,
+      {
+        headers: { "Content-Type": "application/json" },
+      },
+    );
 
     console.log("Medication updated successfully:", response.data);
 
@@ -75,19 +82,16 @@ export const editMedication = async (medformData, onClose, onSubmit) => {
   }
 };
 
-
-
-
 export const deleteMedication = async (medicationId) => {
   if (!medicationId) {
-      return { error: "Medication ID is required." };
+    return { error: "Medication ID is required." };
   }
 
   try {
-      const response = await axios.delete(`${API_URL}/${medicationId}`);
-      return response.data; // Return success response
+    const response = await axios.delete(`${API_URL}/${medicationId}`);
+    return response.data; // Return success response
   } catch (error) {
-      console.error("API error:", error);
-      return { error: error.response?.data?.message || error.message }; // Return error object
+    console.error("API error:", error);
+    return { error: error.response?.data?.message || error.message }; // Return error object
   }
 };

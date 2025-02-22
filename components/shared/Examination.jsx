@@ -463,6 +463,7 @@ export function NewExamination({
   initialExamination = null,
   examinations,
   buttonText,
+  currentDashboard,
 }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [touchedFields, setTouchedFields] = useState({});
@@ -3649,6 +3650,7 @@ export function NewExamination({
         ...prevData,
         patient: patient,
         examinedBy: session?.data?.user?.id,
+        examinedByAccType:currentDashboard,
         examinationID: examinationID,
         examinedAt: "Gembu Center",
       }));

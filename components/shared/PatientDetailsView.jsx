@@ -251,7 +251,7 @@ const StatusDialog = ({ isOpen, onClose, status, message }) => {
   );
 };
 
-const PatientDetailsView = ({ patient, onClose, SelectedPatient,currentUser }) => {
+const PatientDetailsView = ({ patient, onClose, SelectedPatient,currentUser, currentDashboard}) => {
   const [activeTab, setActiveTab] = useState("summary");
   const [manualRefresh, setManualRefresh] = useState(false);
   const [showexaminationForm, setShowexaminationForm] = useState(false);
@@ -3154,6 +3154,8 @@ const BookingButton = ({ externalUrl }) => {
                             }
                             examinations={examinations}
                              buttonText="Submit"
+                             currentDashboard={currentDashboard}
+
                           />
                         </DialogContent>
                       </Dialog>
@@ -3206,11 +3208,11 @@ const BookingButton = ({ externalUrl }) => {
         <td className="px-4 py-2">{examination.examinationID}</td>
         <td className="px-4 py-2">{formatted.date}</td>
         <td className="px-4 py-2">{formatted.time}</td>
+      
         <td className="px-4 py-2">
-          {examination.examinedBy && examination.examinedBy.firstName && examination.examinedBy.lastName
-            ? `${examination.examinedBy.firstName} ${examination.examinedBy.lastName}`
-            : "Not Available"}
-        </td>
+  {["doctor", "remote doctor"].includes(examination.examinedByAccType) ? "Dr. " : ""}
+  {examination.examinedBy.firstName} {examination.examinedBy.lastName}
+</td>
         <td className="px-4 py-2">{examination.examinedAt}</td>
         <td className="px-4 py-2">
           <div className="flex space-x-2">
@@ -3290,6 +3292,8 @@ const BookingButton = ({ externalUrl }) => {
                                           handleExamSubmit(status, message)
                                         }
                                          buttonText="Update"
+                                         currentDashboard={currentDashboard}
+
                                       />
                                     </DialogContent>
                                   </Dialog>
@@ -3373,6 +3377,7 @@ const BookingButton = ({ externalUrl }) => {
                             handleDiagnosisSubmit(status, message)
                           }
                           buttonText="Submit"
+                          currentDashboard={currentDashboard}
                         />
                       </DialogContent>
                     </Dialog>
@@ -3429,11 +3434,9 @@ const BookingButton = ({ externalUrl }) => {
         <td className="px-4 py-2">{diagnosis.status}</td>
         <td className="px-4 py-2">{diagnosis.severity}</td>
         <td className="px-4 py-2">
-        {diagnosis.diagnosedBy && diagnosis.diagnosedBy.firstName && diagnosis.diagnosedBy.lastName
-  ? `${diagnosis.diagnosedBy.firstName} ${diagnosis.diagnosedBy.lastName}`
-  : "Not Available"}
-
-        </td>
+  {["doctor", "remote doctor"].includes(diagnosis.diagnosedByAccType) ? "Dr. " : ""}
+  {diagnosis.diagnosedBy.firstName} {diagnosis.diagnosedBy.lastName}
+</td>
         <td className="px-4 py-2">
           <div className="flex space-x-2">
             <Button
@@ -3510,6 +3513,8 @@ const BookingButton = ({ externalUrl }) => {
                                           editDiagState.selectedDiagnoses
                                         }
                                         buttonText="Update"
+                                        currentDashboard={currentDashboard}
+
                                       />
                                     </DialogContent>
                                   </Dialog>
@@ -3592,6 +3597,8 @@ const BookingButton = ({ externalUrl }) => {
                           }
                           buttonText="Submit"
                           labTests={labTests}
+                          currentDashboard={currentDashboard}
+
                         />
                       </DialogContent>
                     </Dialog>
@@ -3649,10 +3656,9 @@ const BookingButton = ({ externalUrl }) => {
           <td className="px-4 py-2">{formatted.time}</td>
           <td className="px-4 py-2">{test.priority}</td>
           <td className="px-4 py-2">
-            {test.requestedBy
-              ? `${test.requestedBy.firstName || ""} ${test.requestedBy.lastName || ""}`.trim() || "N/A"
-              : "N/A"}
-          </td>
+  {["doctor", "remote doctor"].includes(test.requestedByAccType) ? "Dr. " : ""}
+  {test.requestedBy.firstName} {test.requestedBy.lastName}
+</td>
           <td>
             <div className="flex space-x-2">
               <Button
@@ -3722,6 +3728,8 @@ const BookingButton = ({ externalUrl }) => {
                                         }
                                         buttonText="Update"
                                         labTests={labTests}
+                                        currentDashboard={currentDashboard}
+
                                       />
                                     </DialogContent>
                                   </Dialog>
@@ -3791,7 +3799,10 @@ const BookingButton = ({ externalUrl }) => {
                           onClose={handleDialogClose}
                           onSubmit={(status, message) =>
                             handleMedSubmit(status, message)
+                            
                           }
+                          currentDashboard={currentDashboard}
+
                         />
                       </DialogContent>
                     </Dialog>
@@ -3843,14 +3854,17 @@ const BookingButton = ({ externalUrl }) => {
     };
 
     const formatted = formatDateTime(medication?.createdAt || "");
-
+ //console.log(medication?.createdAt )
     return (
       <tr key={medication.id}>
         <td className="px-4 py-2">{medication.medicationId}</td>
         <td className="px-4 py-2">{formatted.date}</td>
         <td className="px-4 py-2">{medication.medicationName}</td>
         <td className="px-4 py-2">{medication.treatmentDuration}</td>
-        <td className="px-4 py-2">{medication.requestedBy}</td>
+        <td className="px-4 py-2">
+  {["doctor", "remote doctor"].includes(medication.requestedByAccType) ? "Dr. " : ""}
+  {medication.requestedBy.firstName} {medication.requestedBy.lastName}
+</td>
         <td>
           <div className="flex space-x-2">
             <Button
@@ -3923,6 +3937,8 @@ const BookingButton = ({ externalUrl }) => {
                                         initialMedication={
                                           editMedState.selectedMedication
                                         }
+                                        currentDashboard={currentDashboard}
+
                                       />
                                     </DialogContent>
                                   </Dialog>

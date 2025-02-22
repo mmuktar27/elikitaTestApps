@@ -3,7 +3,9 @@
 import { DashboardComponent } from "@/components/doctor";
 
 function Dashboard() {
-  return <DashboardComponent />;
+  const currentDashboard="doctor"
+
+  return <DashboardComponent currentDashboard={currentDashboard}/>;
 }
 
 export default Dashboard;

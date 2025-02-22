@@ -518,6 +518,7 @@ const ReferralsPage = ({ currentUser, currentDashboard }) => {
           SelectedPatient={selectedPatient}
           patient={selectedPatient}
           currentUser={currentUser}
+          currentDashboard={currentDashboard}
         />
       )}
     </div>
