@@ -2,7 +2,7 @@ import axios from "axios";
 import { getSession } from "next-auth/react";
 
 const API = axios.create({
-  baseURL: "http://localhost:4000/api/v2/",
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
   timeout: 30000,
 });
 //baseURL: process.env.NEXT_PUBLIC_API_URL,

@@ -2,9 +2,9 @@
 import axios from "axios";
 import {handleAddVisitHistory} from '../'
 
-const API_URL = 'http://localhost:4000/api/v2/lab';
+//const API_URL = 'http://localhost:4000/api/v2/lab';
 
-//const API_URL = 'https://elikitawebservices-crdpgafxekayhkbe.southafricanorth-01.azurewebsites.net/api/v2/lab';
+const API_URL = 'https://elikitawebservices-crdpgafxekayhkbe.southafricanorth-01.azurewebsites.net/api/v2/lab';
 
 
 

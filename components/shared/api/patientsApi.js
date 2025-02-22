@@ -1,9 +1,9 @@
 import axios from "axios";
 // This file contains the functions for making API calls related to patients
-const API_URL = 'http://localhost:4000/api/v2/patients';
+//const API_URL = 'http://localhost:4000/api/v2/patients';
 
 
-//const API_URL = 'https://elikitawebservices-crdpgafxekayhkbe.southafricanorth-01.azurewebsites.net/api/v2/patients';
+const API_URL = 'https://elikitawebservices-crdpgafxekayhkbe.southafricanorth-01.azurewebsites.net/api/v2/patients';
 
 
 
