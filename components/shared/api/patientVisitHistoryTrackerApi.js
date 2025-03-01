@@ -3,9 +3,9 @@ import axios from "axios";
 
 
 
-//const API_URL = "http://localhost:4000/api/v2/visithistory";
+const API_URL = "http://localhost:4000/api/v2/visithistory";
 
-const API_URL = "https://elikitawebservices-crdpgafxekayhkbe.southafricanorth-01.azurewebsites.net/api/v2/visithistory";
+//const API_URL = "https://elikitawebservices-crdpgafxekayhkbe.southafricanorth-01.azurewebsites.net/api/v2/visithistory";
 
 
 // Fetch visits by patient ID

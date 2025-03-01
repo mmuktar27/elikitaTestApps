@@ -12,9 +12,22 @@ import {
   fetchPendingConsultations,
 } from "../shared/api"; // Adjust the import path as needed
 import { fetchReferralsByConsultant } from "../shared/api";
-
+import { formatDistanceToNow } from 'date-fns';
+import {fetchDoctorRecenAlerts} from "../shared/api"
 import { useSession } from "next-auth/react";
+import {fetchPatients} from "../shared/api"
 
+const activityTypeColors = { 
+  'Patient Creation': 'bg-green-500',
+  'Referral Creation': 'bg-teal-500',
+  'Medication Creation': 'bg-indigo-500',
+  'Appointment Creation': 'bg-blue-500',
+  'Appointment Update': 'bg-purple-500',
+  'Labtest Creation': 'bg-orange-500',
+  'Examination Creation': 'bg-pink-500',
+  'Diagnosis Creation': 'bg-cyan-500',
+  'Patient Update': 'bg-yellow-500',
+};
 const Dashboard = ({currentDashboard}) => {
   const { data, isLoading, isError, isSuccess } = useDoctorDashboard();
   const session = useSession();
@@ -24,6 +37,37 @@ const Dashboard = ({currentDashboard}) => {
   const [pendindConsultations, setPendingConsultations] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [patients, setPatients] = useState(null);
+
+
+  const [alerts, setAlerts] = useState([]);
+
+  useEffect(() => {
+    const getAlerts = async () => {
+      try {
+        const data = await fetchDoctorRecenAlerts(5);
+        setAlerts(data);
+      } catch (err) {
+        setError(err.message);
+      }
+    };
+
+    getAlerts();
+  }, []);
+
+  useEffect(() => {
+    const getPatients = async () => {
+      try {
+        const data = await fetchPatients();
+        setPatients(data);
+      } catch (err) {
+        setError(err.message);
+      }
+    };
+
+    getPatients();
+  }, []);
+  
 
   useEffect(() => {
     let isMounted = true;
@@ -92,6 +136,9 @@ const Dashboard = ({currentDashboard}) => {
   
   }, [referrals, currentDashboard]); // Re-run when referrals or currentDashboard changes
   
+
+  console.log('referrals')
+  console.log(referrals)
 
   const metrics = data?.data?.data;
 
@@ -189,6 +236,10 @@ const Dashboard = ({currentDashboard}) => {
       </div>
     );
   }
+
+  console.log('alerts')
+  console.log(alerts)
+
   return (
     <div className="space-y-6">
       {/* Cards Section */}
@@ -212,48 +263,124 @@ const Dashboard = ({currentDashboard}) => {
       </div>
 
       {/* Recent Alerts Section */}
-      <Card className="bg-[#A0FEFE]/10">
-        <CardHeader>
-          <CardTitle>Recent Alerts</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-8">
-            {metrics?.recentAlerts.map((alert, index) => (
-              <div className="flex items-center" key={index}>
-                <span className={`relative mr-2 flex size-3`}>
-                  <span
-                    className={`absolute inline-flex size-full animate-ping rounded-full ${
-                      alert.type === "error"
-                        ? "bg-red-400"
-                        : alert.type === "warning"
-                          ? "bg-yellow-400"
-                          : "bg-green-400"
-                    } opacity-75`}
-                  ></span>
-                  <span
-                    className={`relative inline-flex size-3 rounded-full ${
-                      alert.type === "error"
-                        ? "bg-red-500"
-                        : alert.type === "warning"
-                          ? "bg-yellow-500"
-                          : "bg-green-500"
-                    }`}
-                  ></span>
-                </span>
-                <div className="ml-4 space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    {alert.title}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {alert.description}
-                  </p>
-                </div>
-                <div className="ml-auto font-medium">{alert.timeAgo}</div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+   <Card className="bg-[#A0FEFE]/10">
+     <CardHeader>
+       <CardTitle>Recent Alerts</CardTitle>
+     </CardHeader>
+     <CardContent>
+       <div className="space-y-8">
+         {error && <p>Error: {error}</p>}
+         {alerts
+           .filter((alert) => {
+             // Check for Referral Creation first
+             if (
+               alert.activityType === "Referral Creation" &&
+               alert.entityId?.referredTo === session.data.user.id &&
+               alert.entityId?.referralType.toLowerCase().replace(/\s+/g, '') === currentDashboard.toLowerCase().replace(/\s+/g, '')
+             ) {
+               return true;
+             }
+   
+             // For Labtest Creation
+             if (
+               alert.activityType === "Labtest Creation" &&
+               alert.entityId?.requestedByAccType.toLowerCase().replace(/\s+/g, '') === currentDashboard.toLowerCase().replace(/\s+/g, '') &&
+               alert.entityId?.requestedBy === session.data.user.id
+             ) {
+               return true;
+             }
+   
+             // For Medication Creation
+             if (
+               alert.activityType === "Medication Creation" &&
+               alert.entityId?.requestedByAccType.toLowerCase().replace(/\s+/g, '') === currentDashboard.toLowerCase().replace(/\s+/g, '') &&
+               alert.entityId?.requestedBy === session.data.user.id
+             ) {
+               return true;
+             }
+             if (
+               alert.activityType === "Referral Creation" &&
+               alert.entityId?.referredTo === session.data.user.id &&
+               alert.entityId?.referralType.toLowerCase().replace(/\s+/g, '') === currentDashboard.toLowerCase().replace(/\s+/g, '')
+             ) {
+               return true;
+             }
+             // For Diagnosis Creation
+             if (
+               alert.activityType === "Diagnosis Creation" &&
+               alert.entityId?.diagnosedByAccType.toLowerCase().replace(/\s+/g, '') === currentDashboard.toLowerCase().replace(/\s+/g, '') &&
+               alert.entityId?.diagnosedBy === session.data.user.id
+             ) {
+               return true;
+             }
+   
+             // For Examination Creation
+             if (
+               alert.activityType === "Examination Creation" &&
+               alert.entityId?.examinedByAccType.toLowerCase().replace(/\s+/g, '') === currentDashboard.toLowerCase().replace(/\s+/g, '') &&
+               alert.entityId?.examinedBy === session.data.user.id
+             ) {
+               return true;
+             }
+   
+             // If none of the conditions match, filter out this alert
+             return false;
+           })
+           .map((alert, index) => {
+             const patient = patients.find(p => p._id === alert.entityId?.patient);
+             const patientName = patient ? `${patient.firstName} ${patient.lastName}` : "Unknown Patient";
+             let alertTitle = alert.activityType;
+   
+             // Generate dynamic alert message based on activity type
+             let alertMessage = alert.details;
+             if (alert.activityType === "Referral Creation") {
+           
+               alertTitle = "New Patient Referral";
+               alertMessage = `${patientName} has been  Referred`;
+             } 
+             else if (alert.activityType.toLowerCase().includes("medication")) {
+               alertMessage = `Medication dispensed for ${patientName} is Requested`;
+             } else if (alert.activityType.toLowerCase().includes("diagnosis")) {
+               alertMessage = `Diagnosis recorded for ${patientName} is Diagnosed`;
+             } else if (alert.activityType.toLowerCase().includes("examination")) {
+               alertMessage = `Examination conducted for ${patientName} is Examined`;
+             } else if (alert.activityType.toLowerCase().includes("labtest")) {
+               alertMessage = `Lab test requested for ${patientName} is Requested`;
+             }
+   
+             return (
+               <div className="flex items-center" key={index}>
+                 <span className="relative mr-2 flex size-3">
+                   <span
+                     className={`absolute inline-flex size-full animate-ping rounded-full ${
+                       activityTypeColors[alert.activityType] || "bg-gray-400"
+                     } opacity-75`}
+                   ></span>
+                   <span
+                     className={`relative inline-flex size-3 rounded-full ${
+                       activityTypeColors[alert.activityType] || "bg-gray-400"
+                     }`}
+                   ></span>
+                 </span>
+                 <div className="ml-4 space-y-1">
+                   <p className="text-sm font-medium leading-none">
+                     {alertTitle}
+                   </p>
+                   <p className="text-sm text-muted-foreground">
+                     {alertMessage}
+                   </p>
+                 </div>
+                 <div className="ml-auto font-medium">
+                   {formatDistanceToNow(new Date(alert.createdAt), {
+                     addSuffix: true,
+                   })}
+                 </div>
+               </div>
+             );
+           })}
+       </div>
+     </CardContent>
+   </Card>
 
       {/* Health Tips Section */}
       <div className="fixed bottom-6 right-6 z-50">

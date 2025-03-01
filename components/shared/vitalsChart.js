@@ -1,52 +1,13 @@
 "use client";
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { BarChart, Bar,LineChart, XAxis, Line,YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer, Cell  } from 'recharts';
+import { LineChart, XAxis, Line,YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer, Cell  } from 'recharts';
 ;
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const VitalsChart = ({vitals}) => {
-  // Sample data with multiple dates
-  /*
-  const sampleVitals = [
-    {
-      date: '2024-02-01',
-      bloodPressure: 120,
-      pulse: 75,
-      respiratoryRate: 16,
-      spo2: 98,
-      temperature: 98.2,
-      weight: 68.5
-    },
-    {
-      date: '2024-02-05',
-      bloodPressure: 135,
-      pulse: 82,
-      respiratoryRate: 18,
-      spo2: 97,
-      temperature: 98.6,
-      weight: 68.7
-    },
-    {
-      date: '2024-02-10',
-      bloodPressure: 128,
-      pulse: 78,
-      respiratoryRate: 15,
-      spo2: 99,
-      temperature: 98.4,
-      weight: 68.4
-    },
-    {
-      date: '2024-02-15',
-      bloodPressure: 142,
-      pulse: 88,
-      respiratoryRate: 19,
-      spo2: 96,
-      temperature: 99.1,
-      weight: 68.9
-    }
-  ];
-*/
+
+
   const [selectedVital, setSelectedVital] = React.useState('bloodPressure');
 
   const theme = {

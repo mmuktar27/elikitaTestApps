@@ -104,22 +104,22 @@ const ReferralTableSkeleton = () => {
               className="transition-colors duration-200 hover:bg-green-50"
             >
               <td className="p-2">
-                <div className="h-4 bg-gray-300 rounded w-20 animate-pulse"></div>
+                <div className="h-4 w-20 animate-pulse rounded bg-gray-300"></div>
               </td>
               <td className="p-2">
-                <div className="h-4 bg-gray-300 rounded w-28 animate-pulse"></div>
+                <div className="h-4 w-28 animate-pulse rounded bg-gray-300"></div>
               </td>
               <td className="p-2">
-                <div className="h-4 bg-gray-300 rounded w-32 animate-pulse"></div>
+                <div className="h-4 w-32 animate-pulse rounded bg-gray-300"></div>
               </td>
               <td className="p-2">
-                <div className="h-4 bg-gray-300 rounded w-16 animate-pulse"></div>
+                <div className="h-4 w-16 animate-pulse rounded bg-gray-300"></div>
               </td>
               <td className="p-2">
-                <div className="h-4 bg-gray-300 rounded w-24 animate-pulse"></div>
+                <div className="h-4 w-24 animate-pulse rounded bg-gray-300"></div>
               </td>
               <td className="p-2">
-                <div className="h-4 bg-gray-300 rounded w-20 animate-pulse"></div>
+                <div className="h-4 w-20 animate-pulse rounded bg-gray-300"></div>
               </td>
             </tr>
           ))}

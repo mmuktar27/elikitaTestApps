@@ -86,16 +86,7 @@ import {
   X,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
-// UI Components
+
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -3317,7 +3308,7 @@ export function NewExamination({
                 {
                   name: "Clubbing",
                   image: curbing,
-                  options: ["Normal", "Clubbing", "None"],
+                  options: ["Normal", "Moderate", "None"],
                 },
               ],
             },

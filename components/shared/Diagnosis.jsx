@@ -84,16 +84,7 @@ import {
   X,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
-// UI Components
+
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -260,32 +251,38 @@ export function NewDiagnosisForm({
   }, [formData, manualUpdateTrigger, onSubmit, onTabChange, patient]);
 
   const handlesubmitDiagnosis = () => {
-    if (buttonText === "Update") {
-      setFormData((prevData) => ({
-        ...prevData,
-        patient: patient,
-        _id: initialDiagnosis._id,
-        diagnosisId: initialDiagnosis.diagnosisId,
-        diagnosedBy: session?.data?.user?.id,
-        diagnosedAt: "Gembu Center",
-        additionalDiagnoses: additionalDiagnoses,
-      }));
-    }
+   console.log(formData)
+   console.log(primaryDiagnosis)
 
-    if (buttonText == "Submit") {
-      setFormData((prevData) => ({
-        ...prevData,
-        patient: patient,
-        diagnosisId: generateDiagnosisId(),
-        diagnosedBy: session?.data?.user?.id,
-        requestedByAccType: currentDashboard,
-        diagnosedAt: "Gembu Center",
-        additionalDiagnoses: additionalDiagnoses,
-      }));
-    }
-    setManualUpdateTrigger(true); // Tr
 
-    //
+   if (buttonText === "Update") {
+    setFormData((prevData) => ({
+      ...prevData,
+      patient: patient,
+      _id: initialDiagnosis._id,
+      diagnosisId: initialDiagnosis.diagnosisId,
+      diagnosedBy: session?.data?.user?.id,
+      diagnosedAt: "Gembu Center",
+      primaryDiagnosis: primaryDiagnosis,
+      additionalDiagnoses: additionalDiagnoses,
+    }));
+  }
+
+  if (buttonText == "Submit") {
+    setFormData((prevData) => ({
+      ...prevData,
+      patient: patient,
+      diagnosisId: generateDiagnosisId(),
+      diagnosedBy: session?.data?.user?.id,
+      requestedByAccType: currentDashboard,
+      diagnosedAt: "Gembu Center",
+      primaryDiagnosis: primaryDiagnosis,
+      additionalDiagnoses: additionalDiagnoses,
+    }));
+  }
+  setManualUpdateTrigger(true); // Tr
+
+  //
   };
 
 
@@ -2211,7 +2208,13 @@ export function NewDiagnosisForm({
     setIsClient(true);
   }, []);
   const [primaryCategory, setPrimaryCategory] = useState("");
-  const [primaryDiagnosis, setPrimaryDiagnosis] = useState("");
+  const [primaryDiagnosis, setPrimaryDiagnosis] = useState({
+    category: "",
+    categoryDescription: "",
+    code: "",
+    codeDescription: "",
+  });
+  
   const [additionalDiagnoses, setAdditionalDiagnoses] = useState([]);
   const renderDiagnosisForm = () => {
     const handleAIComplete = () => {
@@ -2389,8 +2392,14 @@ export function NewDiagnosisForm({
     };
 
     const handlePrimaryCategoryChange = (category) => {
-      setPrimaryCategory(category);
-      setPrimaryDiagnosis("");
+        setPrimaryDiagnosis({
+          category: category,
+          categoryDescription: icdCategories[category] || "Unknown Category", // Fetch category description
+          code: "",
+          codeDescription: "", // Reset code and description when category changes
+        });
+
+      
     };
 
     const removeDiagnosis = (index, e) => {
@@ -2460,33 +2469,45 @@ export function NewDiagnosisForm({
                 </label>
                 <div className="space-y-2">
                 <select
-  value={primaryCategory}
+  value={primaryDiagnosis.category}
   onChange={(e) => handlePrimaryCategoryChange(e.target.value)}
   className="peer w-full rounded-md border border-gray-300 bg-white p-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-600"
 >
   <option value="">Select Category</option>
   {Object.entries(icdCategories).map(([key, value]) => (
-    <option key={key} value={key} className="peer-hover:bg-teal-700">
+    <option key={key} value={key}>
       {value}
     </option>
   ))}
 </select>
 
 
-                  {primaryCategory && (
-                    <select
-                      value={primaryDiagnosis}
-                      onChange={(e) => setPrimaryDiagnosis(e.target.value)}
-                      className="w-full rounded-md border border-gray-300 p-2"
-                    >
-                      <option value="">Select Specific Diagnosis</option>
-                      {icdSubcategories[primaryCategory]?.map((subcategory) => (
-                        <option key={subcategory.code} value={subcategory.code}>
-                          {subcategory.code} - {subcategory.description}
-                        </option>
-                      ))}
-                    </select>
-                  )}
+{primaryDiagnosis.category && (
+  <select
+    value={primaryDiagnosis.code}
+    onChange={(e) => {
+      const selectedCode = e.target.value;
+      const selectedSubcategory = icdSubcategories[primaryDiagnosis.category]?.find(
+        (sub) => sub.code === selectedCode
+      );
+
+      setPrimaryDiagnosis((prev) => ({
+        ...prev,
+        code: selectedCode,
+        codeDescription: selectedSubcategory ? selectedSubcategory.description : "Unknown Code",
+      }));
+    }}
+    className="w-full rounded-md border border-gray-300 p-2"
+  >
+    <option value="">Select Specific Diagnosis</option>
+    {icdSubcategories[primaryDiagnosis.category]?.map((subcategory) => (
+      <option key={subcategory.code} value={subcategory.code}>
+        {subcategory.code} - {subcategory.description}
+      </option>
+    ))}
+  </select>
+)}
+
                 </div>
 
                 {errors.category && (
@@ -3314,7 +3335,7 @@ export function ViewDiagnosis({ diagnosis, isOpen, onClose }) {
             <Card className="border-none bg-white shadow-lg">
               <CardContent className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
                 <InfoItem label="Diagnosis ID" value={diagnosis.diagnosisId} />
-                <InfoItem label="Category" value={diagnosis.category} />
+                <InfoItem label="Category" value={diagnosis.primaryDiagnosis.categoryDescription} />
                 <InfoItem
                   label="Diagnosed By"
                   value={

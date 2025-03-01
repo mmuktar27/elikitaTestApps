@@ -13,6 +13,14 @@ export {createReferral , fetchReferralsByConsultant,updateReferral,deleteReferra
 
 export { getCurrentUser,getAllStaff ,getTotalUserConsultations , updateStaff, fetchPendingConsultations} from "./StaffAPI"
 
-
-
 export  { createBookingUrlConfig, updateBookingUrlConfig, getCurrentBookingUrlConfig } from "./bookingurlApi";
+
+export {getSystemSettings, updatetSystemSettings } from "./systemSettingsApi";
+
+export {createAuditLogEntry,getAllAuditLogs,getAuditLogById} from "./auditLogActivityApi";
+
+export {fetchHealthAdminRecenAlerts,fetchHealthAssistantRecenAlerts,fetchAdminRecenAlerts,fetchRemoteDoctorRecenAlerts,fetchDoctorRecenAlerts
+} from "./recentAlertsApi";
+
+
+

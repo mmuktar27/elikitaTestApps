@@ -13,6 +13,9 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+
+import {createAuditLogEntry} from "@/components/shared/api";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useCreateUser, useDeleteStaff, useGetStaff } from "@/hooks/admin";
 import SkeletonCard from "../ui/skeletoncard";
@@ -41,7 +44,7 @@ export default function UserComponent() {
   const [showPassword, setShowPassword] = useState(false);
   const [organization, setOrganization] = useState("e-likita");
   const [showAddUserModal, setShowAddUserModal] = useState(false);
-
+const session = useSession();
   const [editingUser, setEditingUser] = useState(null);
   const [showViewUserModal, setShowViewUserModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -55,6 +58,7 @@ export default function UserComponent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [displayName, setDisplayName] = useState("");
   //const [organization, setOrga] = useState("");
+  const [currentUser, setcurrentUser] = useState("");
 
   const {
     mutate: createUser,
@@ -69,6 +73,9 @@ export default function UserComponent() {
       setUsers(allStaff?.data?.data);
     }
   }, [isLoading, allStaff]);
+  useEffect(() => {
+    setcurrentUser(session?.data?.user?.id)
+  }, [session?.data?.user?.id]);
 
   const usersPerPage = 10;
 
@@ -123,15 +130,37 @@ export default function UserComponent() {
 
   const addUser = async (user) => {
     try {
-      await createUser(user, {
-        onSuccess: () => {
+      const createdUser = await createUser(user, {
+        onSuccess: async (newUser) => {
           setIsAddUserOpen(false);
           setShowAddUserModal(false);
-
+  
           toast({
             title: "New User",
             description: "User successfully created.",
           });
+  
+          // Ensure newUser contains the generated ID
+          if (!newUser?.id) {
+            console.error("Failed to retrieve created user ID.");
+            return;
+          }
+  
+          // Audit log entry
+          const auditData = {
+            userId: currentUser,
+            activityType: "Create",
+            entityId: newUser.id, // Get the user ID from response
+            entityModel: "Staff",
+            details: `User ${newUser.firstName} ${newUser.lastName} created successfully`,
+          };
+  
+          try {
+            const auditResponse = await createAuditLogEntry(auditData);
+            console.log("Audit log response:", auditResponse);
+          } catch (auditError) {
+            console.error("Audit log failed:", auditError);
+          }
         },
         onError: (error) => {
           toast({
@@ -141,6 +170,8 @@ export default function UserComponent() {
           });
         },
       });
+  
+      return createdUser; // Return the user object if needed elsewhere
     } catch (error) {
       toast({
         title: "Error",
@@ -149,22 +180,39 @@ export default function UserComponent() {
       });
     }
   };
+  
 
   const handleDeleteConfirmation = (user) => {
     setUserToDelete(user);
     setShowDeleteConfirmation(true);
   };
 
-  const handleDelete = async (user) => {
+  const handleDelete = async (user) => {  
+    const auditData = {
+      userId: currentUser,
+      activityType: "Delete",
+      entityId: user.id,
+      entityModel: "Staff",
+      details: `User ${user.firstName} ${user.lastName} deleted successfully`,
+    };
+  
     try {
       await deleteStaff(user.microsoftID, {
-        onSuccess: () => {
+        onSuccess: async () => { 
           setShowDeleteConfirmation(false);
-
+          
           toast({
             title: "Delete User",
             description: "User successfully deleted.",
           });
+  
+          // Log audit after successful deletion
+          try {
+            const auditResponse = await createAuditLogEntry(auditData);
+            console.log("Audit log response:", auditResponse);
+          } catch (auditError) {
+            console.error("Audit log failed:", auditError);
+          }
         },
         onError: (error) => {
           toast({
@@ -180,14 +228,17 @@ export default function UserComponent() {
         description: "An unexpected error occurred.",
         variant: "destructive",
       });
+      console.error("Unexpected error:", error);
     }
   };
+  
 
   const router = useRouter();
 
   if (!isHydrated || isLoading || users.length === 0) {
     return <SkeletonCard className="h-[600px] w-full" />;
   }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -458,12 +509,14 @@ export default function UserComponent() {
       )}
 
       {showDeleteConfirmation && (
+    
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="w-full max-w-md rounded-lg bg-white p-6">
             <h2 className="mb-4 text-xl font-bold">Confirm Deletion</h2>
             <p>
               Are you sure you want to delete the user{" "}
               {userToDelete?.displayName}?
+             
             </p>
             <div className="mt-4 flex justify-end space-x-2">
               <button

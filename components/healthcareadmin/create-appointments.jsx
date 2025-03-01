@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,6 +24,7 @@ import {
   useUpdateAppointment,
 } from "@/hooks/appointment.hook";
 import { useGetPatients } from "@/hooks/patients.hook";
+import {createAuditLogEntry} from "@/components/shared/api"
 
 const CreateNewAppointmentModal = ({
   isNewAppointmentOpen,
@@ -30,6 +32,7 @@ const CreateNewAppointmentModal = ({
   selectedAppointment,
   setSelectedAppointment,
   setShowSuccess,
+  currentUser,
 }) => {
   const { data: patients } = useGetPatients();
   const createAppointment = useCreateAppointment();
@@ -89,32 +92,62 @@ const CreateNewAppointmentModal = ({
     });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const appointmentData = {
       ...formData,
       patientReference: selectedPatient.id,
     };
-
+  
     if (selectedAppointment) {
       updateAppointment.mutate(
         { id: selectedAppointment._id, data: appointmentData },
         {
-          onSuccess: () => {
+          onSuccess: async () => {
             setShowSuccess(true);
             handleClose();
+  
+            const auditData = {
+              userId: currentUser?.id, // Ensure currentUser is available in scope
+              activityType: "Appointment Update",
+              entityId: selectedAppointment._id,
+              entityModel: "Appointment",
+              details: `Appointment updated successfully`,
+            };
+  
+            try {
+              await createAuditLogEntry(auditData);
+              console.log("Audit log created successfully.");
+            } catch (auditError) {
+              console.error("Audit log failed:", auditError);
+            }
           },
-        },
+        }
       );
     } else {
       createAppointment.mutate(appointmentData, {
-        onSuccess: () => {
+        onSuccess: async (newAppointment) => {
           setShowSuccess(true);
           handleClose();
+  
+          const auditData = {
+            userId: currentUser?.id,
+            activityType: "Appointment Creation",
+            entityId: newAppointment?._id,
+            entityModel: "Appointment",
+            details: `New appointment created successfully`,
+          };
+  
+          try {
+            await createAuditLogEntry(auditData);
+            console.log("Audit log created successfully.");
+          } catch (auditError) {
+            console.error("Audit log failed:", auditError);
+          }
         },
       });
     }
   };
-
+  
   const filteredPatients =
     patients?.data?.filter((patient) =>
       `${patient.firstName} ${patient.lastName}`

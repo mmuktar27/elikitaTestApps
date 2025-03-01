@@ -8,6 +8,23 @@ import { PatientIcon, StaffIcon } from "../icons";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import SkeletonCard from "../ui/skeletoncard";
 import { useSystemAdminDashboard } from "../../hooks/dashboard.hook";
+import { formatDistanceToNow } from 'date-fns';
+import {fetchAdminRecenAlerts} from "../shared/api"
+import {fetchPatients} from "../shared/api"
+
+
+const activityTypeColors = {
+  'Patient Creation': 'bg-green-500',
+  'Patient Archive': 'bg-red-500',
+  'Patient Update': 'bg-yellow-500',
+  'Appointment Creation': 'bg-blue-500',
+  'Appointment Update': 'bg-purple-500',
+  'Appointment Deletion': 'bg-gray-500',
+  'Default Creation': 'bg-green-400',
+  'Default Update': 'bg-yellow-400',
+  'Default Deletion': 'bg-red-400',
+};
+
 
 const SystemAdminDashboard = () => {
   const {
@@ -17,6 +34,40 @@ const SystemAdminDashboard = () => {
     isError: systemAdminError,
   } = useSystemAdminDashboard();
 
+    const [alerts, setAlerts] = useState([]);
+    const [error, setError] = useState(null);
+  const [patients, setPatients] = useState(null);
+  
+    useEffect(() => {
+      const getAlerts = async () => {
+        try {
+          const data = await fetchAdminRecenAlerts(5);
+          setAlerts(data);
+        } catch (err) {
+          setError(err.message);
+        }
+      };
+  
+      getAlerts();
+    }, []);
+  
+ useEffect(() => {
+    const getPatients = async () => {
+      try {
+        const data = await fetchPatients();
+        setPatients(data);
+      } catch (err) {
+        setError(err.message);
+      }
+    };
+
+    getPatients();
+  }, []);
+
+  console.log('alerts')
+  console.log(alerts)
+
+  
   if (systemAdminLoading) {
     return <SkeletonCard />;
   }
@@ -102,55 +153,80 @@ const SystemAdminDashboard = () => {
               <PatientIcon className="size-4 text-muted-foreground" />
             </CardHeader>
             <CardContent className="p-4 pt-0">
-              <div className="text-2xl font-bold">{0}</div>
+            <div className="text-2xl font-bold">{patients?.length}</div>
             </CardContent>
           </Card>
         </div>
 
         {/* Recent Alerts Section */}
         <Card className="bg-[#A0FEFE]/10">
-          <CardHeader>
-            <CardTitle>Recent Alerts</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-8">
-              {recentAlerts ||
-                [].map((alert, index) => (
-                  <div className="flex items-center" key={index}>
-                    <span className={`relative mr-2 flex size-3`}>
-                      <span
-                        className={`absolute inline-flex size-full animate-ping rounded-full ${
-                          alert.type === "error"
-                            ? "bg-red-400"
-                            : alert.type === "warning"
-                              ? "bg-yellow-400"
-                              : "bg-green-400"
-                        } opacity-75`}
-                      ></span>
-                      <span
-                        className={`relative inline-flex size-3 rounded-full ${
-                          alert.type === "error"
-                            ? "bg-red-500"
-                            : alert.type === "warning"
-                              ? "bg-yellow-500"
-                              : "bg-green-500"
-                        }`}
-                      ></span>
-                    </span>
-                    <div className="ml-4 space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        {alert.title}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {alert.description}
-                      </p>
-                    </div>
-                    <div className="ml-auto font-medium">{alert.timeAgo}</div>
-                  </div>
-                ))}
+  <CardHeader>
+    <CardTitle>Recent Alerts</CardTitle>
+  </CardHeader>
+  <CardContent>
+    <div className="space-y-8">
+      {error && <p>Error: {error}</p>}
+      {alerts
+        .map((alert, index) => {
+          // Find patient associated with the alert
+          const patient = patients.find(p => p._id === alert.entityId?.patient);
+          const patientName = patient ? `${patient.firstName} ${patient.lastName}` : "Unknown Patient";
+
+          // Define a dynamic alert title and message
+          let alertTitle = alert.activityType;
+          let alertMessage = alert.details;
+
+          if (alert.activityType === "Referral Creation") {
+            alertTitle = "New Patient Referral";
+            alertMessage = `${patientName} has been referred`;
+          } else if (alert.activityType.toLowerCase().includes("medication")) {
+            alertMessage = `Medication dispensed for ${patientName} is requested`;
+          } else if (alert.activityType.toLowerCase().includes("diagnosis")) {
+            alertMessage = `Diagnosis recorded for ${patientName} is diagnosed`;
+          } else if (alert.activityType.toLowerCase().includes("examination")) {
+            alertMessage = `Examination conducted for ${patientName} is examined`;
+          } else if (alert.activityType.toLowerCase().includes("labtest")) {
+            alertMessage = `Lab test requested for ${patientName} is requested`;
+          }
+
+          return (
+            <div className="flex items-center" key={index}>
+              <span className="relative mr-2 flex size-3">
+                <span
+                  className={`absolute inline-flex size-full animate-ping rounded-full ${
+                    activityTypeColors[alert.activityType] || "bg-gray-400"
+                  } opacity-75`}
+                ></span>
+                        <span
+              className={`relative inline-flex size-3 rounded-full ${
+                activityTypeColors[alert.activityType] ||
+                (alert.activityType.includes('Creation') ? 'bg-green-400' :
+                alert.activityType.includes('Update') ? 'bg-yellow-400' :
+                (alert.activityType.includes('Delete') || alert.activityType.includes('Deletion')) ? 'bg-red-400' : 'bg-gray-400')
+              }`}
+            ></span>
+
+              </span>
+              <div className="ml-4 space-y-1">
+                <p className="text-sm font-medium leading-none">
+                  {alertTitle}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {alertMessage}
+                </p>
+              </div>
+              <div className="ml-auto font-medium">
+                {formatDistanceToNow(new Date(alert.createdAt), {
+                  addSuffix: true,
+                })}
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          );
+        })}
+    </div>
+  </CardContent>
+</Card>
+
       </div>
     );
   }

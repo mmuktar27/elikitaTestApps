@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import {useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 
 // Lucide Icons
 import {
@@ -29,7 +29,6 @@ import {
   MinusCircle,
   PlusCircle,
   Plus,
-
   ChevronDown,
   Clipboard,
   ClockIcon,
@@ -68,19 +67,8 @@ import {
   X,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
-// UI Components
 
 import { Button } from "@/components/ui/button";
-
 
 import {
   Dialog,
@@ -107,47 +95,51 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-import { updateLabtestData,createLabtest } from "../shared/api";;
+import { updateLabtestData, createLabtest } from "../shared/api";
 // Charts
 
 // Third-party Modal
 import Modal from "react-modal";
 import { motion } from "framer-motion";
-import axios from 'axios';
+import axios from "axios";
 
-
-
-
-export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest= null ,buttonText,labTests,  currentDashboard}) {
+export function NewLabTestForm({
+  onTabChange,
+  patient,
+  onSubmit,
+  initialLabtest = null,
+  buttonText,
+  labTests,
+  currentDashboard,
+}) {
   const [currentPage, setCurrentPage] = useState(1);
   const [formData, setFormData] = useState(initialLabtest || {});
-  const [errors,setErrors]= useState({});
-      const [isLoading, setIsLoading] = useState(false);
-  
-    const session = useSession();
+  const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
 
+  const session = useSession();
 
   const resetForm = () => {
     // Reset labtestFormData
     setlabtestFormData({
-      priority: 'Routine',
-      additionalNotes: '',
+      priority: "Routine",
+      additionalNotes: "",
       collectionDateTime: new Date().toISOString().slice(0, 16),
-      requestedBy: session?.data?.user?.id
+      requestedBy: session?.data?.user?.id,
     });
-  
+
     // Reset test selections
     setTestSelections([
       {
         id: 1,
         selectedCategory: null,
         selectedTests: [],
-        otherTest: '',
+        otherTest: "",
         isOpen: false,
-        isSubsectionOpen: false
-      }
+        isSubsectionOpen: false,
+      },
     ]);
-  
+
     // Reset AI-related states if applicable
     setIsAIEnabled(false);
     setIsEditing(false);
@@ -264,8 +256,6 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
     setlabtestFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
-
-
   const handleCategorySelect = (id, category) => {
     setTestSelections((prev) =>
       prev.map((selection) =>
@@ -315,8 +305,11 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
   };
 
   const addNewTestSelection = () => {
-    const newId = testSelections.length > 0 ? Math.max(...testSelections.map((s) => s.id)) + 1 : 1;
-  
+    const newId =
+      testSelections.length > 0
+        ? Math.max(...testSelections.map((s) => s.id)) + 1
+        : 1;
+
     setTestSelections((prev) => [
       ...prev.map((item) => ({ ...item })), // Preserve existing `isOpen` state
       {
@@ -324,12 +317,12 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
         selectedCategory: "",
         selectedTests: [],
         otherTest: "",
-        isOpen: true,  // Keep the new selection open
+        isOpen: true, // Keep the new selection open
         isSubsectionOpen: false,
       },
     ]);
   };
-  
+
   const [testSelection, setTestSelection] = useState(testSelections);
   const hasSelectedTests = testSelections.some(
     (selection) =>
@@ -340,8 +333,6 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
     onTabChange("diagnoses"); // Change tab to "consultations"
   };
   const renderLabTestHistory = () => {
-  
-
     const toggleLabTest = (id) => {
       setExpandedLabTest(expandedLabTest === id ? null : id);
     };
@@ -360,10 +351,7 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
     };
 
     return (
-      <div
-        className="mx-auto max-w-4xl  p-6"
-        style={{ width: "65vw" }}
-      >
+      <div className="mx-auto max-w-4xl  p-6" style={{ width: "65vw" }}>
         <Card className="grid grid-cols-1 gap-4 bg-white shadow-lg md:grid-cols-1">
           <CardHeader className="rounded-t-lg bg-teal-700 text-white">
             <CardTitle className="text-2xl">Lab Test History</CardTitle>
@@ -404,45 +392,62 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
                         )}
                       </div>
                     </button>
-    
+
                     {expandedLabTest === test.labtestID && (
                       <div className="border-t bg-gray-50 p-4">
                         <div className="grid gap-4">
                           {/* Test Selections */}
                           <div className="space-y-2">
-                            <h4 className="font-medium text-teal-800">Test Selections</h4>
-                            {test.testSelections && test.testSelections.length > 0 ? (
+                            <h4 className="font-medium text-teal-800">
+                              Test Selections
+                            </h4>
+                            {test.testSelections &&
+                            test.testSelections.length > 0 ? (
                               test.testSelections.map((selection, index) => (
-                                <div key={index} className="rounded bg-white p-2 text-sm text-gray-700">
-                                  <strong>Category:</strong> {selection.category || "N/A"}
+                                <div
+                                  key={index}
+                                  className="rounded bg-white p-2 text-sm text-gray-700"
+                                >
+                                  <strong>Category:</strong>{" "}
+                                  {selection.category || "N/A"}
                                   <br />
-                                  <strong>Tests:</strong> {selection.tests.length > 0 ? selection.tests.join(", ") : "N/A"}
+                                  <strong>Tests:</strong>{" "}
+                                  {selection.tests.length > 0
+                                    ? selection.tests.join(", ")
+                                    : "N/A"}
                                   {selection.otherTest && (
                                     <div>
-                                      <strong>Other Test:</strong> {selection.otherTest}
+                                      <strong>Other Test:</strong>{" "}
+                                      {selection.otherTest}
                                     </div>
                                   )}
                                 </div>
                               ))
                             ) : (
-                              <p className="rounded bg-white p-2 text-sm text-gray-700">No test selections available.</p>
+                              <p className="rounded bg-white p-2 text-sm text-gray-700">
+                                No test selections available.
+                              </p>
                             )}
                           </div>
-    
+
                           {/* Requested By */}
                           <div className="space-y-2">
-                            <h4 className="font-medium text-teal-800">Requested By</h4>
+                            <h4 className="font-medium text-teal-800">
+                              Requested By
+                            </h4>
                             <p className="rounded bg-white p-2 text-sm text-gray-700">
-                            {test.requestedBy
-  ? `${test.requestedBy.firstName || ""} ${test.requestedBy.lastName || ""}`.trim() || "N/A"
-  : "N/A"}
-
+                              {test.requestedBy
+                                ? `${test.requestedBy.firstName || ""} ${test.requestedBy.lastName || ""}`.trim() ||
+                                  "N/A"
+                                : "N/A"}
                             </p>
                           </div>
-    
+
                           {/* Additional Notes */}
                           <div className="space-y-2">
-                            <h4 className="font-medium text-teal-800">Additional Notes</h4>
+                            <h4 className="font-medium text-teal-800">
+                              Additional Notes
+                            </h4>
                             <p className="rounded bg-white p-2 text-sm text-gray-700">
                               {test.additionalNotes || "No additional notes"}
                             </p>
@@ -457,8 +462,6 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
         </Card>
       </div>
     );
-    
-    
   };
   const generatelabtestId = () => {
     const now = new Date();
@@ -476,53 +479,51 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
   };
   const [labtestFormData, setlabtestFormData] = useState(() => {
     if (initialLabtest !== null) {
-      return initialLabtest;  // If initial is not null, use it as the state
+      return initialLabtest; // If initial is not null, use it as the state
     } else {
       return {
         labtestID: generatelabtestId(),
         patient: patient,
         priority: "",
         additionalNotes: "",
-       
-        requestedBy: session?.data?.user?.id
-      };  // Default values if initial is null
+
+        requestedBy: session?.data?.user?.id,
+      }; // Default values if initial is null
     }
   });
-  
+
   const validateLabTestForm = () => {
     let newErrors = {};
-  
+
     // Validate Priority (must be selected)
     if (!labtestFormData?.priority) {
       newErrors.priority = "Priority selection is required.";
     }
-  
+
     // Validate Test(s) Requested (at least one test should be selected)
-    const hasSelectedTests = testSelections.some(selection => selection.selectedTests.length > 0);
+    const hasSelectedTests = testSelections.some(
+      (selection) => selection.selectedTests.length > 0,
+    );
     if (!hasSelectedTests) {
       newErrors.testsRequested = "At least one test must be selected.";
     }
-  
+
     // Validate Additional Notes (must not be empty)
     if (!labtestFormData?.additionalNotes?.trim()) {
       newErrors.additionalNotes = "Additional Notes are required.";
     }
-  
-  
+
     // Validate Requested By (must not be empty)
 
-  
     // Debugging output
     console.log("Validation Errors:", newErrors);
-  
+
     // Set errors in state
     setErrors(newErrors);
-  
+
     // Return false if there are validation errors
     return Object.keys(newErrors).length === 0;
   };
-  
-
 
   const LabTests = () => {
     const handleAIComplete = () => {
@@ -662,10 +663,7 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
                 </>
               )}
             </div>
-            <div
-            
-              className="rounded-lg bg-white p-8 shadow-lg"
-            >
+            <div className="rounded-lg bg-white p-8 shadow-lg">
               {/* Lab Test Information Section */}
               <div className="space-y-8">
                 <div>
@@ -679,25 +677,31 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
                         Priority
                       </label>
                       <div className="flex space-x-4">
-                      {["Routine", "Urgent", "STAT"].map((priority) => (
-  <label key={priority} className="inline-flex items-center">
-    <input
-      type="radio"
-      name="priority"
-      value={priority} // ✅ Each radio button should have its own value
-      checked={labtestFormData.priority === priority} // ✅ Ensure the correct one is selected
-      onChange={handleChange}
-      disabled={!isEditing && isAIEnabled}
-      className=" text-blue-600"
-    />
-    <span className="ml-2 text-gray-700">{priority}</span>
-  </label>
-  
-))} 
+                        {["Routine", "Urgent", "STAT"].map((priority) => (
+                          <label
+                            key={priority}
+                            className="inline-flex items-center"
+                          >
+                            <input
+                              type="radio"
+                              name="priority"
+                              value={priority} // ✅ Each radio button should have its own value
+                              checked={labtestFormData.priority === priority} // ✅ Ensure the correct one is selected
+                              onChange={handleChange}
+                              disabled={!isEditing && isAIEnabled}
+                              className=" text-blue-600"
+                            />
+                            <span className="ml-2 text-gray-700">
+                              {priority}
+                            </span>
+                          </label>
+                        ))}
                       </div>
                       {errors.priority && (
-  <p className="text-sm text-red-500">{errors.priority}</p>
-)}
+                        <p className="text-sm text-red-500">
+                          {errors.priority}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -745,7 +749,7 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
                             </div>
                           )}
                         </div>
-                        
+
                         {selection.selectedCategory &&
                           selection.isSubsectionOpen && (
                             <div className="mt-4 rounded-lg border p-4">
@@ -795,8 +799,10 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
                     )}
                   </div>
                   {errors.priority && (
-  <p className="text-sm text-red-500">{errors.testsRequested}</p>
-)}
+                    <p className="text-sm text-red-500">
+                      {errors.testsRequested}
+                    </p>
+                  )}
                 </div>
 
                 {/* Clinical Information */}
@@ -817,9 +823,7 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
                 </div>
 
                 {/* Specimen Collection Section */}
-                <div>
-                  
-                </div>
+                <div></div>
               </div>
 
               {/* Submit Button */}
@@ -831,7 +835,6 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
     );
   };
 
-
   const pages = [renderLabTestHistory, LabTests];
 
   const [isAddDOpen, setIsAddDOpen] = useState(false);
@@ -842,21 +845,20 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
     }
   };
 
-
   const handleSubmit = async () => {
     if (!buttonText) return;
-  
+
     setIsLoading(true); // Start loading before async operations
-  
+
     const mergeLabTestData = (labtestFormData, testSelections) => ({
       ...labtestFormData,
-      testSelections: testSelections.map(selection => ({
+      testSelections: testSelections.map((selection) => ({
         category: selection.selectedCategory,
         tests: selection.selectedTests,
-        otherTest: selection.otherTest || '',
+        otherTest: selection.otherTest || "",
       })),
     });
-  
+
     try {
       if (buttonText === "Submit") {
         await createLabtest(
@@ -865,15 +867,14 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
           onSubmit,
           onTabChange,
           session.data.user.id,
-          currentDashboard
-
+          currentDashboard,
         );
       } else if (buttonText === "Update") {
         await updateLabtestData(
           mergeLabTestData(labtestFormData, testSelections),
           resetForm,
           onTabChange,
-          onSubmit
+          onSubmit,
         );
       }
     } catch (error) {
@@ -882,13 +883,13 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
       setIsLoading(false); // Ensure loading state resets after operation
     }
   };
-  
+
   const handleSubmitClick = async () => {
     const isValid = validateLabTestForm();
     console.log("Validation Result:", isValid);
-  
+
     if (!isValid) return;
-  
+
     setIsLoading(true);
     try {
       await handleSubmit(); // Await this to ensure proper loading state handling
@@ -896,8 +897,6 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
       console.error("Error submitting medication:", error);
     }
   };
-  
-
 
   return (
     <>
@@ -908,7 +907,7 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
             (pageNum) => (
               <button
                 key={pageNum}
-               // onClick={() => setCurrentPage(pageNum)}
+                // onClick={() => setCurrentPage(pageNum)}
                 className={`
               flex size-10 items-center justify-center rounded-full
               border-2 border-teal-500 text-sm font-medium
@@ -952,37 +951,40 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
 
               {currentPage === 2 ? (
                 <div className="flex items-center gap-4">
-                   <button
-                        disabled={isLoading}
-                        onClick={handleSubmitClick}
-                        className="flex min-w-[120px] items-center justify-center gap-2 rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#007664]/80 disabled:bg-[#007664]/50"
-                      >
-                        {isLoading ? (
-                          <>
-                            <Loader2 className="size-4 animate-spin" />
-                            {buttonText === "Update" ? "Updating..." : "Submitting..."}
-                          </>
-                        ) : (
-                          <>{buttonText}</>
-                        )}
-                      </button>
-               
+                  <button
+                    disabled={isLoading}
+                    onClick={handleSubmitClick}
+                    className="flex min-w-[120px] items-center justify-center gap-2 rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#007664]/80 disabled:bg-[#007664]/50"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="size-4 animate-spin" />
+                        {buttonText === "Update"
+                          ? "Updating..."
+                          : "Submitting..."}
+                      </>
+                    ) : (
+                      <>{buttonText}</>
+                    )}
+                  </button>
                 </div>
               ) : currentPage === 3 ? (
                 <button
-                        disabled={isLoading}
-                        onClick={handleSubmitClick}
-                        className="flex min-w-[120px] items-center justify-center gap-2 rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#007664]/80 disabled:bg-[#007664]/50"
-                      >
-                        {isLoading ? (
-                          <>
-                            <Loader2 className="size-4 animate-spin" />
-                            {buttonText === "Update" ? "Updating..." : "Submitting..."}
-                          </>
-                        ) : (
-                          <>{buttonText}</>
-                        )}
-                      </button>
+                  disabled={isLoading}
+                  onClick={handleSubmitClick}
+                  className="flex min-w-[120px] items-center justify-center gap-2 rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#007664]/80 disabled:bg-[#007664]/50"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin" />
+                      {buttonText === "Update"
+                        ? "Updating..."
+                        : "Submitting..."}
+                    </>
+                  ) : (
+                    <>{buttonText}</>
+                  )}
+                </button>
               ) : (
                 <button
                   onClick={() =>
@@ -1002,8 +1004,7 @@ export function NewLabTestForm({ onTabChange , patient, onSubmit, initialLabtest
   );
 }
 export function ViewLabTest({ labtest, isOpen, onClose }) {
-
-  console.log(labtest)
+  console.log(labtest);
   const fadeIn = {
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
@@ -1028,7 +1029,6 @@ export function ViewLabTest({ labtest, isOpen, onClose }) {
     </div>
   );
 
-  
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto bg-[#F7F7F7] p-0">
@@ -1066,31 +1066,36 @@ export function ViewLabTest({ labtest, isOpen, onClose }) {
             </div>
             <Card className="border-none bg-white shadow-lg">
               <CardContent className="space-y-6 p-6">
-              <div className="space-y-2">
-    {labtest.testSelections && labtest.testSelections.length > 0 ? (
-      labtest.testSelections.map((selection, index) => (
-        <div key={index} className="space-y-2">
-          <p className="text-sm font-bold text-gray-700">{selection.category}</p>
-          {selection.tests && selection.tests.length > 0 ? (
-            selection.tests.map((test, testIndex) => (
-              <p key={`${index}-${testIndex}`} className="text-sm text-gray-700">
-                • {test}
-              </p>
-            ))
-          ) : (
-            <p key={index} className="text-sm text-gray-700">
-              No tests available.
-            </p>
-          )}
-        </div>
-      ))
-    ) : (
-      <p>No test selections available.</p>
-    )}
-  </div>
+                <div className="space-y-2">
+                  {labtest.testSelections &&
+                  labtest.testSelections.length > 0 ? (
+                    labtest.testSelections.map((selection, index) => (
+                      <div key={index} className="space-y-2">
+                        <p className="text-sm font-bold text-gray-700">
+                          {selection.category}
+                        </p>
+                        {selection.tests && selection.tests.length > 0 ? (
+                          selection.tests.map((test, testIndex) => (
+                            <p
+                              key={`${index}-${testIndex}`}
+                              className="text-sm text-gray-700"
+                            >
+                              • {test}
+                            </p>
+                          ))
+                        ) : (
+                          <p key={index} className="text-sm text-gray-700">
+                            No tests available.
+                          </p>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <p>No test selections available.</p>
+                  )}
+                </div>
               </CardContent>
             </Card>
-            
           </motion.div>
           <motion.div {...fadeIn} className="space-y-4">
             <div className="mb-4 flex items-center gap-2">
@@ -1106,7 +1111,9 @@ export function ViewLabTest({ labtest, isOpen, onClose }) {
                     <h4 className="mb-2 text-sm font-medium text-gray-600">
                       Notes
                     </h4>
-                    <p className="text-sm text-gray-700">{labtest.additionalNotes}</p>
+                    <p className="text-sm text-gray-700">
+                      {labtest.additionalNotes}
+                    </p>
                   </div>
                 )}
               </CardContent>
@@ -1122,26 +1129,26 @@ export function ViewLabTest({ labtest, isOpen, onClose }) {
             </div>
             <Card className="border-none bg-white shadow-lg">
               <CardContent className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
-              <InfoItem
-  label="Requested By"
-  value={
-    labtest.requestedBy
-      ? `${labtest.requestedBy.firstName || ""} ${labtest.requestedBy.lastName || ""}`.trim() || "N/A"
-      : "N/A"
-  }
-/>
+                <InfoItem
+                  label="Requested By"
+                  value={
+                    labtest.requestedBy
+                      ? `${labtest.requestedBy.firstName || ""} ${labtest.requestedBy.lastName || ""}`.trim() ||
+                        "N/A"
+                      : "N/A"
+                  }
+                />
 
                 <InfoItem label="Requested At" value={labtest.requestedAt} />
-                <InfoItem 
-                  label="Requested On" 
-                  value={new Date(labtest.createdAt).toLocaleDateString()} 
+                <InfoItem
+                  label="Requested On"
+                  value={new Date(labtest.createdAt).toLocaleDateString()}
                 />
               </CardContent>
             </Card>
           </motion.div>
 
           {/* Additional Information */}
-          
         </div>
       </DialogContent>
     </Dialog>

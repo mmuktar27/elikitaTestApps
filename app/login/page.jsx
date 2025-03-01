@@ -24,9 +24,10 @@ import { LiaCheckSquareSolid } from "react-icons/lia";
 import { MdOutlineDevices } from "react-icons/md";
 import { PiLightbulbThin } from "react-icons/pi";
 import AppLogo from "../../public/assets/Logo.svg";
+import {createAuditLogEntry} from "@/components/shared/api";
 
 export default function LoginPage() {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [email, setEmail] = useState("");
@@ -36,12 +37,24 @@ export default function LoginPage() {
       router.push("/admin");
     }
   }, [status, router]);
+  
+  const auditData = {
+    userId: session?.data?.user?.id,
+    activityType: "Login",
+    entityId: session?.data?.user?.id,
+    entityModel: "Staff",
+    details: "User logged in successfully",
+  };
+
 
   const handleLogin = async () => {
     try {
       await signIn("azure-ad", {
         callbackUrl: "/admin",
       });
+     
+      await createAuditLogEntry(auditData);
+      
     } catch (error) {
       console.error("Login failed:", error);
     }

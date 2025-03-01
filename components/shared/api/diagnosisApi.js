@@ -1,9 +1,16 @@
 import axios from "axios";
-import {handleAddVisitHistory} from '../'
-//const API_URL = 'http://localhost:4000/api/v2/diagnosis';
+import { handleAddVisitHistory } from "../";
+import {createAuditLogEntry} from "./"
+
+//const API_URL = "http://localhost:4000/api/v2/diagnosis";
 const API_URL = 'https://elikitawebservices-crdpgafxekayhkbe.southafricanorth-01.azurewebsites.net/api/v2/diagnosis'
 
-export const updateDiagnosisData = async (mergedData, resetForm, onTabChange, onSubmit) => {
+export const updateDiagnosisData = async (
+  mergedData,
+  resetForm,
+  onTabChange,
+  onSubmit,
+) => {
   try {
     const response = await axios.put(
       `${API_URL}/${mergedData._id}`,
@@ -12,21 +19,63 @@ export const updateDiagnosisData = async (mergedData, resetForm, onTabChange, on
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     console.log("Data successfully updated:", response.data);
+
+
+    const auditData = {
+      userId: mergedData?.diagnosedBy,
+      activityType: "Diagnosis Update",
+      entityId: mergedData._id,
+      entityModel: "Diagnosis",
+      details: `Diagnosis updated successfully`,
+    };
+
+    try {
+      await createAuditLogEntry(auditData);
+      console.log("Audit log created successfully.");
+    } catch (auditError) {
+      console.error("Audit log failed:", auditError);
+    }
+
+
     resetForm();
-  //onTabChange("medications");
-  
+    //onTabChange("medications");
+
     onSubmit("success", "Diagnosis updated successfully");
   } catch (error) {
-    console.error("Error updating data:", error.response ? error.response.data : error.message);
+    console.error(
+      "Error updating data:",
+      error.response ? error.response.data : error.message,
+    );
+
+    const auditData = {
+      userId: mergedData?.diagnosedBy,
+      activityType: "Diagnosis Update Failed",
+      entityId: mergedData._id,
+      entityModel: "Diagnosis",
+      details: `Failed to updated Diagnosis`,
+    };
+
+    try {
+      await createAuditLogEntry(auditData);
+      console.log("Audit log created successfully.");
+    } catch (auditError) {
+      console.error("Audit log failed:", auditError);
+    }
     onSubmit("error", "Failed to update diagnosis");
   }
 };
 
-export const createDiagnosis = async (mergedData, resetForm, onTabChange, onSubmit, patient) => {
+export const createDiagnosis = async (
+  mergedData,
+  resetForm,
+  onTabChange,
+  onSubmit,
+  patient,
+) => {
   try {
     console.log("Sending diagnosis data:", mergedData);
 
@@ -42,18 +91,34 @@ export const createDiagnosis = async (mergedData, resetForm, onTabChange, onSubm
 
     if (objectId) {
       console.log("Object ID found:", objectId);
-      
+
       console.log("Patient data before updating history:", patient);
-      
+
       if (!patient) {
-        console.error("Error: patient is undefined before updating visit history!");
+        console.error(
+          "Error: patient is undefined before updating visit history!",
+        );
         return;
       }
-
+      const auditData = {
+        userId: mergedData?.diagnosedBy,
+        activityType: "Diagnosis Creation",
+        entityId: objectId,
+        entityModel: "Diagnosis",
+        details: `Diagnosis Created successfully`,
+      };
       await handleAddVisitHistory(patient, objectId, "Diagnosis");
+      try {
+        await createAuditLogEntry(auditData);
+        console.log("Audit log created successfully.");
+      } catch (auditError) {
+        console.error("Audit log failed:", auditError);
+      }
       console.log("Visit history updated successfully.");
     } else {
-      console.warn("No ObjectId found in response. Skipping visit history update.");
+      console.warn(
+        "No ObjectId found in response. Skipping visit history update.",
+      );
     }
 
     resetForm();
@@ -67,16 +132,26 @@ export const createDiagnosis = async (mergedData, resetForm, onTabChange, onSubm
   } catch (error) {
     console.error(
       "Error sending data:",
-      error.response ? error.response.data : error.message
+      error.response ? error.response.data : error.message,
     );
 
+    const auditData = {
+      userId: mergedData?.diagnosedBy,
+      activityType: "Daignosis Creation Failed",
+      entityId: '123456789000000',
+      entityModel: "Diagnosis",
+      details: `Failed to Add Diagnosis`,
+    };
+    try {
+      await createAuditLogEntry(auditData);
+      console.log("Audit log created successfully.");
+    } catch (auditError) {
+      console.error("Audit log failed:", auditError);
+    }
     onSubmit("error", "Failed to add diagnosis");
     console.log("Error message sent.");
   }
 };
-
-
-
 
 export const deleteDiagnosis = async (diagnosisId) => {
   if (!diagnosisId) {
@@ -90,7 +165,10 @@ export const deleteDiagnosis = async (diagnosisId) => {
 
     return response.data; // Return success response
   } catch (error) {
-    console.error("API error:", error.response ? error.response.data : error.message);
+    console.error(
+      "API error:",
+      error.response ? error.response.data : error.message,
+    );
     return { error: error.response?.data?.message || error.message }; // Return error object
   }
 };

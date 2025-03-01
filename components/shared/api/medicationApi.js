@@ -1,5 +1,7 @@
 import axios from "axios";
 import { handleAddVisitHistory } from "../";
+import {createAuditLogEntry} from "./"
+
 //const API_URL = "http://localhost:4000/api/v2/medication";
 
 const API_URL = 'https://elikitawebservices-crdpgafxekayhkbe.southafricanorth-01.azurewebsites.net/api/v2/medication';
@@ -23,8 +25,24 @@ export const submitMedication = async ({
     patient: patient,
   };
 
+ 
+
   if (isEditMode) {
+    const auditData = {
+      userId: requestedBy,
+      activityType: "Medication Update",
+      entityId: medformData.medicationId,
+      entityModel: "Medication",
+      details: `Medication requested updted for ${patient} successfully`,
+    };
     await editMedication(medformData, onClose, onSubmit);
+    try {
+      await createAuditLogEntry(auditData);
+      console.log("Audit log created successfully.");
+    } catch (auditError) {
+      console.error("Audit log failed:", auditError);
+    }
+    
   } else {
     try {
       const response = await axios.post(`${API_URL}`, updatedMedFormData, {
@@ -35,7 +53,21 @@ export const submitMedication = async ({
       const objectId = response.data?._id || response.data?.id; // Adjust based on API response structure
 
       if (objectId) {
+        const auditData = {
+          userId: requestedBy,
+          activityType: "Medication Creation",
+          entityId: objectId,
+          entityModel: "Medication",
+          details: `Medication requested successfully`,
+        };
         await handleAddVisitHistory(patient, objectId, "Medication");
+        try {
+          await createAuditLogEntry(auditData);
+          console.log("Audit log created successfully.");
+        } catch (auditError) {
+          console.error("Audit log failed:", auditError);
+        }
+
       } else {
         console.warn(
           "No ObjectId found in response. Using medicationId instead.",
@@ -57,6 +89,19 @@ export const submitMedication = async ({
       });
     } catch (error) {
       console.error("Error submitting medication:", error);
+      const auditData = {
+        userId: requestedBy,
+        activityType: "Medication Creation Failed",
+        entityId: objectId,
+        entityModel: "Medication",
+        details: `Medication requested for ${patient} Failed`,
+      };
+      try {
+        await createAuditLogEntry(auditData);
+        console.log("Audit log created successfully.");
+      } catch (auditError) {
+        console.error("Audit log failed:", auditError);
+      }
       onSubmit("error", "Failed to add medication");
     }
   }

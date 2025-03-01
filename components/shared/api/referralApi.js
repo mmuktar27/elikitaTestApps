@@ -1,16 +1,57 @@
 import axios from "axios";
-//@ts-expect-errorconst API_URL = "http://localhost:4000/api/v2/referral";
+import { createAuditLogEntry } from "./";
+
+//const API_URL = "http://localhost:4000/api/v2/referral";
 
 const API_URL = "https://elikitawebservices-crdpgafxekayhkbe.southafricanorth-01.azurewebsites.net/api/v2/referral";
 
 // Create a new referral
+
 export const createReferral = async (referralData) => {
   if (!referralData) return { error: "Referral data is required." };
+
+  let objectId = null; // Ensure objectId is available in both success & error handling
+
   try {
     const response = await axios.post(`${API_URL}`, referralData);
+    objectId = response.data?.data.referral._id || response.data?.data.referral.id; // Capture objectId here
+
+    const auditData = {
+      userId: referralData?.referredBy,
+      activityType: "Referral Creation",
+      entityId: objectId,
+      entityModel: "Referral",
+      details: `New patient referral received`,
+    };
+
+    try {
+      await createAuditLogEntry(auditData);
+      console.log("Audit log created successfully.");
+     // console.log(auditData);
+     // console.log(response.data?.data.referral._id);
+    } catch (auditError) {
+      console.error("Audit log failed:", auditError);
+    }
+
     return response.data;
   } catch (error) {
     console.error("API error:", error.response?.data || error.message);
+
+    const auditData = {
+      userId: referralData?.referredBy,
+      activityType: "Referral Creation Failed",
+      entityId: objectId, // Now objectId will exist if API call succeeded before failing
+      entityModel: "Referral",
+      details: `Failed to Add Referral`,
+    };
+
+    try {
+      await createAuditLogEntry(auditData);
+      console.log("Audit log created successfully.");
+    } catch (auditError) {
+      console.error("Audit log failed:", auditError);
+    }
+
     return { error: error.response?.data?.message || error.message };
   }
 };
@@ -57,6 +98,7 @@ export const deleteReferral = async (referralId) => {
   if (!referralId) return { error: "Referral ID is required." };
   try {
     const response = await axios.delete(`${API_URL}/${referralId}`);
+
     return response.data;
   } catch (error) {
     console.error("API error:", error.response?.data || error.message);

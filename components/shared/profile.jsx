@@ -21,9 +21,6 @@ import {
   Loader2,
 } from "lucide-react";
 
-import API from "@/app/api/api";
-import { useGetCurrentUser } from "@/hooks/staff";
-import { toast } from "@/hooks/use-toast";
 
 const initialUserState = {
   name: "",
@@ -112,6 +109,8 @@ export default function ProfilePage({ currentUser }) {
     message: "",
   });
   const [user, setUser] = useState(currentUser);
+  const [formData, setFormData] = useState(currentUser);
+
   const [isSaving, setIsSaving] = useState(false);
   
 
@@ -163,11 +162,8 @@ export default function ProfilePage({ currentUser }) {
     fetchProfilePicture();
   }, [session]);
   
-  console.log("Profile Image URL:", profileImage);
+ // console.log("Profile Image URL:", profileImage);
   
-
-  console.log(session?.data?.user?.image);
-    console.log("session2", user);
 
   useEffect(() => {
     if (currentUser) {
@@ -175,6 +171,23 @@ export default function ProfilePage({ currentUser }) {
       setLoading(false);
     }
   }, [currentUser]);
+
+
+
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        streetAddress: user.streetAddress || "",
+        city: user.city || "",
+        state: user.state || "",
+        zipCode: user.zipCode || "",
+        country: user.country || "",
+        personalEmail: user.email || "", 
+        businessPhone: user.businessPhone || "",
+        mobilePhone: user.mobilePhone || "",
+      });
+    }
+  }, [user]);
 
   if (loading || !user) {
     return <ProfileSkeleton />;
@@ -194,16 +207,21 @@ export default function ProfilePage({ currentUser }) {
   };
 
   const handleInputChange = (e) => {
-    setUser({ ...user, [e.target.name]: e.target.value });
+    setFormData((prevData) => ({
+      ...prevData, // Keep existing data
+      [e.target.name]: e.target.value, // Update the changed field
+    }));
   };
+  
 
   const handleSave = async () => {
-    setIsSaving(true);
+
+setIsSaving(true);
     console.log("Saving profile..."); // Log when save starts
     console.log("User data being sent:", user); // Log user data before sending
 
     try {
-        const response = await updateStaff(user.microsoftID, user);
+        const response = await updateStaff(user.microsoftID, formData);
         console.log("Raw API Response:", response); // Log full response
 
         // Check if response is success
@@ -224,6 +242,7 @@ export default function ProfilePage({ currentUser }) {
         setIsSaving(false);
         console.log("Save operation finished."); // Log when save ends
     }
+
 };
 
 
@@ -344,7 +363,7 @@ export default function ProfilePage({ currentUser }) {
               <Input
                 id="personalEmail"
                 name="email"
-                value={user?.email}
+                value={formData?.email ?? user?.email ?? ""}
                 onChange={handleInputChange}
                 disabled={!isEditing}
               />
@@ -354,7 +373,7 @@ export default function ProfilePage({ currentUser }) {
               <Input
                 id="businessPhone"
                 name="businessPhone"
-                value={user?.businessPhone}
+                value={formData?.businessPhone ?? user?.businessPhone ?? ""}
                 onChange={handleInputChange}
                 disabled={!isEditing}
               />
@@ -364,7 +383,7 @@ export default function ProfilePage({ currentUser }) {
               <Input
                 id="mobilePhone"
                 name="mobilePhone"
-                value={user?.mobilePhone}
+                value={formData?.mobilePhone ?? user?.mobilePhone ?? ""}
                 onChange={handleInputChange}
                 disabled={!isEditing}
               />
@@ -393,7 +412,7 @@ export default function ProfilePage({ currentUser }) {
               <Input
                 id="streetAddress"
                 name="streetAddress"
-                value={user?.streetAddress}
+                value={formData?.streetAddress ?? user?.streetAddress ?? ""}
                 onChange={handleInputChange}
                 disabled={!isEditing}
               />
@@ -403,7 +422,7 @@ export default function ProfilePage({ currentUser }) {
               <Input
                 id="city"
                 name="city"
-                value={user?.city}
+                value={formData?.city ?? user?.city ?? ""}
                 onChange={handleInputChange}
                 disabled={!isEditing}
               />
@@ -413,7 +432,7 @@ export default function ProfilePage({ currentUser }) {
               <Input
                 id="state"
                 name="state"
-                value={user?.state}
+                value={formData?.state ?? user?.state ?? ""}
                 onChange={handleInputChange}
                 disabled={!isEditing}
               />
@@ -423,7 +442,7 @@ export default function ProfilePage({ currentUser }) {
               <Input
                 id="zipCode"
                 name="zipCode"
-                value={user?.zipCode}
+                value={formData?.zipCode ?? user?.zipCode ?? ""}
                 onChange={handleInputChange}
                 disabled={!isEditing}
               />
@@ -433,7 +452,7 @@ export default function ProfilePage({ currentUser }) {
               <Input
                 id="country"
                 name="country"
-                value={user?.country}
+                value={formData?.country ?? user?.country ?? ""}
                 onChange={handleInputChange}
                 disabled={!isEditing}
               />

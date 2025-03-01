@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
-
 // Lucide Icons
 import {
   CameraOff,
@@ -39,15 +38,7 @@ import {
   Printer,
 } from "lucide-react";
 import { PatientDetailsView } from "../shared";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
+
 // UI Components
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -81,6 +72,7 @@ import {
 import { updateReferral, fetchReferralsByConsultant } from "../shared/api";
 
 import { getCurrentUser } from "../shared/api";
+import {createAuditLogEntry} from "../shared/api";
 
 import {
   createPatient,
@@ -140,7 +132,13 @@ const StatusDialog = ({ isOpen, onClose, status, message }) => {
   );
 };
 
-const PatientsForms = ({ form, onSubmit, onClose, buttonText }) => {
+const PatientsForms = ({
+  form,
+  onSubmit,
+  onClose,
+  buttonText,
+  currentUser,
+}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
@@ -157,6 +155,7 @@ const PatientsForms = ({ form, onSubmit, onClose, buttonText }) => {
     insuranceProvider: "",
     status: "",
     patientReference: "",
+    addedBy: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -221,30 +220,66 @@ const PatientsForms = ({ form, onSubmit, onClose, buttonText }) => {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(form);
+  
+    // Ensure addedBy is included before proceeding
+    if (!formData?.addedBy || formData.addedBy.trim() === "") {
+      setFormData((prev) => ({
+        ...prev,
+        addedBy: currentUser, // Assign the currentUser value if addedBy is empty
+      }));
+    }
+  
+    // Use updated state after ensuring addedBy is set
     if (validateForm()) {
       setIsLoading(true);
-
+  
       try {
         let data;
         if (form?._id) {
           // If patient ID exists, update the patient
-          data = await updatePatient(form._id, formData);
-          //alert("Patient updated successfully!");
+          data = await updatePatient(form._id, {
+            ...formData,
+            addedBy: formData?.addedBy || currentUser,
+          });
           onClose();
-          onSubmit("success", "Patient updated successfully!!");
+          onSubmit("success", "Patient updated successfully!");
+  
+          // Audit log entry for update
+          const auditData = {
+            userId: currentUser,
+            activityType: "Patient Update",
+            entityId: form._id,
+            entityModel: "Patient",
+            details: `Patient ${formData.firstName} ${formData.lastName} updated successfully`,
+          };
+          await createAuditLogEntry(auditData);
         } else {
           // If no patient ID, create a new patient
-          data = await createPatient(formData);
-          // alert("Patient created successfully!");
+          data = await createPatient({
+            ...formData,
+            addedBy: formData?.addedBy || currentUser,
+          });
           onClose();
           onSubmit("success", "Patient created successfully!");
+  
+          // Ensure the newly created patient ID is available
+          if (data?._id) {
+            // Audit log entry for creation
+            const auditData = {
+              userId: currentUser,
+              activityType: "Patient Creation",
+              entityId: data._id, // Get the generated patient ID
+              entityModel: "Patient",
+              details: `Patient ${formData.firstName} ${formData.lastName} added successfully`,
+            };
+            await createAuditLogEntry(auditData);
+          } else {
+            console.error("Failed to retrieve new patient ID for audit log.");
+          }
         }
-
+  
         console.log("Response:", data);
       } catch (error) {
-        //alert("Error: " + error.message);
-        // onClose();
         onSubmit("error", "Operation Failed");
         console.error("Error:", error);
       } finally {
@@ -252,6 +287,7 @@ const PatientsForms = ({ form, onSubmit, onClose, buttonText }) => {
       }
     }
   };
+  
 
   // Handle delete
   const handleDelete = async () => {
@@ -277,8 +313,6 @@ const PatientsForms = ({ form, onSubmit, onClose, buttonText }) => {
     }
   };
 
-
-
   return (
     <div className="mx-auto max-w-4xl space-y-8 p-6" style={{ width: "65vw" }}>
       <div className="grid grid-cols-1 gap-4 rounded-lg bg-white p-6 shadow-lg md:grid-cols-1">
@@ -289,6 +323,9 @@ const PatientsForms = ({ form, onSubmit, onClose, buttonText }) => {
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Name and Gender */}
+
+          <input type="hidden" name="addedBy" value={currentUser} />
+
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <label className="block text-sm font-medium text-teal-700">
@@ -858,8 +895,6 @@ const Patients = ({ currentDashboard }) => {
     setTriggerRefresh(true);
   };
 
-  console.log("patients");
-  console.log(patients);
 
   //const [activepage, setIsactivepage] = useState("patient");
 
@@ -1107,29 +1142,61 @@ const Patients = ({ currentDashboard }) => {
   };
   const confirmDelete = async (itemid) => {
     if (!itemid) {
-      ConfirmationDialog("error", "Invalid  ID.");
+      ConfirmationDialog("error", "Invalid ID.");
       return;
     }
-
+  
     try {
       const response = await deletePatient(itemid);
-
+  
       if (!response || response.error) {
         throw new Error(response?.error || "Unknown error occurred.");
       }
-
-      confirmationDialog("success", "Patients deleted successfully!");
+  
+      confirmationDialog("success", "Patient deleted successfully!");
       Refresh();
+  
+      // Audit log entry for deletion
+      const auditData = {
+        userId: User.id,
+        activityType: "Patient Archive",
+        entityId: itemid,
+        entityModel: "Patient",
+        details: `Patient with ID ${itemid} Archived successfully`,
+      };
+  
+      try {
+        await createAuditLogEntry(auditData);
+        console.log("Audit log response: Patient deletion logged.");
+      } catch (auditError) {
+        console.error("Audit log failed:", auditError);
+      }
     } catch (error) {
       confirmationDialog(
         "error",
-        `Failed to delete diagnosis: ${error.message}`,
+        `Failed to delete patient: ${error.message}`
       );
+
+      const auditData = {
+        userId: User.id,
+        activityType: "Failed",
+        entityId: itemid,
+        entityModel: "Patient",
+        details: `Failed to Delete Patients`,
+      };
+  
+      try {
+        await createAuditLogEntry(auditData);
+        console.log("Audit log response: Patient deletion logged.");
+      } catch (auditError) {
+        console.error("Audit log failed:", auditError);
+      }
       console.error("Error deleting Patient:", error);
     } finally {
       setIsDeleteOpen(false);
     }
   };
+  
 
   const startEdit = (patient) => {
     setSelectedPatient(patient);
@@ -1205,14 +1272,13 @@ const Patients = ({ currentDashboard }) => {
   };
   const handleNewPatient = () => {
     //setEditPatState({ isOpen: true, patientData: {} });
-    setNewPatState({ isOpen: true, patientData: {} })
+    setNewPatState({ isOpen: true, patientData: {} });
   };
 
   // Function to close the modal
   const handleDialogClose = () => {
     setEditPatState({ isOpen: false, patientData: null });
     setNewPatState({ isOpen: false, patientData: null });
-
   };
 
   const filteredPatients = useMemo(() => {
@@ -1402,7 +1468,7 @@ const Patients = ({ currentDashboard }) => {
                         <DialogTitle>
                           <div className="mb-0 text-center">
                             <h2 className="bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-3xl font-bold text-transparent">
-                             New Patient
+                              New Patient
                             </h2>
                           </div>
                         </DialogTitle>
@@ -1415,6 +1481,7 @@ const Patients = ({ currentDashboard }) => {
                           handleAddNewPatientDialog(status, message)
                         }
                         buttonText="Submit"
+                        currentUser={session?.data?.user?.id}
                       />
                     </DialogContent>
                   </Dialog>
@@ -1457,7 +1524,7 @@ const Patients = ({ currentDashboard }) => {
                             className="transition-colors duration-200 hover:bg-green-50"
                           >
                             <TableCell>{patient.patientReference}</TableCell>
-                            <TableCell>{`${patient.firstName} ${patient.lastName}`}</TableCell>
+                            <TableCell>{`${capitalize(patient.firstName)} ${capitalize(patient.lastName)}`}</TableCell>
                             <TableCell>
                               {new Intl.DateTimeFormat("en-US", {
                                 year: "numeric",
@@ -1473,7 +1540,9 @@ const Patients = ({ currentDashboard }) => {
                                 </div>
                               </div>
                             </TableCell>
-                            <TableCell>{patient.medicalCondition}</TableCell>
+                            <TableCell>
+                              {capitalize(patient.medicalCondition)}
+                            </TableCell>
                             <TableCell>{patient.progress}</TableCell>
                             <TableCell>
                               <div className="flex space-x-2">
@@ -1530,6 +1599,7 @@ const Patients = ({ currentDashboard }) => {
                                         )
                                       }
                                       buttonText="Update"
+                                      currentUser={session?.data?.user?.id}
                                     />
                                   </DialogContent>
                                 </Dialog>

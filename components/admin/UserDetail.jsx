@@ -25,6 +25,8 @@ import { useGetAStaff, useUpdateAStaff } from "@/hooks/admin";
 import { ROLES } from "@/utils/roles";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import {createAuditLogEntry} from "@/components/shared/api";
 
 const roleSpecificFields = {
   DOCTOR: [
@@ -65,10 +67,16 @@ export default function StaffDetail({ id }) {
   const [isEditing, setIsEditing] = useState(false);
   const [customFields, setCustomFields] = useState([]);
   const router = useRouter();
+  const session = useSession();
+    const [currentUser, setcurrentUser] = useState("");
+  
   const { data, isLoading, isFetched } = useGetAStaff(id);
   console.log("id", id);
 
   const { mutate, isSuccess } = useUpdateAStaff(id);
+    useEffect(() => {
+      setcurrentUser(session?.data?.user?.id)
+    }, [session?.data?.user?.id]);
   useEffect(() => {
     if (data?.data && isFetched) {
       setStaff(data.data[0]);
@@ -189,10 +197,31 @@ export default function StaffDetail({ id }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log("Updating staff:", staff);
-
-    await mutate(staff);
-    setIsEditing(false);
+  
+    try {
+      await mutate(staff);
+      // Audit log entry
+      const auditData = {
+        userId: currentUser,
+        activityType: "Update",
+        entityId: staff.id, // Ensure staff.id exists
+        entityModel: "Staff",
+        details: `User ${staff.firstName} ${staff.lastName} profile updated successfully`,
+      };
+  
+      try {
+        const auditResponse = await createAuditLogEntry(auditData);
+        console.log("Audit log response:", auditResponse);
+      } catch (auditError) {
+        console.error("Audit log failed:", auditError);
+      }
+  
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Failed to update staff:", error);
+    }
   };
+  
 
   if (!staff) {
     return (

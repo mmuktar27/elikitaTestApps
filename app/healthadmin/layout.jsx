@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useState,useEffect  } from "react";
+import { getSystemSettings } from "@/components/shared/api";
+import {SessionManager} from '@/components/shared'
 
 import TeamSwitcher from "../../components/ui/team-switcher";
 import { LogoutConfirmation } from "../components/shared";
@@ -97,7 +99,50 @@ function LayoutPage({ children }) {
       redirect: true,
     });
   };
+  const session = useSession();
+  const router = useRouter();
+
+  const routes = usePathname();
   const [bookingUrl, setBookingUrl] = useState("");
+
+  const [isLoading, setIsLoading] = useState(true); // Track loading status
+
+  const [organizationName, setOrganizationName] = useState(null);
+  const [sessionTimeOut, setSessionTimeOut] = useState(10);
+
+  const [isMaintenanceMode, setisMaintenanceMode] = useState(false);
+  useEffect(() => {
+    const checkMaintenanceMode = async () => {
+      if (!session?.data?.user?.roles) return; // Ensure session data is available
+
+      try {
+        const settings = await getSystemSettings();
+        const isMaintenanceMode = settings?.data?.maintenanceMode || false;
+    
+        // Allow access if the user has the "system admin" rolesMaintenanceMode){
+setisMaintenanceMode(isMaintenanceMode)
+setOrganizationName(settings?.data?.organizationName )
+setSessionTimeOut(settings?.data?.sessionTimeout)
+
+
+setIsLoading(false); // Ensure loading stops even on error
+
+if (session.data.user.roles.includes("system admin")) {
+ return;
+}
+if (isMaintenanceMode)
+ 
+ {router.push("/maintenance");
+}
+      } catch (error) {
+        console.error("Error fetching system settings:", error);
+        setIsLoading(false); // Ensure loading stops even on error
+
+      }
+    };
+
+    checkMaintenanceMode();
+  }, [router, session]);
 
   useEffect(() => {
     const fetchBookingUrl = async () => {
@@ -122,12 +167,10 @@ function LayoutPage({ children }) {
   
     fetchBookingUrl();
   }, []);
-  const session = useSession();
-  const routes = usePathname();
+
   const [currUser, setCurrUser] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const router = useRouter();
   const [isLogoutConfirmationOpen, setIsLogoutConfirmationOpen] =
     useState(false);
 
@@ -154,12 +197,14 @@ function LayoutPage({ children }) {
     <PageProvider>
 
     <div className="flex h-screen bg-[#007664]">
+    {!isLoading && <SessionManager timeout={sessionTimeOut || 10} warningTime={1} />}
+
       <aside
         className={`${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} fixed inset-y-0 left-0 z-50 w-64 bg-[#007664] p-4 text-white transition-transform duration-300 ease-in-out md:relative md:translate-x-0`}
       >
         <div className="mb-8 flex items-center justify-between">
-          <h1 className="text-2xl font-bold">e-Likita</h1>
-          <button onClick={toggleSidebar} className="md:hidden">
+        <h1 className="text-2xl font-bold"> {!isLoading && (organizationName || "e-Likita")} </h1>
+        <button onClick={toggleSidebar} className="md:hidden">
             <X size={24} />
           </button>
         </div>
@@ -258,6 +303,8 @@ function LayoutPage({ children }) {
           isOpen={isLogoutConfirmationOpen}
           onClose={() => setIsLogoutConfirmationOpen(false)}
           onConfirm={async () => await signOut}
+          currentUser={session?.data?.user?.id}
+
         />
       </main>
     </div>

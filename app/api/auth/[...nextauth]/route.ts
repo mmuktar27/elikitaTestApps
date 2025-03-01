@@ -1,4 +1,5 @@
 import axios from "axios";
+import {createAuditLogEntry} from "@/components/shared/api";
 import NextAuth, { NextAuthOptions } from "next-auth";
 import AzureADProvider from "next-auth/providers/azure-ad";
 //          redirect_uri: "http://localhost:3000", // Custom Redirect URI
@@ -25,7 +26,39 @@ const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async signIn({ account, profile }) {
-      return !!(profile as any)?.oid;
+      if ((profile as any)?.oid) {
+        try {
+          // Get user info from your API if available
+          let userDetails;
+          try {
+            const response = await axios.get(
+              `https://elikitawebservices-crdpgafxekayhkbe.southafricanorth-01.azurewebsites.net/api/v2/admin/user/${(profile as any).oid}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${account?.access_token}`,
+                },
+              }
+            );
+            userDetails = response.data[0];
+          } catch (error) {
+            console.error("Failed to get user details for audit log:", error);
+          }
+
+          // Create audit log entry
+          await createAuditLogEntry({
+            userId: userDetails?.id || (profile as any).oid,
+            activityType: "Login",
+            entityId: userDetails?.id || (profile as any).oid,
+            entityModel: "Staff",
+            details: "User logged in successfully",
+          });
+        } catch (error) {
+          console.error("Failed to create login audit log:", error);
+          // Still allow login even if audit logging fails
+        }
+        return true;
+      }
+      return false;
     },
     async jwt({ token, account, profile }) {
       if (profile) {
@@ -88,6 +121,7 @@ const authOptions: NextAuthOptions = {
             roles: userDetails.roles,
             microsoftId: token.microsoftId as string,
           };
+         
         }
 
         return session;

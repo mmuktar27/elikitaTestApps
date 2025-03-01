@@ -1,8 +1,10 @@
 import axios from "axios";
 import { handleAddVisitHistory } from "../";
+import {createAuditLogEntry} from "./"
+
+
 //const API_URL = 'http://localhost:4000/api/v2/examination';
-const API_URL =
-  "https://elikitawebservices-crdpgafxekayhkbe.southafricanorth-01.azurewebsites.net/api/v2/examination";
+const API_URL = "https://elikitawebservices-crdpgafxekayhkbe.southafricanorth-01.azurewebsites.net/api/v2/examination";
 
 export const createExamination = async (data, onSubmit, onTabChange) => {
   try {
@@ -18,6 +20,20 @@ export const createExamination = async (data, onSubmit, onTabChange) => {
     const objectId = response.data?._id || response.data?.id; // Adjust based on API response structure
 
     if (objectId) {
+      const auditData = {
+        userId: data?.examinedBy,
+        activityType: "Examination Creation",
+        entityId: objectId,
+        entityModel: "Examination",
+        details: `Examination Added successfully`,
+      };
+  
+      try {
+        await createAuditLogEntry(auditData);
+        console.log("Audit log created successfully.");
+      } catch (auditError) {
+        console.error("Audit log failed:", auditError);
+      }
       await handleAddVisitHistory(data.patient, objectId, "Examination");
     } else {
       console.warn(
@@ -32,6 +48,21 @@ export const createExamination = async (data, onSubmit, onTabChange) => {
       "Error submitting examination:",
       error.response ? error.response.data : error.message,
     ); // Log error message
+
+    const auditData = {
+      userId: data?.examinedBy,
+      activityType: "Failed",
+      entityId: 123456789000000,
+      entityModel: "Examination",
+      details: `Failed to add Examination`,
+    };
+
+    try {
+      await createAuditLogEntry(auditData);
+      console.log("Audit log created successfully.");
+    } catch (auditError) {
+      console.error("Audit log failed:", auditError);
+    }
     onSubmit("error", "Failed to add examination");
   }
 };
@@ -55,7 +86,20 @@ export const updateExam = async (data, onSubmit, onTabChange) => {
         "Content-Type": "application/json",
       },
     });
+  const auditData = {
+      userId: updateData?.examinedBy,
+      activityType: "Examination Update",
+      entityId: examId,
+      entityModel: "Examination",
+      details: `Examination updated successfully`,
+    };
 
+    try {
+      await createAuditLogEntry(auditData);
+      console.log("Audit log created successfully.");
+    } catch (auditError) {
+      console.error("Audit log failed:", auditError);
+    }
     console.log("Examination updated successfully:", response.data);
 
     onSubmit("success", "Examination updated successfully");
@@ -65,6 +109,21 @@ export const updateExam = async (data, onSubmit, onTabChange) => {
       "Error updating examination:",
       error.response ? error.response.data : error.message,
     );
+
+    const auditData = {
+      userId: updateData?.examinedBy,
+      activityType: "Failed",
+      entityId: examId,
+      entityModel: "Examination",
+      details: `Failed to update Examination`,
+    };
+
+    try {
+      await createAuditLogEntry(auditData);
+      console.log("Audit log created successfully.");
+    } catch (auditError) {
+      console.error("Audit log failed:", auditError);
+    }
     onSubmit("error", "Failed to update examination");
   }
 };

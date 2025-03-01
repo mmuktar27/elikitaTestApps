@@ -1,5 +1,7 @@
 "use client";
 import React, { useState } from "react";
+import {  useEffect } from "react";
+
 import {
   CalendarCheck,
   Plus,
@@ -13,6 +15,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { format } from "date-fns";
+import { useSession } from "next-auth/react";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -54,6 +57,7 @@ const AppointmentsPage = () => {
   const { data: appointments, isLoading } = useGetAppointments();
   const updateAppointment = useUpdateAppointment();
   const deleteAppointment = useDeleteAppointment();
+  const session = useSession();
 
   const [isNewAppointmentOpen, setIsNewAppointmentOpen] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -63,6 +67,12 @@ const AppointmentsPage = () => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+
+const [currentUser, setcurrentUser]=useState(null)
+
+useEffect(() => {
+      setcurrentUser(session?.data?.user);
+}, [session?.data?.user]);
 
   const handleSort = (type) => {
     setSortType(type);
@@ -79,11 +89,31 @@ const AppointmentsPage = () => {
   };
 
   const handleDelete = async () => {
-    if (selectedAppointment) {
+    if (!selectedAppointment) return;
+  
+    try {
+      // Delete the appointment
       await deleteAppointment.mutateAsync(selectedAppointment._id);
+      console.log("Appointment deleted successfully.");
+  
+      // Audit log entry
+      const auditData = {
+        userId: currentUser?.id,
+        activityType: "Appointment Deletion",
+        entityId: selectedAppointment._id,
+        entityModel: "Appointment",
+        details: "Appointment deleted successfully",
+      };
+  
+      await createAuditLogEntry(auditData);
+      console.log("Audit log created successfully.");
+    } catch (error) {
+      console.error("Error during appointment deletion:", error);
+    } finally {
       setIsDeleteModalOpen(false);
     }
   };
+  
 
   const handleUpdateStatus = async (newStatus) => {
     if (selectedAppointment) {
@@ -466,6 +496,7 @@ const AppointmentsPage = () => {
         selectedAppointment={selectedAppointment}
         setSelectedAppointment={setSelectedAppointment}
         setShowSuccess={setShowSuccess}
+        currentUser={session?.data?.user?.id}
       />
 
       <SuccessDialog />
