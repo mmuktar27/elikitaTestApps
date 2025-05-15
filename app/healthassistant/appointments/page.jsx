@@ -1,8 +1,10 @@
 import React from "react";
-import DoctorAppointmentsTable from "../../../components/shared/doctor-appointments-table";
+import { AppointmentsPage } from "@/components/shared";
 
-const Patients = () => {
-  return <DoctorAppointmentsTable />;
+const Appointments = () => {
+  const currentDashboard="healthcare assistant"
+
+  return <AppointmentsPage  currentDashboard={currentDashboard}/>;
 };
 
-export default Patients;
+export default Appointments;

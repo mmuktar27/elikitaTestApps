@@ -1,21 +1,20 @@
 "use client";
-import React, { useState, useEffect, useMemo } from "react";
+import { useEffect, useState,useCallback  } from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Stethoscope, UserPlus } from "lucide-react";
-import HealthTips from "./HealthTips";
 import { useDoctorDashboard } from "@/hooks/dashboard.hook";
-import SkeletonCard from "../ui/skeletoncard";
+import { Activity, Stethoscope, UserPlus } from "lucide-react";
+import { HealthyTips, SurveyPopup } from "../shared";
 
-import {
-  getTotalUserConsultations,
-  fetchPendingConsultations,
-} from "../shared/api"; // Adjust the import path as needed
-import { fetchReferralsByConsultant } from "../shared/api";
 import { formatDistanceToNow } from 'date-fns';
-import {fetchDoctorRecenAlerts} from "../shared/api"
 import { useSession } from "next-auth/react";
-import {fetchPatients} from "../shared/api"
+import {
+  fetchDoctorRecenAlerts,
+  fetchPatients,
+  fetchPendingConsultations,
+  fetchReferralsByConsultant,
+  getTotalUserConsultations,getAllAppointments,
+} from "../shared/api"; // Adjust the import path as needed
 
 const activityTypeColors = { 
   'Patient Creation': 'bg-green-500',
@@ -28,7 +27,7 @@ const activityTypeColors = {
   'Diagnosis Creation': 'bg-cyan-500',
   'Patient Update': 'bg-yellow-500',
 };
-const Dashboard = ({currentDashboard}) => {
+const DoctorsDashboard = ({currentDashboard}) => {
   const { data, isLoading, isError, isSuccess } = useDoctorDashboard();
   const session = useSession();
   const [referrals, setReferrals] = useState([]);
@@ -38,7 +37,7 @@ const Dashboard = ({currentDashboard}) => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [patients, setPatients] = useState(null);
-
+  const [appointments, setAppointments] = useState(null);
 
   const [alerts, setAlerts] = useState([]);
 
@@ -54,6 +53,102 @@ const Dashboard = ({currentDashboard}) => {
 
     getAlerts();
   }, []);
+
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        const data = await getAllAppointments();
+        setAppointments(data); // Set fetched appointments first
+
+      } catch (error) {
+       // setError(error.message || "Failed to fetch appointments");
+       console.log(error.message)
+      } finally {
+       // setLoading(false);
+      }
+    };
+  
+    fetchAppointments();
+  }, []);
+
+
+
+const [appointmentAlert, setAppointmentAlert] = useState(null);
+const [appointmentInProgressAlert, setAppointmenInProgresstAlert] = useState(null);
+
+useEffect(() => {
+  // Check if appointments exists and has the expected structure
+  if (!appointments?.data || !Array.isArray(appointments.data)) {
+    setAppointmentAlert(null);
+    return;
+  }
+  
+  // Filter appointments with "scheduled" status (case-insensitive) and valid startDate
+  const scheduledAppointments = appointments.data.filter(
+    (appointment) =>
+      appointment?.status?.toLowerCase() === "scheduled" &&
+      appointment?.startDate &&
+      !isNaN(new Date(appointment.startDate).getTime())
+  );
+  
+  if (scheduledAppointments.length > 0) {
+    const now = new Date();
+    const sortedAppointments = scheduledAppointments.sort((a, b) => {
+      const dateA = new Date(a.startDate);
+      const dateB = new Date(b.startDate);
+      const isAUpcoming = dateA >= now;
+      const isBUpcoming = dateB >= now;
+      
+      // Prioritize upcoming appointments
+      if (!isAUpcoming && isBUpcoming) return 1;
+      if (isAUpcoming && !isBUpcoming) return -1;
+      
+      // If both are in future or both in past, sort by closest to now
+      return Math.abs(dateA.getTime() - now.getTime()) - Math.abs(dateB.getTime() - now.getTime());
+    });
+    
+    setAppointmentAlert(sortedAppointments[0]);
+  } else {
+    setAppointmentAlert(null);
+  }
+}, [appointments]);
+
+useEffect(() => {
+  // Check if appointments exists and has the expected structure
+  if (!appointments?.data || !Array.isArray(appointments.data)) {
+    setAppointmenInProgresstAlert(null);
+    return;
+  }
+
+  const now = new Date();
+
+  // Filter appointments with "Reviewed" status and valid time range
+  const reviewedAppointments = appointments.data.filter((appointment) => {
+    const start = new Date(appointment?.startDate);
+    const end = new Date(appointment?.endDate);
+    return (
+      ["Reviewed", "scheduled"].includes(appointment?.status?.toLowerCase()) &&
+      !isNaN(start.getTime()) &&
+      !isNaN(end.getTime()) &&
+      start <= now &&
+      end > now
+    );
+    
+  });
+
+  if (reviewedAppointments.length > 0) {
+    const sortedAppointments = reviewedAppointments.sort((a, b) => {
+      const dateA = new Date(a.startDate);
+      const dateB = new Date(b.startDate);
+      return dateA - dateB; // Sort from oldest to newest
+    });
+
+    setAppointmenInProgresstAlert(sortedAppointments);
+  } else {
+    setAppointmenInProgresstAlert(null);
+  }
+}, [appointments]);
+
 
   useEffect(() => {
     const getPatients = async () => {
@@ -132,15 +227,14 @@ const Dashboard = ({currentDashboard}) => {
   
     setPendingreferralCount(count);
   
-    console.log("Filtered Pending Referrals:", count);
+    //console.log("Filtered Pending Referrals:", count);
   
   }, [referrals, currentDashboard]); // Re-run when referrals or currentDashboard changes
   
 
-  console.log('referrals')
-  console.log(referrals)
 
-  const metrics = data?.data?.data;
+
+ // const metrics = data?.data?.data;
 
   const [totalFilteredConsultations, setTotalFilteredConsultations] = useState(0);
 
@@ -154,20 +248,200 @@ const Dashboard = ({currentDashboard}) => {
     const { medications = [], labTests = [], diagnoses = [], examinations = [] } = consultations;
   
     // Filtering each array based on the requestedByAccType / diagnosedByAccType / examinedByAccType
-    const filteredMedications = medications.filter(med => med.requestedByAccType === currentDashboard);
-    const filteredLabTests = labTests.filter(lab => lab.requestedByAccType === currentDashboard);
-    const filteredDiagnoses = diagnoses.filter(diag => diag.diagnosedByAccType === currentDashboard);
-    const filteredExaminations = examinations.filter(exam => exam.examinedByAccType === currentDashboard);
-  
-    // Calculate total filtered consultations
-    const totalFiltered = filteredMedications.length + filteredLabTests.length + filteredDiagnoses.length + filteredExaminations.length;
-    setTotalFilteredConsultations(totalFiltered);
+    const uniquePatients = new Set();
+
+    // Collect unique patient IDs from each category while filtering by account type
+    medications
+      .filter(med => med.requestedByAccType === currentDashboard)
+      .forEach(med => uniquePatients.add(med.patient));
+    
+    labTests
+      .filter(lab => lab.requestedByAccType === currentDashboard)
+      .forEach(lab => uniquePatients.add(lab.patient));
+    
+    diagnoses
+      .filter(diag => diag.diagnosedByAccType === currentDashboard)
+      .forEach(diag => uniquePatients.add(diag.patient));
+    
+    examinations
+      .filter(exam => exam.examinedByAccType === currentDashboard)
+      .forEach(exam => uniquePatients.add(exam.patient));
+    
+    // The size of the Set gives the number of unique patients (consultations)
+    setTotalFilteredConsultations(uniquePatients.size);
+       // setTotalFilteredConsultations(totalFiltered);
  
   
   }, [consultations, currentDashboard]);
 
  // console.log('pendindConsultations')
   //console.log(pendindConsultations.length)
+
+  const fetchUpcomingEvents = useCallback(async () => {
+    if (!session || !session.data?.user?.workEmail) {
+      console.error("No valid session or user email found");
+      return [];
+    }
+  
+    try {
+      const accessToken =
+        session.accessToken ||
+        session.user?.accessToken ||
+        session.data?.accessToken;
+  
+      if (!accessToken) {
+        throw new Error("Access token not found in session");
+      }
+  
+      const now = new Date().toISOString(); // Current date-time
+      const endDate = new Date();
+      endDate.setMonth(endDate.getMonth() + 3); // 3 months into the future
+      const end = endDate.toISOString();
+  
+      const response = await fetch(
+        `https://graph.microsoft.com/v1.0/me/calendarView?startDateTime=${now}&endDateTime=${end}&$select=subject,start,end,attendees`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+  
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Error fetching upcoming events: ${errorText}`);
+      }
+  
+      const data = await response.json();
+  
+      // Filter for future events where current user is an attendee
+      // and subject does not include "Cancelled"
+      const upcomingEvents = data.value.filter(event => {
+        const eventStart = new Date(event.start?.dateTime);
+        const isFuture = eventStart > new Date();
+        const isUserAttendee = event.attendees?.some(att =>
+          att.emailAddress?.address?.toLowerCase() === session.data.user.workEmail.toLowerCase()
+        );
+        const isNotCancelled = !event.subject.includes("Canceled:");
+  
+        return isFuture && isUserAttendee && isNotCancelled;
+      });
+  
+      console.log("Upcoming Events Count:", upcomingEvents.length);
+      return upcomingEvents;
+    } catch (err) {
+      console.error("Failed to fetch upcoming events:", err);
+      return [];
+    }
+  }, [session]);
+  
+  const [upcomingCount, setUpcomingCount] = useState(0);
+const [upcomingList, setUpcomingList] = useState([]);
+
+
+useEffect(() => {
+  const loadUpcomingEvents = async () => {
+    const events = await fetchUpcomingEvents();
+    setUpcomingCount(events.length);
+    setUpcomingList(events);
+  };
+
+  loadUpcomingEvents();
+}, [fetchUpcomingEvents]);
+
+const [eventAlert, setEventAlert] = useState(null);
+
+
+useEffect(() => {
+  if (upcomingList.length === 0) {
+    setEventAlert(null);
+    return;
+  }
+
+  const now = new Date();
+
+  // Sort by the closest start time
+  const sortedEvents = [...upcomingList].sort((a, b) => {
+    const aStart = new Date(a.start.dateTime);
+    const bStart = new Date(b.start.dateTime);
+    return aStart - bStart;
+  });
+
+  const closestEvent = sortedEvents.find(event => new Date(event.start.dateTime) > now);
+
+  if (closestEvent) {
+    const startDate = new Date(closestEvent.start.dateTime);
+
+    // Format: e.g. "Thursday, 12 PM"
+    const formattedTime = startDate.toLocaleString("en-US", {
+      weekday: "long",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+
+    setEventAlert({
+      subject: closestEvent.subject || "No Title",
+      time: formattedTime,
+    });
+  } else {
+    setEventAlert(null);
+  }
+}, [upcomingList]);
+
+
+
+  const [surveys, setSurveys] = useState([]);
+
+  useEffect(() => {
+    const loadSurveys = async () => {
+      if (!session?.data?.user?.id) return; // Ensure session exists before fetching
+  
+      try {
+        const data = await fetchEligibleSurveys('doctor', session.data.user.id);
+        setSurveys(data);
+      } catch (err) {
+        console.log('Failed to fetch surveys');
+      }
+    };
+  
+    loadSurveys();
+  }, [session?.data?.user?.id]);
+
+
+  const [activeSurvey, setActiveSurvey] = useState(null);
+  
+  useEffect(() => {
+    // Fetch active survey or set from props
+    const loadSurvey = () => {
+      if (!surveys || !Array.isArray(surveys) || surveys.length === 0) {
+        console.warn("No surveys available to set as active.");
+        return;
+      }
+  
+      const firstSurvey = surveys[0]; // Get the first survey from the list
+  
+      setActiveSurvey({
+        _id: firstSurvey._id,
+        title: firstSurvey.title,
+        questions: firstSurvey.questions?.map((q) => ({
+          id: q._id,
+          question: q.question,
+          type: q.type,
+          options: q.options || [],
+        })) || [],
+      });
+    };
+  
+    const timeout = setTimeout(loadSurvey, 1000); // Show survey after 1 second
+  
+    return () => clearTimeout(timeout); // Cleanup timeout on unmount or re-run
+  }, [surveys]);
+  
+
+
 
   const cardData = [
     {
@@ -237,8 +511,7 @@ const Dashboard = ({currentDashboard}) => {
     );
   }
 
-  console.log('alerts')
-  console.log(alerts)
+
 
   return (
     <div className="space-y-6">
@@ -270,12 +543,99 @@ const Dashboard = ({currentDashboard}) => {
      <CardContent>
        <div className="space-y-8">
          {error && <p>Error: {error}</p>}
+         {eventAlert && (
+    <div className="flex items-center rounded-md border border-blue-200 bg-blue-50 p-3 shadow-sm">
+      <span className="relative mr-2 flex size-3">
+        <span className="absolute inline-flex size-full animate-ping rounded-full bg-blue-400 opacity-75"></span>
+        <span className="relative inline-flex size-3 rounded-full bg-blue-600"></span>
+      </span>
+      <div className="ml-4 space-y-1">
+        <p className="text-sm font-semibold leading-none text-blue-900">
+          Upcoming Event
+        </p>
+        <p className="text-sm text-blue-800">
+          <strong>{eventAlert.subject}</strong> at <strong>{eventAlert.time}</strong>
+        </p>
+      </div>
+      <div className="ml-auto text-sm font-medium text-blue-700">⏰</div>
+    </div>
+  )}
+{appointmentAlert && new Date(appointmentAlert.startDate) > new Date() && (
+
+  <div className="flex items-center rounded-md border border-purple-200 bg-purple-50 p-3 shadow-sm">
+    <span className="relative mr-2 flex size-3">
+      <span className="absolute inline-flex size-full animate-ping rounded-full bg-purple-400 opacity-75"></span>
+      <span className="relative inline-flex size-3 rounded-full bg-purple-600"></span>
+    </span>
+    <div className="ml-4 space-y-1">
+      <p className="text-sm font-semibold leading-none text-purple-900">
+        Upcoming Appointment
+      </p>
+      <p className="text-sm text-purple-800">
+       <strong>Patient: </strong> <strong>{appointmentAlert?.patient?.firstName} {appointmentAlert?.patient?.lastName}</strong>
+      </p>
+      <p className="text-xs text-purple-700">
+      <strong> Appointment Type: </strong>{appointmentAlert?.appointmentType}  • <strong>Specialty Required:</strong> {appointmentAlert?.specialty}
+      </p>
+    </div>
+    <div className="ml-auto text-sm font-medium text-purple-700">
+      {new Date(appointmentAlert?.startDate).toLocaleString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric',
+        hour12: true, // This enables AM/PM format
+      })}
+    </div>
+  </div>
+)}
+
+{appointmentInProgressAlert?.length > 0 && appointmentInProgressAlert?.map((appointment, index) => (
+  <div 
+    key={appointment._id || index} 
+    className="mb-2 flex items-center rounded-md border border-red-200 bg-red-50 p-3 shadow-sm"
+  >
+    <span className="relative mr-2 flex size-3">
+      <span className="absolute inline-flex size-full animate-ping rounded-full bg-red-400 opacity-75"></span>
+      <span className="relative inline-flex size-3 rounded-full bg-red-600"></span>
+    </span>
+    <div className="ml-4 space-y-1">
+      <p className="text-sm font-semibold leading-none text-red-900">
+        Ongoing Appointment
+      </p>
+      <p className="text-sm text-red-800">
+        <strong>Patient:</strong> {appointment?.patient?.firstName} {appointment?.patient?.lastName}
+      </p>
+      <p className="text-xs text-red-700">
+        <strong>Appointment Type:</strong> {appointment?.appointmentType} • <strong>Specialty Required:</strong> {appointment?.specialty}
+      </p>
+    </div>
+    <div className="ml-auto text-right text-sm font-medium text-red-700">
+      {new Date(appointment?.startDate).toLocaleString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric',
+        hour12: true,
+      })}
+      <div className="text-xs text-red-500">(Ongoing)</div>
+    </div>
+  </div>
+))}
+
+
          {alerts
            .filter((alert) => {
              // Check for Referral Creation first
              if (
                alert.activityType === "Referral Creation" &&
-               alert.entityId?.referredTo === session.data.user.id &&
+               alert.entityId?.referredTo === session?.data?.user?.id &&
                alert.entityId?.referralType.toLowerCase().replace(/\s+/g, '') === currentDashboard.toLowerCase().replace(/\s+/g, '')
              ) {
                return true;
@@ -285,7 +645,7 @@ const Dashboard = ({currentDashboard}) => {
              if (
                alert.activityType === "Labtest Creation" &&
                alert.entityId?.requestedByAccType.toLowerCase().replace(/\s+/g, '') === currentDashboard.toLowerCase().replace(/\s+/g, '') &&
-               alert.entityId?.requestedBy === session.data.user.id
+               alert.entityId?.requestedBy === session?.data?.user?.id
              ) {
                return true;
              }
@@ -294,13 +654,13 @@ const Dashboard = ({currentDashboard}) => {
              if (
                alert.activityType === "Medication Creation" &&
                alert.entityId?.requestedByAccType.toLowerCase().replace(/\s+/g, '') === currentDashboard.toLowerCase().replace(/\s+/g, '') &&
-               alert.entityId?.requestedBy === session.data.user.id
+               alert.entityId?.requestedBy === session?.data?.user?.id
              ) {
                return true;
              }
              if (
                alert.activityType === "Referral Creation" &&
-               alert.entityId?.referredTo === session.data.user.id &&
+               alert.entityId?.referredTo === session?.data?.user?.id &&
                alert.entityId?.referralType.toLowerCase().replace(/\s+/g, '') === currentDashboard.toLowerCase().replace(/\s+/g, '')
              ) {
                return true;
@@ -309,7 +669,7 @@ const Dashboard = ({currentDashboard}) => {
              if (
                alert.activityType === "Diagnosis Creation" &&
                alert.entityId?.diagnosedByAccType.toLowerCase().replace(/\s+/g, '') === currentDashboard.toLowerCase().replace(/\s+/g, '') &&
-               alert.entityId?.diagnosedBy === session.data.user.id
+               alert.entityId?.diagnosedBy === session?.data?.user?.id
              ) {
                return true;
              }
@@ -318,7 +678,7 @@ const Dashboard = ({currentDashboard}) => {
              if (
                alert.activityType === "Examination Creation" &&
                alert.entityId?.examinedByAccType.toLowerCase().replace(/\s+/g, '') === currentDashboard.toLowerCase().replace(/\s+/g, '') &&
-               alert.entityId?.examinedBy === session.data.user.id
+               alert.entityId?.examinedBy === session?.data?.user?.id
              ) {
                return true;
              }
@@ -327,7 +687,7 @@ const Dashboard = ({currentDashboard}) => {
              return false;
            })
            .map((alert, index) => {
-             const patient = patients.find(p => p._id === alert.entityId?.patient);
+             const patient = patients?.find(p => p._id === alert?.entityId?.patient);
              const patientName = patient ? `${patient.firstName} ${patient.lastName}` : "Unknown Patient";
              let alertTitle = alert.activityType;
    
@@ -339,13 +699,13 @@ const Dashboard = ({currentDashboard}) => {
                alertMessage = `${patientName} has been  Referred`;
              } 
              else if (alert.activityType.toLowerCase().includes("medication")) {
-               alertMessage = `Medication dispensed for ${patientName} is Requested`;
+               alertMessage = `Medication dispensed for ${patientName}`;
              } else if (alert.activityType.toLowerCase().includes("diagnosis")) {
-               alertMessage = `Diagnosis recorded for ${patientName} is Diagnosed`;
+               alertMessage = `Diagnosis recorded for ${patientName}`;
              } else if (alert.activityType.toLowerCase().includes("examination")) {
-               alertMessage = `Examination conducted for ${patientName} is Examined`;
+               alertMessage = `Examination conducted for ${patientName}`;
              } else if (alert.activityType.toLowerCase().includes("labtest")) {
-               alertMessage = `Lab test requested for ${patientName} is Requested`;
+               alertMessage = `Lab test requested for ${patientName}`;
              }
    
              return (
@@ -381,13 +741,21 @@ const Dashboard = ({currentDashboard}) => {
        </div>
      </CardContent>
    </Card>
+   {activeSurvey?.questions?.length > 0 && (
+  <SurveyPopup 
+    survey={activeSurvey}
+    userId={user?.id}
+    onClose={() => setActiveSurvey(null)}
+    onSubmit={handleSubmitSurvey}
+  />
+)}
 
       {/* Health Tips Section */}
       <div className="fixed bottom-6 right-6 z-50">
-        <HealthTips />
+        <HealthyTips currentDashboard={currentDashboard}/>
       </div>
     </div>
   );
 };
 
-export default Dashboard;
+export default DoctorsDashboard;

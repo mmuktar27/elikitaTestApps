@@ -1,8 +1,8 @@
 import React from "react";
 import ReportAnalytics from "../../../components/admin/ReportAnalytics";
 
-const Page = () => {
+const Report = () => {
   return <ReportAnalytics />;
 };
 
-export default Page;
+export default Report;

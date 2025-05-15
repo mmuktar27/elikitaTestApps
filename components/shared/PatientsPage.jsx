@@ -1,49 +1,30 @@
-"use client";
-import React, { useState, useEffect, useMemo } from "react";
+'use client';
 import { useSession } from "next-auth/react";
+import { useEffect, useMemo, useState } from "react";
 // Lucide Icons
+import { useRouter } from "next/router";
 import {
-  CameraOff,
-  Check,
-  Edit,
-  Edit2,
-  Eye,
-  FileBarChart,
-  FileText,
-  Filter,
-  X as CloseIcon,
+  AlertCircle,
   Calendar,
-  Info,
-  Pill,
-  QrCode,
+  Check,
   CheckCircle,
+  X as CloseIcon,
+  Edit,
+  Eye,
+  Filter,
+  Info,
+  Loader2,
   Search,
-  Settings,
-  Speaker,
-  Stethoscope,
-  TestTube,
-  Thermometer,
   Trash2,
   User,
-  UserCog,
-  UserPlus,
-  Users,
-  Zap,
-  Send,
-  Copy,
-  Check as CheckIcon,
-  AlertCircle,
-  Globe,
-  Loader2,
-  Printer,
+  UserPlus
 } from "lucide-react";
 import { PatientDetailsView } from "../shared";
 
 // UI Components
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
 import {
   Table,
   TableBody,
@@ -52,37 +33,25 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogDescription,
+  DialogTitle
 } from "@/components/ui/dialog";
-import { updateReferral, fetchReferralsByConsultant } from "../shared/api";
+import { fetchReferralsByConsultant, updateReferral } from "../shared/api";
 
-import { getCurrentUser } from "../shared/api";
-import {createAuditLogEntry} from "../shared/api";
+import { createAuditLogEntry, getCurrentUser } from "../shared/api";
 
 import {
   createPatient,
-  updatePatient,
   deletePatient,
   fetchPatients,
+  updatePatient,
 } from "../shared/api";
 
-import { PatientFilter } from "../shared";
-import { usePage } from "../shared";
+import { PatientFilter, usePatientsPage } from "../shared";
 
 const StatusDialog = ({ isOpen, onClose, status, message }) => {
   const isSuccess = status === "success";
@@ -204,14 +173,13 @@ const PatientsForms = ({
       newErrors.maritalStatus = "Marital Status is required.";
     if (!formData.emergencyContact)
       newErrors.emergencyContact = "Emergency Contact is required.";
-    if (!formData.insuranceProvider)
-      newErrors.insuranceProvider = "Insurance Provider is required.";
+  
     if (!formData.patientReference)
       newErrors.patientReference = "Patient Reference is required.";
-    if (!formData.medicalCondition)
-      newErrors.medicalCondition = "Medical Condition is required.";
-    if (!formData.progress)
-      newErrors.progress = "Treatment Progress is required.";
+
+     if (!formData.progress) newErrors.progress = "Treatment progress is required.";
+    
+
     if (!formData.status) newErrors.status = "Patient Status is required.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -314,14 +282,26 @@ const PatientsForms = ({
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8 p-6" style={{ width: "65vw" }}>
-      <div className="grid grid-cols-1 gap-4 rounded-lg bg-white p-6 shadow-lg md:grid-cols-1">
-        <div className="flex flex-row items-center justify-between rounded-t-lg bg-teal-700 p-4 text-white">
-          <h2 className="text-2xl">
-            {form?.id ? "Update Patient" : "New Patient Entry"}
+
+<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+  <div className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto overflow-x-hidden rounded-lg bg-white shadow-2xl">
+    {/* Close Button */}
+    <button
+  onClick={onClose}
+  className="absolute right-4 top-4 text-gray-600 hover:text-teal-800"
+>
+  <CloseIcon size={20} className="stroke-gray-600 transition-colors hover:stroke-teal-800" />
+</button>
+
+
+    <div className="w-full space-y-8 p-4 sm:max-w-full md:p-6">
+      <div className="grid grid-cols-1 gap-4 p-4 md:p-6 ">
+        <div className="flex items-center justify-center rounded-t-lg bg-teal-700 p-4 text-white">
+          <h2 className="text-2xl">  {buttonText === "Update" ? "Update Patient Entry" : "New Patient Entry"}
           </h2>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
+
+        <form onSubmit={handleSubmit} className="w-full space-y-4">
           {/* Name and Gender */}
 
           <input type="hidden" name="addedBy" value={currentUser} />
@@ -492,7 +472,7 @@ const PatientsForms = ({
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <label className="block text-sm font-medium text-teal-700">
-                Treatment Progress
+                Treatment Progress <span className="text-red-500">*</span>
               </label>
               <select
                 name="progress"
@@ -514,7 +494,7 @@ const PatientsForms = ({
             </div>
             <div className="space-y-2">
               <label className="block text-sm font-medium text-teal-700">
-                Patient Status
+                Patient Status <span className="text-red-500">*</span>
               </label>
               <select
                 name="status"
@@ -545,9 +525,7 @@ const PatientsForms = ({
               className="w-full rounded-md border p-2 focus:ring-2 focus:ring-teal-500"
               placeholder="Describe patient's medical condition"
             />
-            {errors.medicalCondition && (
-              <p className="text-sm text-red-500">{errors.medicalCondition}</p>
-            )}
+          
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -566,15 +544,11 @@ const PatientsForms = ({
                 <option value="Hausa">Hausa</option>
                 <option value="Fulfulde">Fulfulde</option>
               </select>
-              {errors.preferredLanguage && (
-                <p className="text-sm text-red-500">
-                  {errors.preferredLanguage}
-                </p>
-              )}
+              
             </div>
             <div className="space-y-2">
               <label className="block text-sm font-medium text-teal-700">
-                Insurance Provider <span className="text-red-500">*</span>
+                Insurance Provider 
               </label>
               <input
                 type="text"
@@ -583,19 +557,15 @@ const PatientsForms = ({
                 onChange={handleInputChange}
                 className="w-full rounded-md border p-2 focus:ring-2 focus:ring-teal-500"
               />
-              {errors.insuranceProvider && (
-                <p className="text-sm text-red-500">
-                  {errors.insuranceProvider}
-                </p>
-              )}
+             
             </div>
 
             <div className="space-y-2">
               <label className="block text-sm font-medium text-teal-700">
-                Patient Reference <span className="text-red-500">*</span>
+               {/*  Patient Reference <span className="text-red-500">*</span> */}
               </label>
               <input
-                type="text"
+                type="hidden"
                 name="patientReference"
                 value={formData.patientReference}
                 onChange={handleInputChange}
@@ -632,11 +602,12 @@ const PatientsForms = ({
           </div>
         </form>
       </div>
-    </div>
+      </div>   </div>   </div>
   );
 };
 
 const Patients = ({ currentDashboard }) => {
+
   const [currentUser, setCurrentUser] = useState(null);
   const [currentUserRole, setCurrentUserRole] = useState(currentDashboard);
   const [referralData, setReferralData] = useState(null);
@@ -744,17 +715,19 @@ const Patients = ({ currentDashboard }) => {
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
+      if (!session?.data?.user?.microsoftId) return; // Avoid running if ID is missing
+  
       try {
-        const user = await getCurrentUser(session?.data?.user?.microsoftId);
+        const user = await getCurrentUser(session.data.user.microsoftId);
         setCurrentUser(user);
       } catch (error) {
         console.error("Failed to fetch user data");
       }
     };
-
+  
     fetchCurrentUser();
-    //console.log(currentUser)
   }, [session?.data?.user?.microsoftId]);
+  
 
   useEffect(() => {
     const checkScreenWidth = () => setIsMobile(window.innerWidth < 400);
@@ -809,6 +782,8 @@ const Patients = ({ currentDashboard }) => {
   }, [triggerRefresh]);
   */
 
+
+
   useEffect(() => {
     let isMounted = true;
 
@@ -818,27 +793,20 @@ const Patients = ({ currentDashboard }) => {
 
         // If manual trigger is true and it's remote doctor dashboard
         if (triggerRefresh && currentDashboard === "remote doctor") {
-          console.log("Fetching referrals for consultant:");
-          console.log(session?.data?.user);
+        //  console.log("Fetching referrals for consultant:");
+         // console.log(session?.data?.user);
 
           const data = await fetchReferralsByConsultant(
             session?.data?.user?.id,
           );
-          console.log("API Response:", data);
-          console.log("Full response:", data);
-          console.log("data.data:", data?.data);
-          console.log("data.data.referrals:", data?.data?.referrals);
-          console.log(
-            "data.data.referrals.patient:",
-            data?.data?.referrals?.patient,
-          );
+         
+         
           if (isMounted) {
             const patientList = data?.data?.referrals
               .filter((referral) => referral.referralType === "remotedoctor") // Filter for remotedoctor referrals
               .map((referral) => referral.patient)
               .filter((patient) => patient !== null);
-            console.log("patientList");
-            console.log(patientList);
+        
             setReferralData(data?.data?.referrals);
             setPatients(patientList);
             setTriggerRefresh(false); // Reset trigger after fetch
@@ -891,14 +859,17 @@ const Patients = ({ currentDashboard }) => {
       console.log("Cleanup: Component unmounted, fetch aborted.");
     };
   }, [currentDashboard, session?.data?.user, triggerRefresh]);
+  
   const Refresh = () => {
     setTriggerRefresh(true);
   };
 
 
   //const [activepage, setIsactivepage] = useState("patient");
+  const { activePatientsPage, setActivePatientsPage } = usePatientsPage();
 
-  const { activepage, setIsactivepage } = usePage();
+  //const { activepage, setIsactivepage } = usePage();
+
 
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -926,7 +897,11 @@ const Patients = ({ currentDashboard }) => {
     emergencyContact: "",
     insuranceProvider: "",
   };
+  const [isClient, setIsClient] = useState(false);
 
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
   useEffect(() => {
     let isMounted = true;
 
@@ -935,20 +910,12 @@ const Patients = ({ currentDashboard }) => {
         setIsLoading(true);
 
         if (currentDashboard === "remote doctor") {
-          console.log("Fetching referrals for consultant:");
-          console.log(session?.data?.user);
+      
 
           const data = await fetchReferralsByConsultant(
             session?.data?.user?.id,
           );
-          console.log("API Response:", data);
-          console.log("Full response:", data);
-          console.log("data.data:", data?.data);
-          console.log("data.data.referrals:", data?.data?.referrals);
-          console.log(
-            "data.data.referrals.patient:",
-            data?.data?.referrals?.patient,
-          );
+       
 
           if (isMounted) {
             const uniqueTypes = [
@@ -1006,10 +973,30 @@ const Patients = ({ currentDashboard }) => {
     setNewPatient(emptyPatient);
   };
 
+
+
+
+  useEffect(() => {
+    if (selectedPatient) {
+      localStorage.setItem('selectedPatient', JSON.stringify(selectedPatient));
+    }
+  }, [selectedPatient]);
+  
+  useEffect(() => {
+    const savedPatient = localStorage.getItem('selectedPatient');
+    if (savedPatient) {
+      setSelectedPatient(JSON.parse(savedPatient));
+    }
+  }, []);
+  
+
+
+
+
   const viewReferral = (referredPatient) => {
     // Find the referral that matches the referred patient's ID
     const matchedReferral = referralData.find(
-      (ref) => ref.patient._id === referredPatient._id,
+      (ref) => ref?.patient?._id === referredPatient?._id,
     );
 
     if (matchedReferral) {
@@ -1079,7 +1066,7 @@ const Patients = ({ currentDashboard }) => {
     const result = await updateReferralIfPending(referral);
 
     if (result && !result.error) {
-      setIsactivepage("patientdetails");
+      setActivePatientsPage("patientdetails");
     } else {
       setStatusDialog({
         isOpen: true,
@@ -1091,11 +1078,11 @@ const Patients = ({ currentDashboard }) => {
 
   const viewDetails = (patient) => {
     setSelectedPatient(patient);
-    console.log(selectedPatient);
-    setIsactivepage("patientdetails");
+    //console.log(selectedPatient);
+    setActivePatientsPage("patientdetails");
   };
   const CloseviewDetails = () => {
-    setIsactivepage("patient");
+    setActivePatientsPage("patient");
   };
   const handleSuccessClose = () => {
     setShowSuccess(false);
@@ -1140,11 +1127,15 @@ const Patients = ({ currentDashboard }) => {
           : "Action failed"),
     });
   };
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const confirmDelete = async (itemid) => {
     if (!itemid) {
-      ConfirmationDialog("error", "Invalid ID.");
+      confirmationDialog("error", "Invalid ID.");
       return;
     }
+  
+    setIsDeleting(true); // Start loading
   
     try {
       const response = await deletePatient(itemid);
@@ -1154,9 +1145,8 @@ const Patients = ({ currentDashboard }) => {
       }
   
       confirmationDialog("success", "Patient deleted successfully!");
-      Refresh();
   
-      // Audit log entry for deletion
+      // Audit log for success
       const auditData = {
         userId: User.id,
         activityType: "Patient Archive",
@@ -1171,31 +1161,36 @@ const Patients = ({ currentDashboard }) => {
       } catch (auditError) {
         console.error("Audit log failed:", auditError);
       }
+  
+      // Only redirect on success
+      setIsDeleting(false);
+      setIsDeleteOpen(false);
+      window.location.href = "/healthadmin/patients";
+  
     } catch (error) {
-      confirmationDialog(
-        "error",
-        `Failed to delete patient: ${error.message}`
-      );
-
+      confirmationDialog("error", `Failed to delete patient: ${error.message}`);
+      setIsDeleting(false);
+  
+      // Audit log for failure
       const auditData = {
         userId: User.id,
         activityType: "Failed",
         entityId: itemid,
         entityModel: "Patient",
-        details: `Failed to Delete Patients`,
+        details: `Failed to Delete Patient`,
       };
   
       try {
         await createAuditLogEntry(auditData);
-        console.log("Audit log response: Patient deletion logged.");
+        console.log("Audit log response: Patient deletion failure logged.");
       } catch (auditError) {
         console.error("Audit log failed:", auditError);
       }
+  
       console.error("Error deleting Patient:", error);
-    } finally {
-      setIsDeleteOpen(false);
     }
   };
+  
   
 
   const startEdit = (patient) => {
@@ -1239,7 +1234,7 @@ const Patients = ({ currentDashboard }) => {
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
         <div className="rounded bg-white p-6 shadow-md">
           <h2 className="text-lg font-bold">Confirm Deletion</h2>
-          <p className="mt-2">Are you sure you want to delete this item?</p>
+          <p className="mt-2">Are you sure you want to remove this Patient?</p>
           <div className="mt-4 flex justify-end space-x-4">
             <button
               className="rounded bg-teal-700 px-4 py-2 text-white hover:bg-teal-800"
@@ -1248,11 +1243,15 @@ const Patients = ({ currentDashboard }) => {
               Cancel
             </button>
             <button
-              className="rounded bg-red-700 px-4 py-2 text-white hover:bg-red-800"
-              onClick={() => onConfirm(item)}
-            >
-              Delete
-            </button>
+  className={`rounded px-4 py-2 text-white ${
+    isDeleting ? "bg-red-400 cursor-not-allowed" : "bg-red-700 hover:bg-red-800"
+  }`}
+  onClick={() => onConfirm(item)}
+  disabled={isDeleting}
+>
+  {isDeleting ? "Removing..." : "Remove"}
+</button>
+
           </div>
         </div>
       </div>
@@ -1281,7 +1280,36 @@ const Patients = ({ currentDashboard }) => {
     setNewPatState({ isOpen: false, patientData: null });
   };
 
-  const filteredPatients = useMemo(() => {
+
+
+  const SuccessModal = ({ isOpen, onClose, isUpdate }) => (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
+        <div className="flex flex-col items-center justify-center space-y-4 py-6">
+          <div className="rounded-full bg-green-100 p-3">
+            <Check className="size-6 text-green-600" />
+          </div>
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl">Success!</DialogTitle>
+          </DialogHeader>
+          <p className="text-center text-gray-500">
+            Patient information has been successfully{" "}
+            {isUpdate ? "updated" : "added"}.
+          </p>
+          <Button
+            onClick={onClose}
+            className="min-w-[100px] bg-green-600 text-white hover:bg-green-700"
+          >
+            Close
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
+
+  
+    const filteredPatients = useMemo(() => {
     if (!patients) return []; // Guard clause for when patients is undefined
 
     return patients.filter((patient) => {
@@ -1328,49 +1356,30 @@ const Patients = ({ currentDashboard }) => {
     });
   }, [patients, searchTerm, activeFilters]);
 
-  const SuccessModal = ({ isOpen, onClose, isUpdate }) => (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <div className="flex flex-col items-center justify-center space-y-4 py-6">
-          <div className="rounded-full bg-green-100 p-3">
-            <Check className="size-6 text-green-600" />
-          </div>
-          <DialogHeader>
-            <DialogTitle className="text-center text-xl">Success!</DialogTitle>
-          </DialogHeader>
-          <p className="text-center text-gray-500">
-            Patient information has been successfully{" "}
-            {isUpdate ? "updated" : "added"}.
-          </p>
-          <Button
-            onClick={onClose}
-            className="min-w-[100px] bg-green-600 text-white hover:bg-green-700"
-          >
-            Close
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 10;
+
+
   useEffect(() => {
     setTotalPages(Math.ceil(filteredPatients.length / itemsPerPage));
-
+  
     // Reset to first page when filters change to avoid empty pages
     if (currentPage > Math.ceil(filteredPatients.length / itemsPerPage)) {
       setCurrentPage(1);
     }
   }, [currentPage, filteredPatients, itemsPerPage]);
-
+  
   // Calculate paginated patients
   const paginatedPatients = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     return filteredPatients.slice(startIndex, endIndex);
   }, [filteredPatients, currentPage, itemsPerPage]);
+  
+
+  
 
   return (
     <div className="space-y-4">
@@ -1382,7 +1391,7 @@ const Patients = ({ currentDashboard }) => {
       />
 
       {/* Conditionally Render Patient Views */}
-      {activepage === "patientdetails" && selectedPatient && (
+      {activePatientsPage === "patientdetails" && selectedPatient && (
         <PatientDetailsView
           patient={selectedPatient}
           onClose={() => setIsDetailsViewOpen(false)}
@@ -1392,9 +1401,8 @@ const Patients = ({ currentDashboard }) => {
         />
       )}
 
-      {activepage === "patient" && (
-        <>
-          {isLoading ? (
+{activePatientsPage === "patient"  && isClient &&<>{isLoading ? (
+
             <LoadingSkeleton />
           ) : (
             <Card
@@ -1445,52 +1453,40 @@ const Patients = ({ currentDashboard }) => {
                     onApplyFilter={setActiveFilters}
                   />
                   {/* New Patient Button */}
-                  <Dialog
-                    open={newPatState.isOpen}
-                    onOpenChange={(isOpen) => !isOpen && handleDialogClose()}
-                  >
-                    <DialogTrigger asChild>
-                      {currentDashboard === "healthcare admin" &&
-                        session?.data?.user?.roles?.includes(
-                          "healthcare admin",
-                        ) && (
-                          <Button
-                            className="w-full bg-[#007664] hover:bg-[#007664]/80 sm:w-auto"
-                            onClick={handleNewPatient}
-                          >
-                            <UserPlus className="mr-2 size-4" />
-                            New Patient
-                          </Button>
-                        )}
-                    </DialogTrigger>
-                    <DialogContent className="max-h-[90vh] max-w-full overflow-y-auto sm:max-w-5xl">
-                      <DialogHeader>
-                        <DialogTitle>
-                          <div className="mb-0 text-center">
-                            <h2 className="bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-3xl font-bold text-transparent">
-                              New Patient
-                            </h2>
-                          </div>
-                        </DialogTitle>
-                      </DialogHeader>
-                      {/* Patients form component */}
-                      <PatientsForms
-                        form={newPatState.patientData}
-                        onClose={handleDialogClose}
-                        onSubmit={(status, message) =>
-                          handleAddNewPatientDialog(status, message)
-                        }
-                        buttonText="Submit"
-                        currentUser={session?.data?.user?.id}
-                      />
-                    </DialogContent>
-                  </Dialog>
+                  {newPatState.isOpen && (
+ 
+<>
+      {/* Patients form component */}
+      <PatientsForms
+        form={newPatState.patientData}
+        onClose={handleDialogClose}
+        onSubmit={(status, message) =>
+          handleAddNewPatientDialog(status, message)
+        }
+        buttonText="Submit"
+        currentUser={session?.data?.user?.id}
+      />
+   </>
+)}
+{currentDashboard === "healthcare admin" &&
+  session?.data?.user?.roles?.includes("healthcare admin") && (
+    <Button
+      className="w-full bg-[#007664] hover:bg-[#007664]/80 sm:w-auto"
+      onClick={handleNewPatient}
+    >
+      <UserPlus className="mr-2 size-4" />
+      New Patient
+    </Button>
+  )}
+{/* New Patient Button */}
+
+
                 </div>
               </CardHeader>
 
               <CardContent>
                 <div className="overflow-x-auto">
-                  <Table>
+                <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead className="bg-[#007664] text-white">
@@ -1516,9 +1512,20 @@ const Patients = ({ currentDashboard }) => {
                         </TableHead>
                       </TableRow>
                     </TableHeader>
+                  
                     <TableBody>
-                      {paginatedPatients.length > 0 ? (
-                        paginatedPatients.map((patient) => (
+                    {typeof window === "undefined" ? (
+  <TableRow>
+    <TableCell colSpan={7} className="text-center text-gray-500">
+      Loading...
+    </TableCell>
+  </TableRow>
+) : (
+                 
+                    paginatedPatients.length > 0 ? (
+  [...paginatedPatients]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // Sort descending
+    .map((patient) => (
                           <TableRow
                             key={patient.patientReference}
                             className="transition-colors duration-200 hover:bg-green-50"
@@ -1546,48 +1553,20 @@ const Patients = ({ currentDashboard }) => {
                             <TableCell>{patient.progress}</TableCell>
                             <TableCell>
                               <div className="flex space-x-2">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="text-blue-600 hover:text-blue-700"
-                                  onClick={() =>
-                                    currentDashboard === "remote doctor"
-                                      ? viewReferral(patient)
-                                      : viewDetails(patient)
-                                  }
-                                >
-                                  <Eye className="size-4" />
-                                </Button>
-
-                                <Dialog
-                                  open={editPatState.isOpen}
-                                  onOpenChange={(isOpen) =>
-                                    !isOpen && handleDialogClose()
-                                  }
-                                >
-                                  <DialogTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="text-[#007664] hover:text-[#007664]/80"
-                                      onClick={() => startEdit(patient)}
-                                    >
-                                      <Edit className="size-4" />
-                                    </Button>
-                                  </DialogTrigger>
-
-                                  <DialogContent className="max-h-[90vh] max-w-full overflow-y-auto sm:max-w-5xl">
-                                    <DialogHeader>
-                                      <DialogTitle>
-                                        <div className="mb-0 text-center">
-                                          <h2 className="bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-3xl font-bold text-transparent">
-                                            {editPatState.patientData?._id
-                                              ? "Edit Patient"
-                                              : "New Patient"}
-                                          </h2>
-                                        </div>
-                                      </DialogTitle>
-                                    </DialogHeader>
+                              {currentDashboard !== "healthcare admin" &&(
+                              
+  <Button 
+    variant="ghost" 
+    size="icon" 
+    className="text-blue-600 hover:text-blue-700" 
+    onClick={() => currentDashboard === "remote doctor" ? viewReferral(patient) : viewDetails(patient)}
+  >
+    <Eye className="size-4" />
+  </Button>
+)}
+              { editPatState.isOpen && (
+                            
+                                
 
                                     <PatientsForms
                                       form={editPatState.patientData}
@@ -1601,12 +1580,18 @@ const Patients = ({ currentDashboard }) => {
                                       buttonText="Update"
                                       currentUser={session?.data?.user?.id}
                                     />
-                                  </DialogContent>
-                                </Dialog>
+                         
+                                    )}
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="text-[#007664] hover:text-[#007664]/80"
+                                      onClick={() => startEdit(patient)}
+                                    >
+                                      <Edit className="size-4" />
+                                    </Button>
                                 {currentDashboard === "healthcare admin" &&
-                                  session?.data?.user?.roles?.includes(
-                                    "healthcare admin",
-                                  ) && (
+                                 (
                                     <Button
                                       variant="ghost"
                                       size="icon"
@@ -1629,8 +1614,11 @@ const Patients = ({ currentDashboard }) => {
                             No data found
                           </TableCell>
                         </TableRow>
-                      )}
+                    )
+                  )}
+                  
                     </TableBody>
+                
                   </Table>
 
                   {isReferralModalOpen && (
@@ -1792,9 +1780,8 @@ const Patients = ({ currentDashboard }) => {
                 </div>
               </CardContent>
             </Card>
-          )}
-        </>
-      )}
+          )}</>}
+
 
       <StatusDialog
         isOpen={statusDialog.isOpen}

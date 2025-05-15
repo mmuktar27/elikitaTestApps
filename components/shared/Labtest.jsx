@@ -1,92 +1,23 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import React, { useState } from "react";
 
 // Lucide Icons
 import {
-  ChevronLeft,
-  RefreshCw,
-  AlertCircle,
-  RotateCcw,
-  Check,
-  Loader2,
-  Bot,
-  Lock,
-  OxygenIcon,
-  LungsIcon,
-  ChevronRight,
-  VolumeIcon,
-  Beaker,
   Activity,
-  Heart,
-  FlaskConical,
-  Camera,
-  LightbulbOff,
-  Brain,
-  Sparkles,
-  Lightbulb,
-  MinusCircle,
-  PlusCircle,
-  Plus,
   ChevronDown,
-  Clipboard,
-  ClockIcon,
-  Database,
-  Edit,
-  Edit2,
-  Eye,
-  FileBarChart,
-  FileText,
-  Filter,
-  Home,
-  Info,
-  Layers,
-  LogOut,
-  Mail,
-  MapPin,
-  Mic,
-  MicOff,
-  Phone,
-  Pill,
-  QrCode,
-  Search,
-  Settings,
-  Speaker,
-  Stethoscope,
-  TestTube,
-  Thermometer,
-  Trash2,
-  User,
-  UserCog,
-  UserPlus,
-  Users,
-  Printer,
+  ChevronLeft,
+  ChevronRight,
   ChevronUp,
-  TrendingUp,
-  X,
+  Edit,
+  Lightbulb,
+  Loader2,
+  Plus,ClipboardList ,
+  RefreshCw
 } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
 
 import { Button } from "@/components/ui/button";
-
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Card,
   CardContent,
@@ -94,14 +25,20 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
 
-import { updateLabtestData, createLabtest } from "../shared/api";
+
+
+import { createLabtest, updateLabtestData } from "../shared/api";
 // Charts
 
 // Third-party Modal
-import Modal from "react-modal";
 import { motion } from "framer-motion";
-import axios from "axios";
 
 export function NewLabTestForm({
   onTabChange,
@@ -111,6 +48,7 @@ export function NewLabTestForm({
   buttonText,
   labTests,
   currentDashboard,
+  onClose,
 }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [formData, setFormData] = useState(initialLabtest || {});
@@ -284,6 +222,13 @@ export function NewLabTestForm({
           : selection,
       ),
     );
+
+    if (test) {
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        testsRequested: undefined,
+      }));
+    }
   };
 
   const handleOtherTestChange = (id, value) => {
@@ -361,7 +306,9 @@ export function NewLabTestForm({
           </CardHeader>
           <CardContent className="p-6">
             <div className="space-y-4">
-              {labTests
+             
+            {labTests && labTests.length > 0 ? (
+              labTests
                 .sort((a, b) => new Date(b.date) - new Date(a.date)) // Sort by most recent date
                 .slice(0, 4) // Limit to the most recent 5 tests
                 .map((test) => (
@@ -456,7 +403,12 @@ export function NewLabTestForm({
                       </div>
                     )}
                   </div>
-                ))}
+                 ))
+                ) : (
+                  <p className="text-sm text-gray-500">
+                    No record found.
+                  </p>
+                )}
             </div>
           </CardContent>
         </Card>
@@ -508,11 +460,7 @@ export function NewLabTestForm({
       newErrors.testsRequested = "At least one test must be selected.";
     }
 
-    // Validate Additional Notes (must not be empty)
-    if (!labtestFormData?.additionalNotes?.trim()) {
-      newErrors.additionalNotes = "Additional Notes are required.";
-    }
-
+   
     // Validate Requested By (must not be empty)
 
     // Debugging output
@@ -603,6 +551,8 @@ export function NewLabTestForm({
     const handleChange = (e) => {
       const { name, value, type, checked } = e.target;
 
+   
+    
       if (type === "checkbox") {
         if (name === "specimenType") {
           setlabtestFormData((prev) => ({
@@ -612,34 +562,43 @@ export function NewLabTestForm({
               : prev.specimenType.filter((type) => type !== value),
           }));
         }
+
+   
+        
+     
       } else {
         setlabtestFormData((prev) => ({
           ...prev,
           [name]: value,
         }));
       }
+
+
+      if (name === "priority" && value.trim() !== "") {
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          priority: undefined,
+        }));
+      }
     };
 
     return (
-      <div
-        className="mx-auto max-w-4xl space-y-8 p-2"
-        style={{ width: "65vw" }}
-      >
-        <div className=" bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-4xl">
-            <div className="mb-3 rounded-t-lg bg-teal-700 text-center text-white">
-              <h1 className="rounded-t-lg bg-teal-700 text-2xl text-white">
-                Laboratory Test Request
-              </h1>
-              <p className="text-white ">
-                Select the required diagnostic tests for the patient
-              </p>
+<div className="mx-auto mt-0 w-full max-w-5xl p-2">
+
+        <div className="grid grid-cols-1 gap-4 bg-white shadow-lg md:grid-cols-1">
+  
+      <CardHeader className="rounded-t-lg bg-teal-700 text-center text-2xl font-bold text-white">
+                  <div className="w-full text-center">
+              <CardTitle className="text-2xl">
+              {buttonText === "Update" ? "Update Labtest Entry" : "New Labtest Entry"}
+              </CardTitle>
             </div>
+          </CardHeader>
             <div className="flex justify-end">
               {!isAIEnabled ? (
                 <Button
-                  onClick={handleAIComplete}
-                  className="inline-flex items-end gap-2 rounded-md bg-gradient-to-r from-[#007664] to-[#75C05B] px-6 py-2 text-white transition-colors duration-200 hover:from-[#006054] hover:to-[#63a34d]"
+                  //onClick={handleAIComplete}
+                  className="mx-2 inline-flex items-end gap-2 rounded-md bg-gradient-to-r from-[#007664] to-[#75C05B] px-6 py-2 text-white transition-colors duration-200 hover:from-[#006054] hover:to-[#63a34d]"
                 >
                   <Lightbulb className="size-5" />
                   Complete with AI
@@ -665,7 +624,7 @@ export function NewLabTestForm({
             </div>
             <div className="rounded-lg bg-white p-8 shadow-lg">
               {/* Lab Test Information Section */}
-              <div className="space-y-8">
+              <div className="space-y-4">
                 <div>
                   <h2 className="mb-6 border-b pb-2 text-2xl font-semibold text-gray-800">
                     Lab Test Information
@@ -674,7 +633,7 @@ export function NewLabTestForm({
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div className="space-y-2">
                       <label className="block text-sm font-medium text-gray-700">
-                        Priority
+                        Priority <span className="text-red-500">*</span>
                       </label>
                       <div className="flex space-x-4">
                         {["Routine", "Urgent", "STAT"].map((priority) => (
@@ -709,7 +668,7 @@ export function NewLabTestForm({
                 {/* Test Selection Section */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium text-gray-800">
-                    Test(s) Requested
+                    Test(s) Requested <span className="text-red-500">*</span>
                   </h3>
                   <div className="w-full space-y-4">
                     {testSelections.map((selection) => (
@@ -798,7 +757,7 @@ export function NewLabTestForm({
                       </button>
                     )}
                   </div>
-                  {errors.priority && (
+                  {errors.testsRequested  && (
                     <p className="text-sm text-red-500">
                       {errors.testsRequested}
                     </p>
@@ -831,7 +790,7 @@ export function NewLabTestForm({
             </div>
           </div>
         </div>
-      </div>
+ 
     );
   };
 
@@ -845,6 +804,79 @@ export function NewLabTestForm({
     }
   };
 
+
+
+  function filterFormData(formData) {
+    // Handle null or undefined input
+    if (formData === null || formData === undefined) {
+      return {};
+    }
+    
+    // Handle non-object inputs
+    if (typeof formData !== 'object') {
+      return formData;
+    }
+    
+    // Handle arrays
+    if (Array.isArray(formData)) {
+      const filteredArray = formData
+        .map(item => filterFormData(item)) // Recursively filter each item
+        .filter(item => {
+          // Remove empty objects, arrays, null, undefined, or empty strings
+          if (item === null || item === undefined || item === '') {
+            return false;
+          }
+          
+          if (Array.isArray(item) && item.length === 0) {
+            return false;
+          }
+          
+          if (typeof item === 'object' && !Array.isArray(item) && Object.keys(item).length === 0) {
+            return false;
+          }
+          
+          return true;
+        });
+      
+      // Only return the array if it has content
+      return filteredArray.length > 0 ? filteredArray : undefined;
+    }
+    
+    // Handle objects
+    const result = {};
+    let hasValidProperties = false;
+    
+    for (const key in formData) {
+      if (Object.prototype.hasOwnProperty.call(formData, key)) {
+        const value = formData[key];
+        
+        // Recursively filter the value
+        const filteredValue = filterFormData(value);
+        
+        // Skip null, undefined, empty strings
+        if (filteredValue === null || filteredValue === undefined || filteredValue === '') {
+          continue;
+        }
+        
+        // Skip empty arrays
+        if (Array.isArray(filteredValue) && filteredValue.length === 0) {
+          continue;
+        }
+        
+        // Skip empty objects
+        if (typeof filteredValue === 'object' && !Array.isArray(filteredValue) && Object.keys(filteredValue).length === 0) {
+          continue;
+        }
+        
+        // Add valid values to result
+        result[key] = filteredValue;
+        hasValidProperties = true;
+      }
+    }
+    
+    // Only return the object if it has valid properties
+    return hasValidProperties ? result : undefined;
+  }
   const handleSubmit = async () => {
     if (!buttonText) return;
 
@@ -870,22 +902,31 @@ export function NewLabTestForm({
           currentDashboard,
         );
       } else if (buttonText === "Update") {
+        
+        const filtered = filterFormData(mergeLabTestData(labtestFormData, testSelections));
+
+        
         await updateLabtestData(
-          mergeLabTestData(labtestFormData, testSelections),
+          filtered,
           resetForm,
           onTabChange,
           onSubmit,
+          onClose,
         );
+
+
       }
     } catch (error) {
-      console.error("Error submitting lab test data:", error);
+      console.error("Error submitting lab test :", error);
     } finally {
       setIsLoading(false); // Ensure loading state resets after operation
     }
   };
 
   const handleSubmitClick = async () => {
-    const isValid = validateLabTestForm();
+    const isValid = buttonText === "Update" ? true : validateLabTestForm();
+
+
     console.log("Validation Result:", isValid);
 
     if (!isValid) return;
@@ -900,8 +941,8 @@ export function NewLabTestForm({
 
   return (
     <>
-      <div className="mx-auto flex min-h-screen max-w-6xl flex-col p-6">
-        {/* Page number circles at the top */}
+    <div className="mx-auto !mt-0 flex size-full min-h-[500px] max-w-full flex-col justify-between px-4 sm:px-6 md:px-8">
+    {/* Page number circles at the top */}
         <div className="mb-0 flex justify-center gap-2">
           {Array.from({ length: pages.length }, (_, i) => i + 1).map(
             (pageNum) => (
@@ -926,15 +967,12 @@ export function NewLabTestForm({
         </div>
 
         {/* Content area */}
-        <div className="mb-1 flex-1 overflow-auto">
-          {" "}
-          {/* This makes the content take the available space */}
-          {pages[currentPage - 1]()}
-        </div>
+        <div className="w-full grow">{pages[currentPage - 1]()}</div>
+
 
         {/* Navigation footer */}
-        <div className="border-t bg-white shadow-lg">
-          <div className="mx-auto max-w-6xl px-6 py-4">
+        <div className="mt-auto w-full border-t bg-white">
+        <div className="mx-auto w-full max-w-full p-4 sm:px-6 md:px-8">
             <div className="flex items-center justify-between">
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
@@ -1031,9 +1069,10 @@ export function ViewLabTest({ labtest, isOpen, onClose }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto bg-[#F7F7F7] p-0">
-        <DialogHeader className="rounded-t-lg bg-[#007664] p-6 text-white">
-          <DialogTitle className="text-2xl font-bold">
+  <DialogContent className="max-h-[90vh] w-[90%] overflow-y-auto bg-[#F7F7F7] p-0 sm:max-w-4xl">
+        <DialogHeader className="bg-gradient-to-r from-teal-800 to-teal-500 p-6 text-white">
+  <DialogTitle className="flex w-full items-center justify-center gap-3 text-2xl font-bold">
+  <ClipboardList className="size-6" />
             Lab Test Request Details
           </DialogTitle>
         </DialogHeader>
@@ -1050,7 +1089,7 @@ export function ViewLabTest({ labtest, isOpen, onClose }) {
             <Card className="border-none bg-white shadow-lg">
               <CardContent className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
                 <InfoItem label="Lab Test ID" value={labtest.labtestID} />
-                <InfoItem label="Test Category" value={labtest.testCategory} />
+         
                 <InfoItem label="Priority" value={labtest.priority} />
               </CardContent>
             </Card>

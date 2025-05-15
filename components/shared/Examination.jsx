@@ -1,131 +1,35 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
-import {useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { useCallback, useEffect, useState,useMemo  } from "react";
 
 // Lucide Icons
 import {
-  ChevronLeft,
-  RefreshCw,
-  AlertCircle,
-  RotateCcw,
-  Check,
-  Loader2,
-  Bot,
-  Lock,
-  OxygenIcon,
-  LungsIcon,
-  ChevronRight,
-  VolumeIcon,
-  Beaker,
   Activity,
-  Heart,
-  FlaskConical,
-  Camera,
-  LightbulbOff,
-  Brain,
-  Sparkles,
-  Lightbulb,
-  MinusCircle,
-  PlusCircle,
-  Plus,
-  Clock,
-  Video,
-  UserRound,
-  Share2,
-  ArrowRight,
-  ArrowLeft,
-  Volume2,
-  VolumeX,
-  AlertTriangle,
-  Bed,
-  Bell,
-  Briefcase,
-  Building,
-  Building2,
-  Calculator,
+  AlertCircle,
   Calendar,
-  CalendarCheck,
-  CameraOff,
-  CheckCircle,
+  Check,
   ChevronDown,
-  Clipboard,
-  ClockIcon,
-  Database,
-  Edit,
-  Edit2,
-  Eye,
-  FileBarChart,
-  FileText,
-  Filter,
-  Home,
-  Info,
-  Layers,
-  LogOut,
-  Mail,
-  MapPin,
-  Mic,
-  MicOff,
-  Phone,
-  Pill,
-  QrCode,
-  Search,
-  Settings,
-  Speaker,
-  Stethoscope,
-  TestTube,
-  Thermometer,
-  Trash2,
-  User,
-  UserCog,
-  UserPlus,
-  Users,
-  Printer,
+  ChevronLeft,
+  ChevronRight,
   ChevronUp,
-  TrendingUp,
-  X,
+  Clock,
+  Loader2,
+  User
 } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
 
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogDescription,
+  DialogTitle
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { createExamination, updateExam } from "../shared/api";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Card,
   CardContent,
@@ -133,24 +37,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { createExamination,updateExam } from "../shared/api";
 
-import { SmartExaminationation } from "../../components/shared";
-import { ViewMedication, NewMedicationForm } from "../../components/shared";
-import {
-  NewDiagnosisForm,
-  ViewDiagnosis,
-  EditDiagnosisForm,
-} from "../../components/shared";
 // Charts
 import Image from "next/image";
-import eye from "../shared/images/eye.png";
-import leg from "../shared/images/leg.png";
-import pallor from "../shared/images/pallor.png";
 import curbing from "../shared/images/curbbin.png";
 import cybosis from "../shared/images/cybosis.png";
+import eye from "../shared/images/eye.png";
+import leg from "../shared/images/leg.png";
 import main from "../shared/images/main.png";
+import pallor from "../shared/images/pallor.png";
 // Third-party Modal
-import Modal from "react-modal";
 import { motion } from "framer-motion";
 
 
@@ -171,9 +69,13 @@ const MultiSectionSymptomsForm = ({
   setOtherValues,
   setTouchedFields,
   touchedFields,
+  requiredFieldsConfig,
   setErrors
 }) => {
  
+
+
+
 
   const handleFieldChange = useCallback(
     (sectionName, subsectionName, fieldName, value) => {
@@ -303,29 +205,39 @@ const MultiSectionSymptomsForm = ({
 
           {field.type === "radio" && (
             <>
-              <RadioGroup
-                value={currentValue}
-                onValueChange={(value) => {
-                  handleFieldChange(sectionName, subsectionName, field.name, value);
-                  if (value !== "Others") {
-                    setOtherValues((prev) => ({ ...prev, [fieldId]: "" }));
-                  }
-                }}
-                className="grid gap-3 md:grid-cols-2"
-                onBlur={() => handleBlur(fieldId)}
-              >
-                {field.options.map((option) => (
-                  <div
-                    key={option}
-                    className="flex items-center space-x-3 rounded-lg border bg-white p-3 transition-all duration-200 hover:bg-gray-50 hover:shadow-md"
-                  >
-                    <RadioGroupItem value={option} id={`${fieldId}-${option}`} className="text-[#007664]" />
-                    <Label htmlFor={`${fieldId}-${option}`} className="grow cursor-pointer">
-                      {option}
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
+          <RadioGroup
+  value={currentValue}
+  onValueChange={(value) => {
+    handleFieldChange(sectionName, subsectionName, field.name, value);
+    if (value !== "Others") {
+      setOtherValues((prev) => ({ ...prev, [fieldId]: "" }));
+    }
+  }}
+  className="grid w-full grid-cols-2 gap-3"
+  onBlur={() => handleBlur(fieldId)}
+>
+  {field.options.map((option) => {
+    const isSelected = currentValue === option;
+    return (
+      <div
+        key={option}
+        className={`flex items-center space-x-3 rounded-lg p-3 transition-all duration-200 ${
+          isSelected ? "bg-[#007664] text-white" : "border bg-white hover:bg-[#B3E5D6]"
+        }`}
+      >
+        <RadioGroupItem value={option} id={`${fieldId}-${option}`} className="text-white" />
+        <Label
+          htmlFor={`${fieldId}-${option}`}
+          className={`grow cursor-pointer ${isSelected ? "text-white" : "text-black"}`}
+        >
+          {option}
+        </Label>
+      </div>
+    );
+  })}
+</RadioGroup>
+
+
               {hasError && <p className="text-sm text-red-500">{validationErrors[fieldId]}</p>}
 
               {currentValue === "Others" && (
@@ -355,6 +267,20 @@ const MultiSectionSymptomsForm = ({
 
             </>
           )}
+
+{field.type === "date" && (
+  <>
+    <input
+      type="date"
+      value={currentValue}
+      onChange={(e) => handleFieldChange(sectionName, subsectionName, field.name, e.target.value)}
+      onBlur={() => handleBlur(fieldId)}
+      className={baseInputStyles}
+      placeholder={field.label}
+    />
+    {hasError && <p className="text-sm text-red-500">{validationErrors[fieldId]}</p>}
+  </>
+)}
           {field.type === "number" && (
   <>
     <input
@@ -375,12 +301,25 @@ const MultiSectionSymptomsForm = ({
     },
     [getCurrentValue, otherValues, validationErrors, handleFieldChange, setOtherValues, handleBlur, handleOtherChange]
   );
-
+  const isFieldRequired = (requiredFieldsConfig, currentSection, subsectionName, fieldName) => {
+    const sectionConfig = requiredFieldsConfig[currentSection];
+    if (!sectionConfig) return false;
+  
+    const subsectionFields = sectionConfig[subsectionName];
+    if (!subsectionFields) return false;
+  
+    return subsectionFields.includes(fieldName);
+  };
+  
   
   // Get unique sections from selectedComplaints
   const uniqueSections = Array.from(new Set(selectedComplaints.map(complaint => complaint.section)));
   const currentSection = uniqueSections[currentInnerPage];
   const progress = ((currentInnerPage + 1) / uniqueSections.length) * 100;
+
+
+console.log('selectedComplaints')
+console.log(selectedComplaints)
 
   return (
     <div className="w-full min-w-full max-w-full bg-[#F9F9F9]">
@@ -429,6 +368,9 @@ const MultiSectionSymptomsForm = ({
                           <div key={fieldIndex} className="space-y-3">
                             <label className="block text-sm font-medium text-gray-700">
                               {field.label} {field.required && <span className="text-[#B24531]">*</span>}
+                              {isFieldRequired(requiredFieldsConfig, currentSection, subsectionName, field.name) && (
+  <span className="text-[#B24531]">*</span>
+)}
                             </label>
                             {renderField(field, currentSection, subsectionName)}
                           </div>
@@ -477,7 +419,36 @@ export function NewExamination({
      const session = useSession();
   
   const [errors, setErrors] = useState();
+  
+// Wrap the function in useCallback
+const handleUpdateComplaints = useCallback(() => {
+  if (buttonText === "Update") {
+    // Extract section and subsection from formData.chiefComplain
+    const newComplaint = Object.entries(formData.chiefComplain).map(([section, subsections]) => {
+      return Object.keys(subsections).map((subsection) => ({
+        section,
+        subsection,
+      }));
+    }).flat(); // Flatten the nested arrays
 
+    // Check for duplicates before updating selectedComplaints
+    setSelectedComplaints((prevComplaints) => {
+      const isDuplicate = newComplaint.every(newComp =>
+        prevComplaints.some(existingComp =>
+          existingComp.section === newComp.section &&
+          existingComp.subsection === newComp.subsection
+        )
+      );
+
+      return isDuplicate ? prevComplaints : [...prevComplaints, ...newComplaint];
+    });
+  }
+}, [buttonText, formData.chiefComplain]);
+  
+  // useEffect to trigger handleUpdateComplaints when buttonText or formData changes
+  useEffect(() => {
+    handleUpdateComplaints();
+  }, [buttonText, formData.chiefComplain, handleUpdateComplaints]);
   const validatePreCheckAndVitalsForm = (formData = {}) => {
     let newErrors = {};
 
@@ -582,14 +553,12 @@ export function NewExamination({
           "cough", 
           "coughWithBleeding", 
           "pain", 
-          "generalWeakness", 
           "lossOfWeight", 
           "burningInUrine", 
           "causes", 
           "reliefs", 
-          "bodyTemperature", 
           "chillsSweating", 
-          "fatigueWeakness", 
+         
           "bodyAches"
       ],
       generalWeakness: [
@@ -658,7 +627,7 @@ export function NewExamination({
           "weightChange"
         ],
         diarrhea: [
-          "duration",
+          "diarrheaDuration",
           "stoolType",
           "nature",
           "frequency",
@@ -668,15 +637,15 @@ export function NewExamination({
           "currentMedications"
         ],
         vomiting: [
-          "duration",
-          "nature",
-          "frequency",
-          "appetite",
-          "cause",
-          "relief",
-          "blood",
-          "associatedSymptoms",
-          "nausea"
+          "vomitingDuration",
+          "vomitingNature",
+          "vomitingFrequency",
+          "vomitingAppetite",
+          "vomitingCause",
+          "vomitingRelief",
+          "vomitingBlood",
+          "vomitingAssociatedSymptoms",
+          "vomitingNausea"
         ],
         abdominalPain: [
           "duration",
@@ -684,7 +653,7 @@ export function NewExamination({
           "currentLocation",
           "painStart",
           "intensity",
-          "nature",
+          "painNature",
           "triggers",
           "relief",
           "associatedSymptoms"
@@ -692,21 +661,13 @@ export function NewExamination({
         bleedingWithStool: [
           "duration",
           "stoolColor",
-          "amount",
+          "stoolAmount",
           "painDuringPassing",
           "bowelHabitChange",
-          "constipation",
-          "diarrhea"
+          "bleedingConstipation",
+          "bleedingDiarrhea"
         ],
-        ulcer: [
-          "duration",
-          "location",
-          "startCause",
-          "pain",
-          "surface",
-          "edges",
-          "size"
-        ]
+       
       },
     
     cardiovascularIssues: {
@@ -736,9 +697,9 @@ export function NewExamination({
       ],
     },
     skinAndExternalConditions: {
-      boils: ["boilLocation", "boilDuration", "boilWhere", "boilStart", "boilPain", "boilSkinColor"],
-      skinRash: ["rashDuration", "rashLocation", "rashSize", "rashCount", "rashSurface", "rashColor"],
-      injury: ["injuryDuration", "injuryLocation", "injuryCause", "injuryProblem", "injuryBleeding"],
+      boils: ["location", "duration", "where", "start", "pain", "skinColor"],
+      skinRash: ["duration", "location", "size", "count", "surface", "color"],
+      injury: ["duration", "location", "cause", "problem", "bleeding"],
     },
     urinaryAndReproductiveHealth: {
       yellowUrine: ["duration", "abdominalPain", "fever", "stoolColor", "burningWithUrine", "generalWeakness"],
@@ -832,7 +793,7 @@ export function NewExamination({
       "associatedSymptoms"
     ],
     soreThroat: [
-      "duration",
+      "soreThroatDuration",
       "severity",
       "painLevel",
       "painLocation",
@@ -857,7 +818,7 @@ export function NewExamination({
         fever: {
           title: "Fever",
           fields: [
-            { name: "feverDuration", label: "Duration (Days)", type: "text" },
+            { name: "feverDuration", label: "Duration (Days)", type: "number" },
             {
               name: "feverNature",
               label: "Nature",
@@ -910,12 +871,8 @@ export function NewExamination({
               requiresSpecify: true,
             },
 
-            {
-              name: "generalWeakness",
-              label: "General Weakness?",
-              type: "radio",
-              options: ["Yes", "No"],
-            },
+   
+      
             {
               name: "lossOfWeight",
               label: "Loss of weight?",
@@ -930,23 +887,14 @@ export function NewExamination({
             },
             { name: "causes", label: "What causes it?", type: "text" },
             { name: "reliefs", label: "What relieves it?", type: "text" },
-            {
-              name: "bodyTemperature",
-              label: "Body temperature",
-              type: "number",
-            },
+            
             {
               name: "chillsSweating",
               label: "Chills or sweating",
               type: "radio",
               options: ["Yes", "No"],
             },
-            {
-              name: "fatigueWeakness",
-              label: "Fatigue or weakness",
-              type: "radio",
-              options: ["Yes", "No"],
-            },
+       
             {
               name: "bodyAches",
               label: "Body aches",
@@ -961,7 +909,7 @@ export function NewExamination({
             {
               name: "weaknessDuration",
               label: "Duration (Days)",
-              type: "text",
+              type: "number",
             },
             {
               name: "appetite",
@@ -1019,7 +967,7 @@ export function NewExamination({
             {
               name: "specificWeaknessDuration",
               label: "Duration (Days)",
-              type: "text",
+              type: "number",
             },
             {
               name: "weaknessLocation",
@@ -1047,7 +995,7 @@ export function NewExamination({
             {
               name: "dizzinessDuration",
               label: "Duration (Days)",
-              type: "text",
+              type: "number",
             },
             {
               name: "dizzinessNature",
@@ -1208,7 +1156,7 @@ export function NewExamination({
                 "More than 12 Hours",
                 "Intermittent",
                 "Continuous",
-                "Other (Specify)",
+                "Others",
               ],
             },
             {
@@ -1232,7 +1180,7 @@ export function NewExamination({
         acidityIndigestion: {
           title: "Acidity/Indigestion",
           fields: [
-            { name: "duration", label: "Duration (Days)", type: "text" },
+            { name: "duration", label: "Duration (Days)", type: "number" },
             {
               name: "abdominalPain",
               label: "Any Abdominal Pain?",
@@ -1306,7 +1254,7 @@ export function NewExamination({
         diarrhea: {
           title: "Diarrhea",
           fields: [
-            { name: "duration", label: "Duration (Days)", type: "text" },
+            { name: "diarrheaDuration", label: "Duration (Days)", type: "number" },
             {
               name: "stoolType",
               label: "Stool Type",
@@ -1355,30 +1303,30 @@ export function NewExamination({
         vomiting: {
           title: "Vomiting",
           fields: [
-            { name: "duration", label: "Duration (Days)", type: "text" },
+            { name: "vomitingDuration", label: "Duration (Days)", type: "number" },
             {
-              name: "nature",
+              name: "vomitingNature",
               label: "Nature",
               type: "select",
               options: ["Everyday", "Some Days", "Others"],
             },
-            { name: "frequency", label: "Frequency", type: "text" },
+            { name: "vomitingFrequency", label: "Frequency", type: "text" },
             {
-              name: "appetite",
+              name: "vomitingAppetite",
               label: "Appetite",
               type: "select",
               options: ["Normal", "Less", "Others"],
             },
-            { name: "cause", label: "What causes it?", type: "text" },
-            { name: "relief", label: "What relieves it?", type: "text" },
+            { name: "vomitingCause", label: "What causes it?", type: "text" },
+            { name: "vomitingRelief", label: "What relieves it?", type: "text" },
             {
-              name: "blood",
+              name: "vomitingBlood",
               label: "With Blood?",
               type: "select",
               options: ["Yes", "No", "Others"],
             },
             {
-              name: "associatedSymptoms",
+              name: "vomitingAssociatedSymptoms",
               label: "Associated Symptoms",
               type: "select",
               options: [
@@ -1391,7 +1339,7 @@ export function NewExamination({
               ],
             },
             {
-              name: "nausea",
+              name: "vomitingNausea",
               label: "Nausea?",
               type: "select",
               options: ["Yes", "No", "Others"],
@@ -1401,7 +1349,7 @@ export function NewExamination({
         abdominalPain: {
           title: "Abdominal Pain",
           fields: [
-            { name: "duration", label: "Duration (Days)", type: "text" },
+            { name: "duration", label: "Duration (Days)", type: "number" },
             {
               name: "startLocation",
               label: "Where did it start?",
@@ -1451,7 +1399,7 @@ export function NewExamination({
               options: ["Mild", "Moderate", "Severe", "Varies", "Others"],
             },
             {
-              name: "nature",
+              name: "painNature",
               label: "Nature",
               type: "select",
               options: [
@@ -1491,7 +1439,7 @@ export function NewExamination({
         bleedingWithStool: {
           title: "Bleeding with Stool",
           fields: [
-            { name: "duration", label: "Duration (Days)", type: "text" },
+            { name: "duration", label: "Duration (Days)", type: "number" },
             {
               name: "stoolColor",
               label: "Color of Stool",
@@ -1499,7 +1447,7 @@ export function NewExamination({
               options: ["Bright Red", "Dark Red", "Others"],
             },
             {
-              name: "amount",
+              name: "stoolAmount",
               label: "Amount of Stool",
               type: "select",
               options: ["Lot", "Drops", "Others"],
@@ -1517,59 +1465,21 @@ export function NewExamination({
               options: ["Yes", "No", "Others"],
             },
             {
-              name: "constipation",
+              name: "bleedingConstipation",
               label: "Constipation?",
               type: "select",
               options: ["Yes", "No", "Others"],
             },
             {
-              name: "diarrhea",
+              name: "bleedingDiarrhea",
               label: "Diarrhea?",
               type: "select",
               options: ["Yes", "No", "Others"],
             },
           ],
         },
-        ulcer: {
-          title: "Ulcer",
-          fields: [
-            { name: "duration", label: "Duration (Days)", type: "text" },
-            { name: "location", label: "Where?", type: "text" },
-            {
-              name: "startCause",
-              label: "How did it start?",
-              type: "select",
-              options: ["Injury", "On its Own", "Others"],
-            },
-            {
-              name: "pain",
-              label: "Any Pain?",
-              type: "select",
-              options: ["Yes", "No", "Others"],
-            },
-            {
-              name: "surface",
-              label: "Surface",
-              type: "select",
-              options: [
-                "Clean",
-                "Dirty",
-                "Pink",
-                "Black",
-                "Green",
-                "Mixed",
-                "Others",
-              ],
-            },
-            {
-              name: "edges",
-              label: "Edges",
-              type: "select",
-              options: ["Raised", "Flat", "Others"],
-            },
-            { name: "size", label: "Size", type: "text" },
-          ],
-        },
+       
+       
       },
     },
     respiratoryIssues: {
@@ -1578,7 +1488,7 @@ export function NewExamination({
         coughThroatProblem: {
           title: "Cough/Throat Problem",
           fields: [
-            { name: "duration", label: "Duration (Days)", type: "text" },
+            { name: "duration", label: "Duration (Days)", type: "number" },
             {
               name: "frequency",
               label: "How Often?",
@@ -1638,7 +1548,7 @@ export function NewExamination({
         shortnessOfBreath: {
           title: "Difficulty in Breathing/Shortness of Breath",
           fields: [
-            { name: "duration", label: "Duration (Days)", type: "text" },
+            { name: "shortnessOfBreathDuration", label: "Duration (Days)", type: "number" },
             {
               name: "progression",
               label: "How has it progressed?",
@@ -1692,7 +1602,7 @@ export function NewExamination({
         soreThroat: {
           title: "Sore Throat",
           fields: [
-            { name: "duration", label: "Duration (Days)", type: "text" },
+            { name: "soreThroatDuration", label: "Duration (Days)", type: "number" },
             {
               name: "severity",
               label: "Severity",
@@ -1759,7 +1669,7 @@ export function NewExamination({
         yellowUrine: {
           title: "Yellow Urine",
           fields: [
-            { name: "duration", label: "Duration (Days)", type: "text" },
+            { name: "duration", label: "Duration (Days)", type: "number" },
             {
               name: "abdominalPain",
               label: "Abdominal Pain?",
@@ -2196,31 +2106,31 @@ export function NewExamination({
           title: "Boils",
           fields: [
             {
-              name: "boilLocation",
+              name: "location",
               label:
                 "Where are the boils located, and have you had similar issues in the past?",
               type: "text",
             },
             {
-              name: "boilDuration",
+              name: "duration",
               label: "Duration (Days)",
               type: "number",
             },
-            { name: "boilWhere", label: "Where?", type: "text" },
+            { name: "where", label: "Where?", type: "text" },
             {
-              name: "boilStart",
+              name: "start",
               label: "How did it start?",
               type: "select",
               options: ["Injury", "On its own", "Others"],
             },
             {
-              name: "boilPain",
+              name: "pain",
               label: "Any Pain?",
               type: "select",
               options: ["Yes", "No", "Others"],
             },
             {
-              name: "boilSkinColor",
+              name: "skinColor",
               label: "Color of Skin Over the Boil",
               type: "select",
               options: ["Normal", "Red", "Others"],
@@ -2231,26 +2141,26 @@ export function NewExamination({
           title: "Skin Rash",
           fields: [
             {
-              name: "rashDuration",
+              name: "duration",
               label: "Duration (Days)",
               type: "number",
             },
-            { name: "rashLocation", label: "Where?", type: "text" },
-            { name: "rashSize", label: "Size", type: "text" },
+            { name: "location", label: "Where?", type: "text" },
+            { name: "size", label: "Size", type: "text" },
             {
-              name: "rashCount",
+              name: "count",
               label: "How many?",
               type: "select",
               options: ["Single", "Multiple", "Many", "Others"],
             },
             {
-              name: "rashSurface",
+              name: "surface",
               label: "Surface",
               type: "select",
               options: ["Smooth", "Rough", "Others"],
             },
             {
-              name: "rashColor",
+              name: "color",
               label: "Color",
               type: "select",
               options: ["Red", "Pink", "Brown", "White", "Yellow", "Others"],
@@ -2261,13 +2171,13 @@ export function NewExamination({
           title: "Injury",
           fields: [
             {
-              name: "injuryDuration",
+              name: "duration",
               label: "Duration (Days)",
               type: "number",
             },
-            { name: "injuryLocation", label: "Where is it?", type: "text" },
+            { name: "location", label: "Where is it?", type: "text" },
             {
-              name: "injuryCause",
+              name: "cause",
               label: "How sustained?",
               type: "select",
               options: [
@@ -2284,13 +2194,13 @@ export function NewExamination({
               ],
             },
             {
-              name: "injuryProblem",
+              name: "problem",
               label: "Problem",
               type: "select",
               options: ["Can't walk", "Can't move", "Pain", "Others"],
             },
             {
-              name: "injuryBleeding",
+              name: "bleeding",
               label: "Any bleeding?",
               type: "select",
               options: ["Yes", "No", "Others"],
@@ -2503,7 +2413,7 @@ export function NewExamination({
   };
 
   const renderPatientVisitsList = () => {
-    console.log(examinations);
+   // console.log(examinations);
 
     // Sample data
     const visits = [
@@ -2554,12 +2464,22 @@ export function NewExamination({
     const toggleExamination = (id) => {
       setexpandedExamination(expandedExamination === id ? null : id);
     };
-    console.log(initialExamination);
+    //console.log(initialExamination);
+    function checkForDuration(fieldName, fieldValue) {
+      if (typeof fieldName === 'string' && /duration/i.test(fieldName)) {
+        const trimmed = String(fieldValue).trim();
+        // Check if the value is only numbers (after trimming)
+        if (/^\d+$/.test(trimmed)) {
+          return 'days';
+        }
+      }
+      return null;
+    }
+    
+    
     return (
-      <div
-        className="mx-auto max-w-4xl space-y-8 p-6"
-        style={{ width: "65vw" }}
-      >
+      <div className="mx-auto mt-0 w-full max-w-5xl p-2">
+
         <Card className="grid grid-cols-1 gap-4 bg-white shadow-lg md:grid-cols-1">
           <CardHeader className="rounded-t-lg bg-[#007664] text-white">
             <CardTitle className="text-2xl">Previous Examinations</CardTitle>
@@ -2567,24 +2487,16 @@ export function NewExamination({
               Click on an examination to view detailed information
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="space-y-4">
-              {examinations ??
-              (Array.isArray(initialExamination)
-                ? initialExamination
-                : [initialExamination]) ? (
-                (examinations
-                  ? examinations
-                      .sort(
-                        (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
-                      )
-                      .slice(0, 4)
-                  : [initialExamination]
-                ) // Ensure it's an array
-                  .map((exam) => (
+            {examinations && examinations.length > 0 ? (
+    examinations
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 4)
+      .map((exam) => (
                     <div
                       key={exam?._id}
-                      className="overflow-hidden rounded-lg border shadow-sm"
+                      className="rounded-lg border shadow-sm"
                     >
                       <button
                         onClick={() => toggleExamination(exam?._id)}
@@ -2628,7 +2540,7 @@ export function NewExamination({
                             <div className="flex items-center space-x-2">
                               <User className="text-[#75C05B]" size={16} />
                               <span className="text-sm text-[#007664]">
-                                Doctor: {exam?.examinedBy || "N/A"}
+                                Doctor: {`${exam.examinedBy.firstName} ${exam.examinedBy.firstName}` || "N/A"}
                               </span>
                             </div>
                             <div className="space-y-2">
@@ -2657,7 +2569,7 @@ export function NewExamination({
                                 </div>
                                 <div className="rounded bg-white p-2">
                                   Blood Pressure:{" "}
-                                  {exam?.vitals?.bloodPressure || "N/A"}
+                                  {exam?.vitals?.bloodPressure || "N/A"} mmHg
                                 </div>
                               </div>
                             </div>
@@ -2665,22 +2577,157 @@ export function NewExamination({
                               <h4 className="font-medium text-[#B24531]">
                                 Chief Complaints
                               </h4>
-                              <p className="rounded bg-white p-2 text-sm text-[#007664]">
-                                {exam?.chiefComplain &&
-                                Object.keys(exam.chiefComplain).length > 0
-                                  ? JSON.stringify(exam.chiefComplain)
-                                  : "No specific complaints recorded"}
-                              </p>
-                            </div>
-                          </div>
+                              <Card className="w-3/4 overflow-visible border-none bg-white shadow-lg">
+    <CardContent className="grid min-h-full grid-cols-1 gap-2 p-4 md:grid-cols-2">
+
+                {exam?.chiefComplain ? (
+                  Object.entries(exam.chiefComplain).map(
+                    ([category, symptoms]) => {
+                      // Function to check if a value is empty, null, or undefined
+                      const isEmpty = (value) => {
+                        if (Array.isArray(value)) return value.length === 0;
+                        if (typeof value === "object" && value !== null)
+                          return Object.keys(value).length === 0;
+                        return (
+                          value === null || value === undefined || value === ""
+                        );
+                      };
+
+                      // Check if the category has any valid symptoms
+                      const hasValidSymptoms = Object.values(symptoms).some(
+                        (value) =>
+                          !isEmpty(value) &&
+                          (!(typeof value === "object") ||
+                            Object.values(value).some((v) => !isEmpty(v))),
+                      );
+
+                      const capitalize = (str) =>
+                        str
+                          .replace(/([A-Z])/g, " $1")
+                          .split(" ")
+                          .map(
+                            (word) =>
+                              word.charAt(0).toUpperCase() +
+                              word.slice(1).toLowerCase(),
+                          )
+                          .join(" ")
+                          .trim();
+
+                      return hasValidSymptoms ? (
+                        <div
+                          key={category}
+                          className="rounded-lg bg-gray-50 p-4"
+                        >
+                          <h4 className="mb-3 text-lg font-bold text-[#007664]">
+                            {capitalize(category)}
+                          </h4>
+                          <ul className="space-y-4">
+                            {Object.entries(symptoms)
+                              .filter(
+                                ([, value]) =>
+                                  !isEmpty(value) &&
+                                  (!(typeof value === "object") ||
+                                    Object.values(value).some(
+                                      (v) => !isEmpty(v),
+                                    )),
+                              )
+                              .reduce((acc, [symptomKey, symptomValue]) => {
+                                // If symptomValue is an object, group all its fields together
+                                if (
+                                  typeof symptomValue === "object" &&
+                                  symptomValue !== null
+                                ) {
+                                  const details = Object.entries(
+                                    symptomValue,
+                                  ).filter(
+                                    ([, value]) =>
+                                      !isEmpty(value) && value !== "No",
+                                  );
+
+                                  if (details.length > 0) {
+                                    acc.push(
+                                      <li
+                                        key={symptomKey}
+                                        className="rounded-md bg-white p-3 shadow-sm"
+                                      >
+                                        <div className="font-medium text-[#007664]">
+                                          {capitalize(symptomKey)}
+                                        </div>
+                                        <ul className="mt-2 space-y-1">
+                                          {details.map(([key, value]) => (
+                                            <li
+                                              key={key}
+                                              className="flex items-baseline text-sm"
+                                            >
+                                              <span className="mr-2 font-medium text-gray-600">
+                                                {capitalize(key)}:
+                                              </span>
+                                              <span className="text-gray-700">
+                                                {capitalize(String(value))} {checkForDuration(key,value)}
+                                              </span>
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </li>,
+                                    );
+                                  }
+                                } else {
+                                  // Group simple key-value pairs under the same subsection
+                                  if (
+                                    !acc[acc.length - 1] ||
+                                    acc[acc.length - 1].key !== category
+                                  ) {
+                                    acc.push(
+                                      <li
+                                        key={category}
+                                        className="rounded-md bg-white p-3 shadow-sm"
+                                      >
+                                        <div className="font-medium text-[#007664]">
+                                          {capitalize(symptomKey)}
+                                        </div>
+                                        <div className="text-gray-700">
+                                          {capitalize(String(symptomValue))}
+                                        </div>
+                                      </li>,
+                                    );
+                                  } else {
+                                    acc[acc.length - 1].props.children.push(
+                                      <div
+                                        key={symptomKey}
+                                        className="flex items-baseline text-sm"
+                                      >
+                                        <span className="mr-2 font-medium text-gray-600">
+                                          {capitalize(symptomKey)}:
+                                        </span>
+                                        <span className="text-gray-700">
+                                          {capitalize(String(symptomValue))}
+                                        </span>
+                                      </div>,
+                                    );
+                                  }
+                                }
+
+                                return acc;
+                              }, [])}
+                          </ul>
                         </div>
+                      ) : null;
+                    },
+                  )
+                ) : (
+                  <div className="italic text-gray-500">
+                    No Chief Complaints Recorded
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+                    </div> </div> </div>
                       )}
                     </div>
                   ))
               ) : (
-                <p className="text-sm text-gray-500">
-                  No previous examinations available.
-                </p>
+                <p className="text-center text-gray-500">No records found</p>
+
               )}
             </div>
           </CardContent>
@@ -2759,44 +2806,84 @@ export function NewExamination({
     if (section === "vitals") {
       switch (name) {
         case "temperature":
-          if (value < 35 || value > 42)
-            return "Temperature must be between 35-42°C";
+          if (value < 10 || value > 300)
+            return "Temperature must be between 20-49°C";
           break;
-        case "bloodPressure":
-          if (value < 70 || value > 200)
-            return "Blood pressure must be between 70-200 mmHg";
-          break;
+          case "bloodPressure": {
+            // Expect value format like "120/80"
+            const [systolic, diastolic] = value.split("/").map((v) => parseInt(v, 10));
+          
+            if (!systolic || !diastolic) {
+              return "Please enter blood pressure in systolic/diastolic format (e.g., 120/80)";
+            }
+          
+            if (systolic < 30 || systolic > 200) {
+              return "Systolic pressure must be between 30-200 mmHg";
+            }
+          
+            if (diastolic < 30 || diastolic > 200) {
+              return "Diastolic pressure must be between 30-200 mmHg";
+            }
+          }
+        break;
         case "pulse":
-          if (value < 40 || value > 200)
-            return "Pulse must be between 40-200 bpm";
+          if (value < 40 || value > 300)
+            return "Pulse must be between 40-300 bpm";
           break;
         case "spo2":
           if (value < 0 || value > 100) return "SpO2 must be between 0-100%";
           break;
         case "respiratoryRate":
-          if (value < 8 || value > 40)
-            return "Respiratory rate must be between 8-40 bpm";
+          if (value < 8 || value > 120)
+            return "Respiratory rate must be between 8-120 bpm";
           break;
       }
     }
     return "";
   };
 
+
+  
+  const bmi = useMemo(() => {
+    const height = formData?.vitals?.height;
+    const weight = formData?.vitals?.weight;
+  
+    if (!height || !weight) return null;
+  
+    const heightInMeters = height / 100;
+    const calculatedBmi = weight / (heightInMeters * heightInMeters);
+  
+    return calculatedBmi.toFixed(1); // one decimal place
+  }, [formData?.vitals?.height, formData?.vitals?.weight]);
+  
   const renderPreChecks = () => {
     const handleChange = (e) => {
       if (!e || !e.target) return;
-
+    
       const { name, value, type, checked } = e.target;
       if (!name) return;
-
-      const fieldValue = type === "checkbox" ? checked : value;
+    
+      let fieldValue = type === "checkbox" ? checked : value;
+    
+      // For blood pressure field, automatically add the slash if it's missing
+      if (name === "bloodPressure") {
+        // Remove any non-numeric characters (except the slash)
+        fieldValue = fieldValue.replace(/[^\d\/]/g, "");
+    
+        // If the user has entered at least 3 digits and no slash, add the slash
+        if (fieldValue.length >= 3 && !fieldValue.includes("/")) {
+          fieldValue = fieldValue.slice(0, 3) + "/" + fieldValue.slice(3);
+        }
+      }
+    
+      // Determine the section (vitals or preChecks)
       const section = vitalFields.some((field) => field.name === name)
         ? "vitals"
         : "preChecks";
-
+    
       // Validate the changed field
       const error = validateField(section, name, fieldValue);
-
+    
       // Update form data
       setFormData((prev) => ({
         ...prev,
@@ -2805,11 +2892,11 @@ export function NewExamination({
           [name]: fieldValue,
         },
       }));
-
+    
       // Update validation errors
       setErrors((prev) => {
         const newErrors = { ...prev };
-
+    
         if (error) {
           newErrors[section] = {
             ...newErrors[section],
@@ -2821,10 +2908,11 @@ export function NewExamination({
             delete newErrors[section][name];
           }
         }
-
+    
         return newErrors;
       });
     };
+    
 
     const preCheckItems = [
       { name: "washedHands", text: "I washed my hands", icon: "🧼" },
@@ -2867,16 +2955,16 @@ export function NewExamination({
         name: "temperature",
         icon: "🌡️",
         unit: "°C",
-        min: 35,
-        max: 42,
+        min: 20,
+        max: 49,
       },
       {
         label: "Blood Pressure",
         name: "bloodPressure",
         icon: "❤️",
         unit: "mmHg",
-        min: 70,
-        max: 200,
+        min: 30,
+        max: 400,
       },
       {
         label: "Pulse",
@@ -2884,7 +2972,7 @@ export function NewExamination({
         icon: "💓",
         unit: "bpm",
         min: 40,
-        max: 200,
+        max: 300,
       },
       {
         label: "Height",
@@ -2909,9 +2997,10 @@ export function NewExamination({
         icon: "🫸",
         unit: "bpm",
         min: 8,
-        max: 40,
+        max: 120,
       },
     ];
+
     return (
       <div className="mx-auto max-w-4xl space-y-8 rounded-xl bg-white p-6 shadow-md">
         <div className="border-b pb-4">
@@ -2939,7 +3028,7 @@ export function NewExamination({
                     onChange={handleChange}
                     checked={formData?.preChecks?.[check.name] ?? false}
                   />
-                  <Check className="absolute left-1 top-1 size-3 text-white opacity-0 transition-opacity peer-checked:opacity-100" />
+
                 </div>
                 <span className="text-xl">{check.icon}</span>
                 <label
@@ -3028,34 +3117,55 @@ export function NewExamination({
                 )}
               </div>
 
-              {vitalFields.map((field) => (
-                <div key={field.name} className="relative space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">
-                    <span className="mr-2">{field.icon}</span>
-                    {field.label} <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      name={field.name}
-                      placeholder={`Enter ${field.label.toLowerCase()}`}
-                      className="w-full rounded-lg border border-gray-300 bg-white p-2.5 pr-12 transition-colors duration-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500"
-                      onChange={handleChange}
-                      value={formData?.vitals?.[field.name] ?? ""}
-                      min={field.min}
-                      max={field.max}
-                    />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                      {field.unit}
-                    </span>
-                  </div>
-                  {errors?.vitals?.[field.name]?.length > 0 && (
-                    <p className="text-sm text-red-500">
-                      {errors.vitals[field.name]}
-                    </p>
-                  )}
-                </div>
-              ))}
+            {vitalFields.map((field) => (
+  <div key={field.name} className="relative space-y-2">
+    <label className="block text-sm font-medium text-gray-700">
+      <span className="mr-2">{field.icon}</span>
+      {field.label} <span className="text-red-500">*</span>
+    </label>
+    <div className="relative">
+      {/* Check for the blood pressure field */}
+      {field.name === "bloodPressure" ? (
+        <input
+          type="text"
+          name={field.name}
+          placeholder={`Enter ${field.label.toLowerCase()}`}
+          className="w-full rounded-lg border border-gray-300 bg-white p-2.5 pr-12 transition-colors duration-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500"
+          onChange={handleChange}
+          value={formData?.vitals?.[field.name] ?? ""}
+        />
+      ) : (
+        <input
+          type="number"
+          name={field.name}
+          placeholder={`Enter ${field.label.toLowerCase()}`}
+          className="w-full rounded-lg border border-gray-300 bg-white p-2.5 pr-12 transition-colors duration-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500"
+          onChange={handleChange}
+          value={formData?.vitals?.[field.name] ?? ""}
+          min={field.min}
+          max={field.max}
+        />
+      )}
+      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+        {field.unit}
+      </span>
+    </div>
+
+ 
+    {errors?.vitals?.[field.name]?.length > 0 && (
+      <p className="text-sm text-red-500">{errors.vitals[field.name]}</p>
+    )}
+  </div>
+))} {bmi && (
+  <div className="mt-4 rounded-lg bg-teal-50 p-3 shadow-sm">
+    <div className="flex items-center gap-2 text-sm text-teal-700">
+      <span className="text-lg">⚖️</span>
+      <span>
+        <span className="font-semibold">BMI:</span> {bmi}
+      </span>
+    </div>
+  </div>
+)}
             </div>
           </div>
         </div>
@@ -3098,6 +3208,8 @@ export function NewExamination({
       isChecked,
     ) => {
       // Check if the subsection already exists in the selectedComplaints array
+
+      
       const exists = selectedComplaints.some(
         (complaint) => complaint.subsection === subsectionKey,
       );
@@ -3114,6 +3226,29 @@ export function NewExamination({
           prev.filter((complaint) => complaint.subsection !== subsectionKey),
         );
       }
+
+ setFormData((prevFormData) => {
+      const updatedFormData = { ...prevFormData };
+
+      if (
+        updatedFormData.chiefComplain &&
+        updatedFormData.chiefComplain[sectionKey]
+      ) {
+        delete updatedFormData.chiefComplain[sectionKey][subsectionKey];
+
+        // Optional: if the subsection container is now empty, remove it
+        if (
+          Object.keys(updatedFormData.chiefComplain[sectionKey]).length === 0
+        ) {
+          delete updatedFormData.chiefComplain[sectionKey];
+        }
+      }
+
+      return updatedFormData;
+    });
+
+
+      
     };
 
     // Check if a complaint is selected
@@ -3126,7 +3261,36 @@ export function NewExamination({
           complaint.item === item,
       );
     };
+
+    const handleUpdateComplaints = () => {
+      if (buttonText === "Update") {
+        // Extract section and subsection from formData.chiefComplain
+        const newComplaint = Object.entries(formData.chiefComplain).map(([section, subsections]) => {
+          return Object.keys(subsections).map((subsection) => ({
+            section,
+            subsection,
+          }));
+        }).flat(); // Flatten the nested arrays
+    
+        // Check for duplicates before updating selectedComplaints
+        const isDuplicate = newComplaint.every(newComp =>
+          selectedComplaints.some(existingComp =>
+            existingComp.section === newComp.section &&
+            existingComp.subsection === newComp.subsection
+          )
+        );
+    
+        if (!isDuplicate) {
+          setSelectedComplaints([...selectedComplaints, ...newComplaint]);
+        }
+      }
+    };
+ 
     //console.log(selectedComplaints)
+   // console.log(formData)
+
+    
+
     return (
       <div className="mx-auto max-w-4xl space-y-8 rounded-xl bg-[#F7F7F7] p-6 shadow-sm">
         {/* Alert Banner */}
@@ -3171,11 +3335,29 @@ export function NewExamination({
                 {Object.keys(section.subsections).map((subsectionKey) => {
                   const subsection = section.subsections[subsectionKey];
 
-                  const hasData =
+                 {/*
+                 const hasData =
                   formData?.chiefComplain?.[sectionKey]?.[subsectionKey] &&
     Object.values(formData?.chiefComplain[sectionKey][subsectionKey]).some(
       (value) => value !== null && value !== undefined && value !== "" && !(Array.isArray(value) && value.length === 0)
     );
+    */} 
+    const subsectionData = formData?.chiefComplain?.[sectionKey]?.[subsectionKey];
+
+    const hasData =
+      (subsectionData !== undefined &&
+        subsectionData !== null &&
+        (typeof subsectionData !== 'object' ||
+          Object.keys(subsectionData).length >= 0)) ||
+      selectedComplaints.some(
+        (item) => item.section === sectionKey && item.subsection === subsectionKey
+      );
+
+      console.log('hasData')
+      console.log(selectedComplaints)
+      console.log(hasData)
+
+
                   return (
                     <div key={subsectionKey} className="space-y-3">
                       <h4 className="font-semibold text-[#007664]"></h4>
@@ -3185,8 +3367,9 @@ export function NewExamination({
                         <input
                           type="checkbox"
                           id={`${sectionKey}-${subsectionKey}`}
-                          checked={hasData} 
-                          className="peer cursor-pointer appearance-none rounded border-2 border-[#75C05B] text-[#007664] transition-colors duration-200 checked:bg-[#007664] focus:ring-[#007664] focus:ring-offset-2"
+                          checked={!!hasData }
+
+className="peer cursor-pointer appearance-none rounded border-2 border-[#75C05B] text-[#007664] transition-colors duration-200 checked:bg-[#007664] focus:ring-[#007664] focus:ring-offset-2"
                           
                           onChange={(e) =>
                             handleChangeChiefcomplain(
@@ -3350,20 +3533,30 @@ export function NewExamination({
                       </p>
                       <div className="grid grid-cols-2 gap-4">
                         {section.options.map((option) => (
-                          <label
-                            key={option}
-                            className="flex cursor-pointer items-center space-x-3 rounded-lg bg-gray-50 p-3 transition-colors hover:bg-gray-100"
-                          >
-                           <input
-      type="radio"
-      name={`${area.title}-${section.name}`} 
-      checked={formData?.physicalExam?.[area.title]?.[section.name] === option}
-      value={option}
-      className="size-4 text-blue-600"
-      onChange={handleChange}
-    />
-                            <span className="text-gray-700">{option}</span>
-                          </label>
+                      <label
+                      key={option}
+                      className={`flex cursor-pointer items-center space-x-3 rounded-lg p-3 transition-colors ${
+                        formData?.physicalExam?.[area.title]?.[section.name] === option
+                          ? "bg-[#007664] text-white"
+                          : "bg-gray-50 hover:bg-[#B3E5D6]"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name={`${area.title}-${section.name}`} 
+                        checked={formData?.physicalExam?.[area.title]?.[section.name] === option}
+                        value={option}
+                        onChange={handleChange}
+                        className="size-4 cursor-pointer appearance-none rounded-full border-2 border-gray-600
+                                   transition-all checked:border-white checked:bg-white"
+                      />
+                      <span className={`transition-colors ${formData?.physicalExam?.[area.title]?.[section.name] === option ? "text-white" : "text-gray-700"}`}>
+                        {option}
+                      </span>
+                    </label>
+                    
+                       
+                        
                         ))}
                       </div>
                       {errors[area.title]?.[section.name] && (
@@ -3405,9 +3598,19 @@ export function NewExamination({
         }
   
         // Ensure duration fields are positive numbers
-        if (field.toLowerCase().includes("duration") && (isNaN(fieldValue) || fieldValue <= 0)) {
-          errors[fieldId] = "Duration must be a positive number";
+        if (field.toLowerCase().includes("duration")) {
+          const trimmedValue = String(fieldValue).trim();
+        
+          // Check if it's a purely numeric value (e.g., "5", "10")
+          if (/^\d+(\.\d+)?$/.test(trimmedValue)) {
+            const number = Number(trimmedValue);
+            if (number <= 0) {
+              errors[fieldId] = "Duration must be a positive number";
+            }
+          } 
+          // For all other values, we skip numeric validation
         }
+        
       });
     });
   
@@ -3435,12 +3638,6 @@ export function NewExamination({
     }
   };
   
-
-
-
-
-
-
 
   const handleNextMedassesmentVal = () => {
     const validationErrors = validateFormMedicalAssesment(
@@ -3511,10 +3708,21 @@ export function NewExamination({
   };
 
 
+  const [totalUniqueSections, setTotalUniqueSections] = useState(0);
+
+  useEffect(() => {
+    // Calculate unique sections
+    const uniqueSections = new Set(selectedComplaints.map(complaint => complaint.section));
+    setTotalUniqueSections(uniqueSections.size);
+  }, [selectedComplaints]);
 
   const handleNavigation = (direction) => {
     if (currentPage === 4) {
-      const totalInnerPages = selectedComplaints.length;
+
+      const uniqueSections = new Set(selectedComplaints.map(complaint => complaint.section));
+
+const totalInnerPages = uniqueSections.size;
+      //const totalInnerPages = selectedComplaints.length;
   
       if (direction === "next") {
         // Only validate when navigating within inner pages or moving to the next outer page
@@ -3577,6 +3785,7 @@ export function NewExamination({
         setOtherValues={setOtherValues}
         setTouchedFields={setTouchedFields}
         touchedFields={touchedFields}
+        requiredFieldsConfig={requiredFieldsConfig}
         setErrors={setValidationErrors}
       />
     ),
@@ -3612,7 +3821,77 @@ export function NewExamination({
   const examinationID = generateExaminationID();
 
   const [manualUpdateTrigger, setManualUpdateTrigger] = useState(false);
-
+  function filterFormData(formData) {
+    // Handle null or undefined input
+    if (formData === null || formData === undefined) {
+      return {};
+    }
+    
+    // Handle non-object inputs
+    if (typeof formData !== 'object') {
+      return formData;
+    }
+    
+    // Handle arrays
+    if (Array.isArray(formData)) {
+      const filteredArray = formData
+        .map(item => filterFormData(item)) // Recursively filter each item
+        .filter(item => {
+          // Remove empty objects, arrays, null, undefined, or empty strings
+          if (item === null || item === undefined || item === '') {
+            return false;
+          }
+          
+          if (Array.isArray(item) && item.length === 0) {
+            return false;
+          }
+          
+          if (typeof item === 'object' && !Array.isArray(item) && Object.keys(item).length === 0) {
+            return false;
+          }
+          
+          return true;
+        });
+      
+      // Only return the array if it has content
+      return filteredArray.length > 0 ? filteredArray : undefined;
+    }
+    
+    // Handle objects
+    const result = {};
+    let hasValidProperties = false;
+    
+    for (const key in formData) {
+      if (Object.prototype.hasOwnProperty.call(formData, key)) {
+        const value = formData[key];
+        
+        // Recursively filter the value
+        const filteredValue = filterFormData(value);
+        
+        // Skip null, undefined, empty strings
+        if (filteredValue === null || filteredValue === undefined || filteredValue === '') {
+          continue;
+        }
+        
+        // Skip empty arrays
+        if (Array.isArray(filteredValue) && filteredValue.length === 0) {
+          continue;
+        }
+        
+        // Skip empty objects
+        if (typeof filteredValue === 'object' && !Array.isArray(filteredValue) && Object.keys(filteredValue).length === 0) {
+          continue;
+        }
+        
+        // Add valid values to result
+        result[key] = filteredValue;
+        hasValidProperties = true;
+      }
+    }
+    
+    // Only return the object if it has valid properties
+    return hasValidProperties ? result : undefined;
+  }
   useEffect(() => {
     const handleExamination = async () => {
       if (!buttonText) return; // Ensure buttonText is available
@@ -3620,9 +3899,14 @@ export function NewExamination({
       setIsLoading(true); // Start loading
   
       if (buttonText === "Submit") {
-        await createExamination(formData, onSubmit, onTabChange);
+        await createExamination(formData, onSubmit, onTabChange,onClose);
       } else if (buttonText === "Update") {
-        await updateExam(formData, onSubmit, onTabChange);
+
+        const filter= filterFormData(formData)
+        await updateExam(filter, onSubmit, onTabChange,onClose);
+
+       
+       //console.log(filter)
       }
   
       setIsLoading(false); // Stop loading after completion
@@ -3632,6 +3916,7 @@ export function NewExamination({
       handleExamination();
       setManualUpdateTrigger(false); // Reset trigger
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [manualUpdateTrigger, formData, buttonText, onSubmit, onTabChange]);
   
   
@@ -3661,7 +3946,7 @@ export function NewExamination({
   
 
   return (
-    <div className="flex min-h-screen w-full flex-col">
+    <div className="mx-auto !mt-0 flex size-full min-h-[500px] max-w-full flex-col justify-between px-4 sm:px-6 md:px-8">
       {/* Upper content container */}
       <div className="flex w-full flex-1 flex-col p-6">
         {/* Page number circles */}
@@ -3691,26 +3976,24 @@ export function NewExamination({
         </div>
 
         {/* Content area */}
-        <div className="mx-auto w-full max-w-6xl flex-1">
-          <div className="size-full">{pages[currentPage - 1]()}</div>
-        </div>
-      </div>
+        <div className="w-full grow">{pages[currentPage - 1]()}</div>
+
 
       {/* Navigation footer */}
-      <div className="w-full border-t bg-white shadow-lg">
-        <div className="mx-auto w-full max-w-6xl px-6 py-4">
+      <div className="mt-auto w-full border-t bg-white">
+        <div className="mx-auto w-full max-w-full p-4 sm:px-6 md:px-8">
           <div className="flex items-center justify-between">
             <button
               onClick={() => handleNavigation("previous")}
               disabled={currentPage === 1}
-              className="flex items-center rounded-lg bg-teal-500 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-teal-600 disabled:opacity-50 disabled:hover:bg-teal-500"
+              className="mr-4 flex items-center rounded-lg bg-teal-500 px-4 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-teal-600 disabled:opacity-50 disabled:hover:bg-teal-500"
             >
               <ChevronLeft className="mr-2 size-5" />
               Previous
             </button>
             <span className="text-sm font-medium text-gray-500">
               {currentPage === 4
-                ? `Page ${currentPage} (${currentInnerPage + 1}/${selectedComplaints.length})`
+                ? `Page ${currentPage} (${currentInnerPage + 1}/${totalUniqueSections})`
                 : `Page ${currentPage} of ${pages.length}`}
             </span>
             <button 
@@ -3751,7 +4034,7 @@ export function NewExamination({
 </button>
 
 
-          </div>
+</div> </div>
         </div>
       </div>
     </div>
@@ -3772,13 +4055,26 @@ export function ViewExamination({ examination, isOpen, onClose }) {
     </div>
   );
   // console.log(examination);
+  function checkForDuration(fieldName, fieldValue) {
+    if (typeof fieldName === 'string' && /duration/i.test(fieldName)) {
+      const trimmed = String(fieldValue).trim();
+      // Check if the value is only numbers (after trimming)
+      if (/^\d+$/.test(trimmed)) {
+        return 'days';
+      }
+    }
+    return null;
+  }
+  
+  
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto bg-[#F7F7F7] p-0">
-        <DialogHeader className="rounded-t-lg bg-[#007664] p-6 text-white">
-          <DialogTitle className="text-2xl font-bold">
-            Examination Details
-          </DialogTitle>
+  <DialogContent className="max-h-[90vh] w-[90%] overflow-y-auto bg-[#F7F7F7] p-0 sm:max-w-4xl">
+        <DialogHeader className="bg-gradient-to-r from-teal-800 to-teal-500 p-6 text-white">
+        <DialogTitle className="flex w-full items-center justify-center gap-3 text-2xl font-bold">
+  <Activity  className="size-6" />
+  Examinations Details
+</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-8 p-6">
@@ -3792,7 +4088,8 @@ export function ViewExamination({ examination, isOpen, onClose }) {
             </div>
             <Card className="border-none bg-white shadow-lg">
               <CardContent className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
-                <InfoItem label="Examined By" value={examination.examinedBy} />
+                <InfoItem label="Examined By" value={`${examination?.examinedBy?.firstName} ${examination?.examinedBy?.lastName}`}
+ />
                 <InfoItem
                   label="Examination ID"
                   value={examination.examinationID}
@@ -3977,7 +4274,7 @@ export function ViewExamination({ examination, isOpen, onClose }) {
                                                 {capitalize(key)}:
                                               </span>
                                               <span className="text-gray-700">
-                                                {capitalize(String(value))}
+                                                {capitalize(String(value))} {checkForDuration(key, value)}
                                               </span>
                                             </li>
                                           ))}

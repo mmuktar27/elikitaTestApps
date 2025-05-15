@@ -56,13 +56,18 @@ export const useCreateEvent = () => {
   const { data: session } = useSession();
 
   return useMutation({
-    mutationFn: (eventData) => API.post(`${URL}/`, eventData),
-    onSuccess: () => {
+    mutationFn: async (eventData) => {
+      const response = await API.post(`${URL}/`, eventData);
+      return response.data; // This returns { success, message, data }
+    },
+    onSuccess: (responseData) => {
       queryClient.invalidateQueries({ queryKey: ["events"] });
+      // Don't return anything here - it won't be passed to the component's onSuccess
     },
     enabled: !!session?.user?.name,
   });
 };
+
 
 export const useUpdateEvent = () => {
   const queryClient = useQueryClient();

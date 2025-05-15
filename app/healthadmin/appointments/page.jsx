@@ -1,7 +1,9 @@
-import { Appointments } from "@/components/healthcareadmin";
+import { AppointmentsPage } from "@/components/shared";
 
-const Settings = () => {
-  return <Appointments />;
+const Appointments = () => {
+  const currentDashboard = "healthcare admin";
+
+  return <AppointmentsPage currentDashboard={currentDashboard}/>;
 };
 
-export default Settings;
+export default Appointments;

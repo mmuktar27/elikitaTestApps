@@ -15,7 +15,7 @@ import drsadiq from "@/public/assets/drsadiq.jpg";
 import heroone from "@/public/assets/hero-image.webp";
 import herothree from "@/public/assets/services-image.webp";
 import { useForm } from "@formspree/react";
-import { signIn, useSession } from "next-auth/react";
+import { signIn,signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -25,10 +25,104 @@ import { FaCogs } from "react-icons/fa";
 import { LiaCheckSquareSolid } from "react-icons/lia";
 import { MdOutlineDevices } from "react-icons/md";
 import { PiLightbulbThin } from "react-icons/pi";
+import { HeartbeatManager } from "@/components/shared";
+import SkeletonCard from "@/components/ui/skeletoncard";
 
-export default function LoginPage() {
+import { X } from "lucide-react";
+const DashboardButton = ({ roles, signOut }) => {
+  const [showModal, setShowModal] = useState(false);
+  
+  const validRoles = [
+    "system admin",
+    "doctor",
+    "healthcare admin",
+    "remote doctor",
+    "healthcare assistant",
+  ];
+  
+  // Filter user roles to only include valid ones
+  const filteredRoles = roles?.filter((role) => validRoles.includes(role));
+  
+  // Determine if the user has no valid roles
+  const hasNoValidRoles = !filteredRoles || filteredRoles.length === 0;
+  
+  // Determine the button URL based on the first valid role
+  const roleUrlMap = {
+    "system admin": "/admin",
+    "doctor": "/doctor",
+    "healthcare admin": "/healthadmin",
+    "remote doctor": "/remotedoctor",
+    "healthcare assistant": "/healthassistant",
+  };
+  
+  const buttonUrl = hasNoValidRoles ? "#" : (roleUrlMap[filteredRoles[0]] ?? "/home");
+  
+  const handleButtonClick = (e) => {
+    if (hasNoValidRoles) {
+      e.preventDefault();
+      setShowModal(true);
+    }
+  };
+  
+  const closeModal = () => {
+    setShowModal(false);
+  };
+  const [isLoading, setIsLoading] = useState(false);
+
+  const logout = async () => {
+    setIsLoading(true);
+    await signOut();
+  };
+  return (
+    <>
+      <a
+        href={buttonUrl}
+        onClick={handleButtonClick}
+        className="flex w-full items-center justify-center text-nowrap rounded-lg border bg-teal-500 px-4 py-2 text-white transition duration-300 hover:scale-105 hover:bg-teal-600"
+      >
+        Proceed to Dashboard
+      </a>
+      
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div className="relative w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+            <button
+              onClick={closeModal}
+              className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+            >
+              <X size={20} />
+            </button>
+            
+            <div className="mb-6 text-center">
+              <h3 className="mb-2 text-xl font-bold text-gray-900">No Permission</h3>
+              <p className="text-gray-600">
+              You don&apos;t have the required role to access the dashboard. Please contact your administrator for assistance.
+              </p>
+            </div>
+            
+            <div className="flex justify-center">
+            <button
+      onClick={logout}
+      disabled={isLoading}
+      className={`rounded-lg px-4 py-2 text-white 
+        ${isLoading ? 'cursor-not-allowed bg-red-300' : 'bg-red-500 hover:bg-red-600'}`}
+    >
+      {isLoading ? 'Logging out...' : 'Logout'}
+    </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+export default function HomePage() {
   const { status } = useSession();
+  const session = useSession();
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [state, handleSubmit] = useForm(
@@ -36,20 +130,25 @@ export default function LoginPage() {
   );
 
   const handleLogin = async () => {
+    setLoading(true);
+
     try {
       await signIn("azure-ad", {
         callbackUrl: "/admin",
       });
 
-      router.push("/admin");
+      // await createAuditLogEntry(auditData);
+      // startUserSession(session?.data?.user?.id)
     } catch (error) {
       console.error("Login failed:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  /*   if (status === "authenticated") {
+  if (status === "loading") {
     return <SkeletonCard />;
-  } */
+  }
 
   const services = [
     {
@@ -86,8 +185,15 @@ export default function LoginPage() {
     });
   };
 
+  console.log(session);
+
   return (
     <div className="min-h-screen bg-[#F4FFFB]">
+      {session?.data?.user && (
+        <>
+          <HeartbeatManager />
+        </>
+      )}
       <div className="h-8 w-full bg-[#007664]"> </div>
       <nav className="p-4">
         <div className="container mx-auto flex items-center justify-between">
@@ -124,9 +230,23 @@ export default function LoginPage() {
           </div>
 
           <div className="hidden items-center space-x-4 md:flex">
+            {session?.status === "authenticated" && (
+              <DashboardButton roles={session?.data?.user?.roles} signOut={signOut}/>
+            )}
+
             {/*       <Button className="rounded-lg border border-white bg-[#3A4F39] px-4 py-2 text-white">
               Sign In
             </Button> */}
+            {session?.status !== "authenticated" && (
+              <button
+                className="flex w-full items-center justify-center rounded-lg border border-white bg-[#3A4F39] px-4 py-2 text-white disabled:opacity-50"
+                onClick={handleLogin}
+                disabled={loading}
+              >
+                {loading ? "Signing in..." : "Sign In"}
+              </button>
+            )}
+
             <VolunteerModal />
           </div>
 
@@ -174,6 +294,19 @@ export default function LoginPage() {
               {/*  <button className="w-full rounded-lg border border-white bg-[#3A4F39] px-4 py-2 text-white">
                 Sign In
               </button> */}
+              {session?.status === "authenticated" && (
+                <DashboardButton roles={session?.data?.user?.roles} signOut={signOut}/>
+              )}
+              {session?.status !== "authenticated" && (
+                <button
+                  className="flex w-full items-center justify-center rounded-lg border border-white bg-[#3A4F39] px-4 py-2 text-white disabled:opacity-50"
+                  onClick={handleLogin}
+                  disabled={loading}
+                >
+                  {loading ? "Signing in..." : "Sign In"}
+                </button>
+              )}
+
               <VolunteerModal />
             </div>
           </div>

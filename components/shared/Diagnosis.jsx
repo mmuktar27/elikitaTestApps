@@ -1,129 +1,38 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 // Lucide Icons
 import {
-  ChevronLeft,
-  RefreshCw,
-  AlertCircle,
-  RotateCcw,
-  Check,
-  Loader2,
-  Bot,
-  Lock,
-  OxygenIcon,
-  LungsIcon,
-  ChevronRight,
-  VolumeIcon,
-  Beaker,
   Activity,
-  Heart,
-  FlaskConical,
-  Camera,
-  LightbulbOff,
-  Brain,
-  Sparkles,
-  Lightbulb,
-  MinusCircle,
-  PlusCircle,
-  Plus,
-  Clock,
-  Video,
-  UserRound,
-  Share2,
-  ArrowRight,
-  ArrowLeft,
-  Volume2,
-  VolumeX,
-  AlertTriangle,
-  Bed,
-  Bell,
-  Briefcase,
-  Building,
-  Building2,
-  Calculator,
-  Calendar,
-  CalendarCheck,
-  CameraOff,
-  CheckCircle,
   ChevronDown,
-  Clipboard,
-  ClockIcon,
-  Database,
-  Edit,
-  Edit2,
-  Eye,
-  FileBarChart,
-  FileText,
-  Filter,
-  Home,
-  Info,
-  Layers,
-  LogOut,
-  Mail,
-  MapPin,
-  Mic,
-  MicOff,
-  Phone,
-  Pill,
-  QrCode,
-  Search,
-  Settings,
-  Speaker,
-  Stethoscope,
-  TestTube,
-  Thermometer,
-  Trash2,
-  User,
-  UserCog,
-  UserPlus,
-  Users,
-  Printer,
+  ChevronLeft,
+  ChevronRight,
   ChevronUp,
-  TrendingUp,
-  X,
+  Clipboard,
+  Clock,
+  Edit,
+  Lightbulb,
+  Loader2,
+  Plus,
+  RefreshCw,
+  Stethoscope,
+  TrendingUp
 } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
 
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogDescription,
+  DialogTitle
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Card,
   CardContent,
@@ -131,16 +40,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { updateDiagnosisData, createDiagnosis } from "../shared/api";
+import { createDiagnosis, updateDiagnosisData } from "../shared/api";
 
 // Third-party Modal
-import axios from "axios";
-import Modal from "react-modal";
 import { motion } from "framer-motion";
 import { useSession } from "next-auth/react";
 
 export function NewDiagnosisForm({
   onTabChange,
+  onClose,
   diagnoses,
   patient,
   diagnosesid = null,
@@ -222,7 +130,7 @@ export function NewDiagnosisForm({
       try {
         if (formData._id) {
           console.log("Existing diagnosis found. Updating...");
-          await updateDiagnosisData(formData, resetForm, onTabChange, onSubmit);
+          await updateDiagnosisData(formData, resetForm, onTabChange,onClose, onSubmit);
           console.log("Diagnosis update process completed.");
         } else {
           console.log("No existing diagnosis found. Creating new diagnosis...");
@@ -232,9 +140,9 @@ export function NewDiagnosisForm({
             return;
           }
     
-          console.log("Patient data before sending:", patient);
-          await createDiagnosis(formData, resetForm, onTabChange, onSubmit, patient);
-          console.log("Diagnosis creation process completed.");
+          //console.log("Patient data before sending:", patient);
+          await createDiagnosis(formData, resetForm, onTabChange,onClose, onSubmit, patient);
+          //console.log("Diagnosis creation process completed.");
         }
       } catch (error) {
         console.error("Error handling diagnosis data:", error);
@@ -247,26 +155,111 @@ export function NewDiagnosisForm({
       // Only run if trigger is true
       handleDiagnosisData();
       setManualUpdateTrigger(false);
+    //  console.log(formData)
     }
-  }, [formData, manualUpdateTrigger, onSubmit, onTabChange, patient]);
-
-  const handlesubmitDiagnosis = () => {
-   console.log(formData)
-   console.log(primaryDiagnosis)
+  }, [formData, manualUpdateTrigger, onClose, onSubmit, onTabChange, patient]);
 
 
-   if (buttonText === "Update") {
-    setFormData((prevData) => ({
-      ...prevData,
-      patient: patient,
-      _id: initialDiagnosis._id,
-      diagnosisId: initialDiagnosis.diagnosisId,
-      diagnosedBy: session?.data?.user?.id,
-      diagnosedAt: "Gembu Center",
-      primaryDiagnosis: primaryDiagnosis,
-      additionalDiagnoses: additionalDiagnoses,
-    }));
+
+
+  function filterFormData(formData) {
+    // Handle null or undefined input
+    if (formData === null || formData === undefined) {
+      return {};
+    }
+    
+    // Handle non-object inputs
+    if (typeof formData !== 'object') {
+      return formData;
+    }
+    
+    // Handle arrays
+    if (Array.isArray(formData)) {
+      const filteredArray = formData
+        .map(item => filterFormData(item)) // Recursively filter each item
+        .filter(item => {
+          // Remove empty objects, arrays, null, undefined, or empty strings
+          if (item === null || item === undefined || item === '') {
+            return false;
+          }
+          
+          if (Array.isArray(item) && item.length === 0) {
+            return false;
+          }
+          
+          if (typeof item === 'object' && !Array.isArray(item) && Object.keys(item).length === 0) {
+            return false;
+          }
+          
+          return true;
+        });
+      
+      // Only return the array if it has content
+      return filteredArray.length > 0 ? filteredArray : undefined;
+    }
+    
+    // Handle objects
+    const result = {};
+    let hasValidProperties = false;
+    
+    for (const key in formData) {
+      if (Object.prototype.hasOwnProperty.call(formData, key)) {
+        const value = formData[key];
+        
+        // Recursively filter the value
+        const filteredValue = filterFormData(value);
+        
+        // Skip null, undefined, empty strings
+        if (filteredValue === null || filteredValue === undefined || filteredValue === '') {
+          continue;
+        }
+        
+        // Skip empty arrays
+        if (Array.isArray(filteredValue) && filteredValue.length === 0) {
+          continue;
+        }
+        
+        // Skip empty objects
+        if (typeof filteredValue === 'object' && !Array.isArray(filteredValue) && Object.keys(filteredValue).length === 0) {
+          continue;
+        }
+        
+        // Add valid values to result
+        result[key] = filteredValue;
+        hasValidProperties = true;
+      }
+    }
+    
+    // Only return the object if it has valid properties
+    return hasValidProperties ? result : undefined;
   }
+  const handlesubmitDiagnosis = () => {
+    const finalOutcome =
+    formData.expectedOutcome === "other"
+      ? otherExpectedOutcome
+      : formData.expectedOutcome; 
+  
+     if (buttonText === "Update") {
+      const updatedData = {
+        patient: patient,
+        _id: initialDiagnosis._id,
+        diagnosisId: initialDiagnosis.diagnosisId,
+        diagnosedBy: session?.data?.user?.id,
+        diagnosedAt: "Gembu Center",
+        primaryDiagnosis: primaryDiagnosis,
+        additionalDiagnoses: additionalDiagnoses,
+        expectedOutcome:finalOutcome,
+      };
+    
+      
+      const filteredfomdatad = filterFormData(formData);
+      const filteredupdatedData = filterFormData(updatedData);
+      setFormData({
+        ...filteredfomdatad,
+        ...filteredupdatedData
+      });
+    }
+  
 
   if (buttonText == "Submit") {
     setFormData((prevData) => ({
@@ -274,22 +267,23 @@ export function NewDiagnosisForm({
       patient: patient,
       diagnosisId: generateDiagnosisId(),
       diagnosedBy: session?.data?.user?.id,
-      requestedByAccType: currentDashboard,
+      diagnosedByAccType: currentDashboard,
       diagnosedAt: "Gembu Center",
       primaryDiagnosis: primaryDiagnosis,
       additionalDiagnoses: additionalDiagnoses,
+      expectedOutcome:finalOutcome,
+
     }));
   }
-  setManualUpdateTrigger(true); // Tr
-
-  //
+ 
+  setManualUpdateTrigger(true)
   };
-
+  
 
 
 
   const handleSubmitClick = async () => {
-    const isValid = validatePrognosisForm();
+    const isValid = buttonText === "Update" ? true : validatePrognosisForm();
     console.log("Validation Result:", isValid);
 
     if (!isValid) {
@@ -300,10 +294,25 @@ export function NewDiagnosisForm({
     try {
       handlesubmitDiagnosis();
     } catch (error) {
-      console.error('Error submitting medication:', error);
+      console.error("Error submitting Diagnosis:", error);
+    
+      // Log stack trace if available
+      if (error instanceof Error) {
+        console.error("Stack Trace:", error.stack);
+      }
+    
+      // Log additional details if it's an API or validation error
+      if (error.response) {
+        console.error("Server Response:", error.response.data);
+      } else if (error.message) {
+        console.error("Error Message:", error.message);
+      } else {
+        console.error("Unknown Error:", JSON.stringify(error, null, 2));
+      }
     } finally {
       setIsLoading(false);
     }
+    
   };
 
   const validatePrognosisForm = () => {
@@ -385,16 +394,19 @@ export function NewDiagnosisForm({
 
   const validateDiagnosisForm = () => {
     let newErrors = {};
-
+   // pimaryDiagnosis
     // Validate Severity (must be selected)
+   
+
+    if (!primaryDiagnosis?.category) {
+      newErrors.primaryDiagnosis = "Primary diagnosis is required.";
+      
+    }
     if (!formData?.severity) {
       newErrors.severity = "Severity selection is required.";
     }
 
-    // Validate Category (must not be empty)
-    if (!formData?.category?.trim()) {
-      newErrors.category = "Diagnosis category is required.";
-    }
+
 
     // Validate Priority (must be selected)
     if (!formData?.priority) {
@@ -406,15 +418,9 @@ export function NewDiagnosisForm({
       newErrors.chronicityStatus = "Chronicity status is required.";
     }
 
-    // Validate Status
-    if (!formData?.status?.trim()) {
-      newErrors.status = "Status is required.";
-    }
 
-    // Validate Verification Status
-    if (!formData?.verificationStatus?.trim()) {
-      newErrors.verificationStatus = "Verification status is required.";
-    }
+
+
 
     // Debugging output
     console.log("Validation Errors:", newErrors);
@@ -2043,6 +2049,10 @@ export function NewDiagnosisForm({
     };
 
     const getSeverityColor = (severity) => {
+      if (!severity || typeof severity !== "string") {
+        return "text-gray-600"; // Default for undefined, null, or non-string
+      }
+    
       switch (severity.toLowerCase()) {
         case "mild":
           return "text-green-600";
@@ -2054,7 +2064,8 @@ export function NewDiagnosisForm({
           return "text-gray-600";
       }
     };
-    console.log(diagnoses);
+    
+    //console.log(diagnoses);
     return (
       <div
         className="mx-auto max-w-4xl space-y-8 p-6"
@@ -2069,7 +2080,8 @@ export function NewDiagnosisForm({
           </CardHeader>
           <CardContent className="p-6">
             <div className="space-y-4">
-              {diagnoses.map((diagnosis) => (
+            {diagnoses.length > 0 ? (
+              diagnoses.map((diagnosis) => (
                 <div
                   key={diagnosis._id}
                   className="overflow-hidden rounded-lg border shadow-sm"
@@ -2152,15 +2164,7 @@ export function NewDiagnosisForm({
                           </div>
                         </div>
 
-                        <div className="space-y-2">
-                          <h4 className="font-medium text-teal-800">
-                            Verification Status
-                          </h4>
-                          <p className="rounded bg-white p-2 text-sm text-gray-700">
-                            {diagnosis.verificationStatus}
-                          </p>
-                        </div>
-
+                        
                         <div className="space-y-2">
                           <h4 className="font-medium text-teal-800">
                             Timeframe
@@ -2191,7 +2195,10 @@ export function NewDiagnosisForm({
                     </div>
                   )}
                 </div>
-              ))}
+           ))
+          ) : (
+            <p className="text-center text-gray-500">No records found</p>
+          )}
             </div>
           </CardContent>
         </Card>
@@ -2227,10 +2234,9 @@ export function NewDiagnosisForm({
         secondaryDiagnoses: "Hypertension, Hyperlipidemia",
         differentialDiagnoses: "Aortic dissection, Pulmonary embolism",
         status: "active",
-        verificationStatus: "confirmed",
-        symptoms: "Chest pain, shortness of breath, dizziness",
+        diagnosesisadditionalNotes: "Chest pain, shortness of breath, dizziness",
       };
-      setFormdiagnosisData(demoData);
+      setFormData(demoData);
       setIsDisabled(true);
       setShowEditdiagnosisButton(true);
     };
@@ -2398,7 +2404,13 @@ export function NewDiagnosisForm({
           code: "",
           codeDescription: "", // Reset code and description when category changes
         });
-
+       // 
+       if (errors["primaryDiagnosis"]) {
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          primaryDiagnosis: "", // Clear the error message
+        }));
+      }
       
     };
 
@@ -2413,19 +2425,21 @@ export function NewDiagnosisForm({
     }
 
     return (
-      <div className="mx-auto max-w-4xl p-6  " style={{ width: "65vw" }}>
-        <Card className="grid grid-cols-1 gap-4 bg-white shadow-lg md:grid-cols-1">
+<div className="mx-auto mt-0 w-full max-w-5xl p-2">
+<Card className="grid grid-cols-1 gap-4 bg-white shadow-lg md:grid-cols-1">
           <CardHeader className="rounded-t-lg bg-teal-700 text-center text-2xl font-bold text-white">
-            <CardTitle className="text-center text-2xl font-bold">
-              Diagnosis
-            </CardTitle>
+                  <div className="w-full text-center">
+              <CardTitle className="text-2xl">
+                {buttonText === "Update" ? "Update Diagnosis Entry" : "New Diagnosis Entry"}
+              </CardTitle>
+            </div>
           </CardHeader>
           <CardContent>
-            <form className="space-y-6">
+            <div className="space-y-6">
               <div className="mt-2 flex justify-end space-x-4">
                 {!showEditdiagnosisButton && (
                   <Button
-                    onClick={handleAIComplete}
+                   // onClick={handleAIComplete}
                     variant="outline"
                     size="sm"
                     disabled={isDisabled}
@@ -2465,7 +2479,7 @@ export function NewDiagnosisForm({
 
               <div className="space-y-4">
                 <label className="block text-sm font-medium text-[#007664]">
-                  Primary Diagnosis
+                  Primary Diagnosis <span className="text-red-500">*</span>
                 </label>
                 <div className="space-y-2">
                 <select
@@ -2510,13 +2524,116 @@ export function NewDiagnosisForm({
 
                 </div>
 
-                {errors.category && (
-                  <p className="text-sm text-red-500">{errors.category}</p>
+                {errors.primaryDiagnosis && (
+                  <p className="text-sm text-red-500">{errors.primaryDiagnosis}</p>
                 )}
               </div>
+              <div className="space-y-2">
+                  <Label className="block text-sm font-medium text-[#007664]">
+                    Severity Level <span className="text-red-500">*</span>
+                  </Label>
+                  <select
+                    name="severity"
+                    value={formData.severity}
+                    disabled={isDisabled}
+                    onChange={(e) =>
+                      handleInputChange("severity", e.target.value)
+                    }
+                    className="w-full rounded-md border bg-white p-2 focus:border-[#007664]"
+                  >
+                    <option value="">Select severity</option>
+                    <option value="mild">Mild</option>
+                    <option value="moderate">Moderate</option>
+                    <option value="severe">Severe</option>
+                    <option value="critical">Critical</option>
+                  </select>
+                  {errors.category && (
+                    <p className="text-sm text-red-500">{errors.severity}</p>
+                  )}
+                </div>
+          
+              <div className="grid grid-cols-2 gap-4">
+               
 
-              {/* Additional Diagnoses Section */}
-              <div className="space-y-4">
+   
+                {/* Priority Level */}
+                <div className="space-y-2">
+                  <Label className="block text-sm font-medium text-[#007664]">
+                    Priority Level <span className="text-red-500">*</span>
+                  </Label>
+                  <select
+                    name="priority"
+                    value={formData.priority}
+                    disabled={isDisabled}
+                    onChange={(e) =>
+                      handleInputChange("priority", e.target.value)
+                    }
+                    className="w-full rounded-md border bg-white p-2 focus:border-[#007664] "
+                  >
+                    <option value="">Select priority</option>
+                    <option value="emergency">Emergency</option>
+                    <option value="urgent">Urgent</option>
+                    <option value="semi-urgent">Semi-Urgent</option>
+                    <option value="non-urgent">Non-Urgent</option>
+                  </select>
+                  {errors.priority && (
+                    <p className="text-sm text-red-500">{errors.priority}</p>
+                  )}
+                </div>
+
+                {/* Chronicity Status */}
+                <div className="space-y-2">
+                  <Label className="block text-sm font-medium text-[#007664]">
+                    Chronicity Status <span className="text-red-500">*</span>
+                  </Label>
+                  <select
+                    name="chronicityStatus"
+                    value={formData.chronicityStatus}
+                    disabled={isDisabled}
+                    onChange={(e) =>
+                      handleInputChange("chronicityStatus", e.target.value)
+                    }
+                    className="w-full rounded-md border bg-white p-2 focus:border-[#007664] "
+                  >
+                    <option value="">Select status</option>
+                    <option value="acute">Acute</option>
+                    <option value="subacute">Subacute</option>
+                    <option value="chronic">Chronic</option>
+                    <option value="recurrent">Recurrent</option>
+                  </select>
+                  {errors.chronicityStatus && (
+                    <p className="text-sm text-red-500">
+                      {errors.chronicityStatus}
+                    </p>
+                  )}
+                </div>
+              </div>
+     
+
+              {/* Additional Note */}
+              <div className="space-y-2">
+                <label
+                  htmlFor="additionalNotes"
+                  className="block text-sm font-medium text-[#007664]"
+                >
+                  Additional Notes
+                </label>
+                <textarea
+                  id="additionalNotes"
+                  name="additionalNotes"
+                  value={formData.diagnosesisadditionalNotes}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "diagnosesisadditionalNotes",
+                      e.target.value,
+                    )
+                  }
+                  placeholder="Addition Details"
+                  className="h-24 w-full rounded-md border bg-white p-2 focus:border-[#007664]"
+                />
+              </div>
+    {/* Additional Diagnoses Section */}
+    <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-medium text-[#007664]">
                     Additional Diagnoses
@@ -2612,186 +2729,8 @@ export function NewDiagnosisForm({
                   </div>
                 ))}
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="block text-sm font-medium text-[#007664]">
-                    Severity Level
-                  </Label>
-                  <select
-                    name="severity"
-                    value={formData.severity}
-                    disabled={isDisabled}
-                    onChange={(e) =>
-                      handleInputChange("severity", e.target.value)
-                    }
-                    className="w-full rounded-md border bg-white p-2 focus:border-[#007664]"
-                  >
-                    <option value="">Select severity</option>
-                    <option value="mild">Mild</option>
-                    <option value="moderate">Moderate</option>
-                    <option value="severe">Severe</option>
-                    <option value="critical">Critical</option>
-                  </select>
-                  {errors.category && (
-                    <p className="text-sm text-red-500">{errors.severity}</p>
-                  )}
-                </div>
-
-                {/* Diagnosis Category */}
-                <div className="space-y-2">
-                  <Label className="block text-sm font-medium text-[#007664]">
-                    Diagnosis Category
-                  </Label>
-                  <select
-                    name="category"
-                    value={formData.category}
-                    disabled={isDisabled}
-                    onChange={(e) =>
-                      handleInputChange("category", e.target.value)
-                    }
-                    className="w-full rounded-md border bg-white p-2 focus:border-[#007664]"
-                  >
-                    <option value="">Select category</option>
-                    <option value="cardiovascular">Cardiovascular</option>
-                    <option value="respiratory">Respiratory</option>
-                    <option value="neurological">Neurological</option>
-                    <option value="gastrointestinal">Gastrointestinal</option>
-                    <option value="musculoskeletal">Musculoskeletal</option>
-                    <option value="endocrine">Endocrine</option>
-                    <option value="psychiatric">Psychiatric</option>
-                    <option value="other">Other</option>
-                  </select>
-                  {errors.category && (
-                    <p className="text-sm text-red-500">{errors.category}</p>
-                  )}
-                </div>
-
-                {/* Priority Level */}
-                <div className="space-y-2">
-                  <Label className="block text-sm font-medium text-[#007664]">
-                    Priority Level
-                  </Label>
-                  <select
-                    name="priority"
-                    value={formData.priority}
-                    disabled={isDisabled}
-                    onChange={(e) =>
-                      handleInputChange("priority", e.target.value)
-                    }
-                    className="w-full rounded-md border bg-white p-2 focus:border-[#007664] "
-                  >
-                    <option value="">Select priority</option>
-                    <option value="emergency">Emergency</option>
-                    <option value="urgent">Urgent</option>
-                    <option value="semi-urgent">Semi-Urgent</option>
-                    <option value="non-urgent">Non-Urgent</option>
-                  </select>
-                  {errors.priority && (
-                    <p className="text-sm text-red-500">{errors.priority}</p>
-                  )}
-                </div>
-
-                {/* Chronicity Status */}
-                <div className="space-y-2">
-                  <Label className="block text-sm font-medium text-[#007664]">
-                    Chronicity Status
-                  </Label>
-                  <select
-                    name="chronicityStatus"
-                    value={formData.chronicityStatus}
-                    disabled={isDisabled}
-                    onChange={(e) =>
-                      handleInputChange("chronicityStatus", e.target.value)
-                    }
-                    className="w-full rounded-md border bg-white p-2 focus:border-[#007664] "
-                  >
-                    <option value="">Select status</option>
-                    <option value="acute">Acute</option>
-                    <option value="subacute">Subacute</option>
-                    <option value="chronic">Chronic</option>
-                    <option value="recurrent">Recurrent</option>
-                  </select>
-                  {errors.chronicityStatus && (
-                    <p className="text-sm text-red-500">
-                      {errors.chronicityStatus}
-                    </p>
-                  )}
-                </div>
-              </div>
-              {/* Diagnosis Status (FHIR: Condition.status) */}
-              <div className="space-y-2">
-                <Label className="block text-sm font-medium text-[#007664]">
-                  Diagnosis Status
-                </Label>
-                <select
-                  name="status"
-                  value={formData.status}
-                  className="w-full rounded-md border bg-white p-2 focus:border-[#007664]"
-                  onChange={(e) => handleInputChange("status", e.target.value)}
-                >
-                  <option value="">Select status</option>
-                  <option value="active">Active</option>
-                  <option value="resolved">Resolved</option>
-                  <option value="remission">Remission</option>
-                  <option value="inactive">Inactive</option>
-                  <option value="unknown">Unknown</option>
-                </select>
-                {errors.status && (
-                  <p className="text-sm text-red-500">{errors.status}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label className="block text-sm font-medium text-[#007664]">
-                  Verification Status
-                </Label>
-                <select
-                  name="verificationStatus"
-                  value={formData.verificationStatus}
-                  className="w-full rounded-md border bg-white p-2 focus:border-[#007664]"
-                  onChange={(e) =>
-                    handleInputChange("verificationStatus", e.target.value)
-                  }
-                >
-                  <option value="">Select verification status</option>
-                  <option value="unconfirmed">Unconfirmed</option>
-                  <option value="confirmed">Confirmed</option>
-                  <option value="differential">Differential</option>
-                  <option value="refuted">Refuted</option>
-                  <option value="entered-in-error">Entered in Error</option>
-                </select>
-                {errors.verificationStatus && (
-                  <p className="text-sm text-red-500">
-                    {errors.verificationStatus}
-                  </p>
-                )}
-              </div>
-
-              {/* Additional Note */}
-              <div className="space-y-2">
-                <label
-                  htmlFor="additionalNotes"
-                  className="block text-sm font-medium text-[#007664]"
-                >
-                  Additional Notes
-                </label>
-                <textarea
-                  id="additionalNotes"
-                  name="additionalNotes"
-                  value={formData.diagnosesisadditionalNotes}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "diagnosesisadditionalNotes",
-                      e.target.value,
-                    )
-                  }
-                  placeholder="Addition Details"
-                  className="h-24 w-full rounded-md border bg-white p-2 focus:border-[#007664]"
-                />
-              </div>
-
               <div className="flex justify-end space-x-4"></div>
-            </form>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -2813,7 +2752,7 @@ export function NewDiagnosisForm({
   });
 
   const [showEditPrognosisButton, setShowEditPrognosisButton] = useState(false); // Initially false
-
+  const [otherExpectedOutcome, setOtherExpectedOutcome] = useState("");
   const renderPrognosisForm = () => {
     const handleInputChange = (field, value) => {
       setFormData((prev) => ({
@@ -2858,25 +2797,28 @@ export function NewDiagnosisForm({
       handleAIComplete(); // Regenerate the AI data
     };
 
+
+
+        
     return (
-      <div
-        className="mx-auto max-w-4xl space-y-8 p-6  "
-        style={{ width: "65vw" }}
-      >
+      <div className="mx-auto mt-0 w-full max-w-5xl p-2">
+
         <Card className="grid grid-cols-1 gap-4 bg-white shadow-lg md:grid-cols-1">
           <CardHeader className="rounded-t-lg bg-teal-700 text-center text-2xl font-bold text-white">
-            <CardTitle className="text-center text-2xl font-bold">
-              Prognosis
-            </CardTitle>
+          <div className="w-full text-center">
+              <CardTitle className="text-2xl">
+                {buttonText === "Update" ? "Update Prognosis Entry" : "New Prognosis Entry"}
+              </CardTitle>
+            </div>
           </CardHeader>
           <CardContent>
-            <form className="space-y-6">
+            <div className="space-y-6">
               <div className="mt-2 grid grid-cols-1 gap-4">
                 {/* AI Complete Button */}
                 {!showEditPrognosisButton && (
                   <div className="flex justify-end">
                     <Button
-                      onClick={handleAIComplete}
+                     // onClick={handleAIComplete}
                       variant="outline"
                       size="sm"
                       disabled={isDisabled}
@@ -2916,55 +2858,46 @@ export function NewDiagnosisForm({
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="expectedOutcome" className="text-[#007664]">
-                    Expected Outcome
-                  </Label>
-                  <select
-                    id="expectedOutcome"
-                    name="expectedOutcome"
-                    value={formData.expectedOutcome}
-                    onChange={(e) =>
-                      handleInputChange("expectedOutcome", e.target.value)
-                    }
-                    disabled={isDisabled}
-                    className="w-full rounded border border-gray-300 p-2"
-                  >
-                    <option value="">Select expected outcome</option>
-                    <option value="complete_recovery">Complete Recovery</option>
-                    <option value="partial_recovery">Partial Recovery</option>
-                    <option value="chronic_management">
-                      Chronic Management Required
-                    </option>
-                    <option value="progressive_decline">
-                      Progressive Decline
-                    </option>
-                    <option value="terminal">Terminal</option>
-                    <option value="other">Other</option>
-                  </select>
-                  {formData.expectedOutcome === "other" &&
-                    !aiModes.expectedOutcome && (
-                      <Input
-                        name="otherOutcome"
-                        value={formData.otherOutcome}
-                        onChange={(e) =>
-                          handleInputChange("otherOutcome", e.target.value)
-                        }
-                        placeholder="Please specify outcome"
-                        className="mt-2"
-                        disabled={isDisabled}
-                      />
-                    )}
-                  {errors.expectedOutcome && (
-                    <p className="text-sm text-red-500">
-                      {errors.expectedOutcome}
-                    </p>
-                  )}
-                </div>
+              <div className="space-y-2">
+  <Label htmlFor="expectedOutcome" className="text-[#007664]">
+    Expected Outcome <span className="text-red-500">*</span>
+  </Label>
+  <select
+    id="expectedOutcome"
+    name="expectedOutcome"
+    value={formData.expectedOutcome}
+    onChange={(e) => handleInputChange("expectedOutcome", e.target.value)}
+    disabled={isDisabled}
+    className="w-full rounded border border-gray-300 p-2"
+  >
+    <option value="">Select expected outcome</option>
+    <option value="complete_recovery">Complete Recovery</option>
+    <option value="partial_recovery">Partial Recovery</option>
+    <option value="chronic_management">Chronic Management Required</option>
+    <option value="progressive_decline">Progressive Decline</option>
+    <option value="terminal">Terminal</option>
+    <option value="other">Other</option>
+  </select>
+
+  {formData.expectedOutcome === "other" && !aiModes.expectedOutcome && (
+    <Input
+      name="otherExpectedOutcome"
+      value={otherExpectedOutcome}
+      onChange={(e) => setOtherExpectedOutcome(e.target.value)}
+      placeholder="Please specify outcome"
+      className="mt-2"
+      disabled={isDisabled}
+    />
+  )}
+
+  {errors.expectedOutcome && (
+    <p className="text-sm text-red-500">{errors.expectedOutcome}</p>
+  )}
+</div>
 
                 <div>
                   <Label htmlFor="timeframe" className="text-[#007664]">
-                    Timeframe
+                    Timeframe <span className="text-red-500">*</span>
                   </Label>
                   <select
                     id="timeframe"
@@ -2992,7 +2925,7 @@ export function NewDiagnosisForm({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="riskLevel" className="text-[#007664]">
-                    Risk Level
+                    Risk Level <span className="text-red-500">*</span>
                   </Label>
                   <select
                     id="riskLevel"
@@ -3017,7 +2950,7 @@ export function NewDiagnosisForm({
 
                 <div>
                   <Label htmlFor="recoveryPotential" className="text-[#007664]">
-                    Recovery Potential
+                    Recovery Potential <span className="text-red-500">*</span>
                   </Label>
                   <select
                     id="recoveryPotential"
@@ -3053,10 +2986,10 @@ export function NewDiagnosisForm({
                 <textarea
                   id="additionalNotes"
                   name="additionalNotes"
-                  value={formData.prognosisadditionalNotes}
+                  value={formData.prognosisAdditionalNotes}
                   onChange={(e) =>
                     handleInputChange(
-                      "prognosisadditionalNotes",
+                      "prognosisAdditionalNotes",
                       e.target.value,
                     )
                   }
@@ -3065,93 +2998,92 @@ export function NewDiagnosisForm({
                 />
               </div>
               <div className="mt-6 border-t pt-6">
-                <h3 className="mb-4 text-lg font-semibold text-[#007664]">
-                  Follow-up Appointments
-                </h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="appointmentDate"
-                        className="text-sm font-medium text-gray-700"
-                      >
-                        Next Appointment Date
-                      </Label>
-                      <Input
-                        type="date"
-                        id="appointmentDate"
-                        name="appointmentDate"
-                        value={formData.appointmentDate}
-                        onChange={(e) =>
-                          handleInputChange("appointmentDate", e.target.value)
-                        }
-                        disabled={isDisabled}
-                        className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-500 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 disabled:cursor-not-allowed disabled:bg-gray-100"
-                      />
+  <h3 className="mb-4 text-lg font-semibold text-[#007664]">
+    Follow-up Appointments
+  </h3>
+  
+  {/* Single row on PC, stacked on mobile */}
+  <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <div className="space-y-2">
+      <Label
+        htmlFor="appointmentDate"
+        className="text-sm font-medium text-[#007664]"
+      >
+        Next Appointment Date
+      </Label>
+      <input
+        type="date"
+        id="appointmentDate"
+        name="appointmentDate"
+        value={formData.appointmentDate}
+        onChange={(e) =>
+          handleInputChange("appointmentDate", e.target.value)
+        }
+        disabled={isDisabled}
+        className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-500 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 disabled:cursor-not-allowed disabled:bg-gray-100"
+      />
+      {errors.appointmentDate && (
+        <p className="text-sm text-red-500">
+          {errors.appointmentDate}
+        </p>
+      )}
+    </div>
+    
+    <div className="space-y-2">
+      <Label
+        htmlFor="appointmentTime"
+        className="text-sm font-medium text-[#007664]"
+      >
+        Appointment Time
+      </Label>
+      <input
+        type="time"
+        id="appointmentTime"
+        name="appointmentTime"
+        value={formData.appointmentTime}
+        onChange={(e) =>
+          handleInputChange("appointmentTime", e.target.value)
+        }
+        disabled={isDisabled}
+        className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-500 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 disabled:cursor-not-allowed disabled:bg-gray-100"
+      />
+      {errors.appointmentTime && (
+        <p className="text-sm text-red-500">
+          {errors.appointmentTime}
+        </p>
+      )}
+    </div>
 
-                      {errors.appointmentDate && (
-                        <p className="text-sm text-red-500">
-                          {errors.appointmentDate}
-                        </p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="appointmentTime"
-                        className="text-sm font-medium text-[#007664]"
-                      >
-                        Appointment Time
-                      </Label>
-                      <Input
-                        type="time"
-                        id="appointmentTime"
-                        name="appointmentTime"
-                        value={formData.appointmentTime}
-                        onChange={(e) =>
-                          handleInputChange("appointmentTime", e.target.value)
-                        }
-                        disabled={isDisabled}
-                        className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-500 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 disabled:cursor-not-allowed disabled:bg-gray-100"
-                      />
-
-                      {errors.appointmentTime && (
-                        <p className="text-sm text-red-500">
-                          {errors.appointmentTime}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-4 space-y-2">
-                  <Label htmlFor="appointmentType" className="text-[#007664]">
-                    Appointment Type
-                  </Label>
-                  <select
-                    id="appointmentType"
-                    name="appointmentType"
-                    value={formData.appointmentType}
-                    onChange={(e) =>
-                      handleInputChange("appointmentType", e.target.value)
-                    }
-                    disabled={isDisabled}
-                    className="w-full rounded border border-gray-300 p-2"
-                  >
-                    <option value="">Select appointment type</option>
-                    <option value="follow_up">Follow-up Check</option>
-                    <option value="treatment">Treatment Session</option>
-                    <option value="evaluation">Progress Evaluation</option>
-                    <option value="consultation">Consultation</option>
-                  </select>
-                  {errors.appointmentType && (
-                    <p className="text-sm text-red-500">
-                      {errors.appointmentType}
-                    </p>
-                  )}
-                </div>
-              </div>
+    <div className="space-y-2">
+      <Label htmlFor="appointmentType" className="text-sm font-medium text-[#007664]">
+        Appointment Type
+      </Label>
+      <select
+        id="appointmentType"
+        name="appointmentType"
+        value={formData.appointmentType}
+        onChange={(e) =>
+          handleInputChange("appointmentType", e.target.value)
+        }
+        disabled={isDisabled}
+        className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-500 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 disabled:cursor-not-allowed disabled:bg-gray-100"
+      >
+        <option value="">Select appointment type</option>
+        <option value="follow_up">Follow-up Check</option>
+        <option value="treatment">Treatment Session</option>
+        <option value="evaluation">Progress Evaluation</option>
+        <option value="consultation">Consultation</option>
+      </select>
+      {errors.appointmentType && (
+        <p className="text-sm text-red-500">
+          {errors.appointmentType}
+        </p>
+      )}
+    </div>
+  </div>
+</div>
               {/* More fields can be added similarly */}
-            </form>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -3166,8 +3098,8 @@ export function NewDiagnosisForm({
 
   return (
     <>
-      <div className="mx-auto flex min-h-screen max-w-6xl flex-col p-6">
-        {/* Page number circles at the top */}
+    <div className="mx-auto !mt-0 flex size-full min-h-[500px] max-w-full flex-col justify-between px-4 sm:px-6 md:px-8">
+    {/* Page number circles at the top */}
         <div className="mb-0 flex justify-center gap-2">
           {Array.from({ length: pages.length }, (_, i) => i + 1).map(
             (pageNum) => (
@@ -3192,15 +3124,12 @@ export function NewDiagnosisForm({
         </div>
 
         {/* Content area */}
-        <div className="mb-2 flex-1 overflow-auto">
-          {" "}
-          {/* This makes the content take the available space */}
-          {pages[currentPage - 1]()}
-        </div>
+        <div className="w-full grow">{pages[currentPage - 1]()}</div>
+
 
         {/* Navigation footer */}
-        <div className="border-t bg-white shadow-lg">
-          <div className="mx-auto max-w-6xl px-6 py-4">
+        <div className="mt-auto w-full border-t bg-white">
+        <div className="mx-auto w-full max-w-full p-4 sm:px-6 md:px-8">
           <div className="flex items-center justify-between">
   <button
     onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
@@ -3219,7 +3148,7 @@ export function NewDiagnosisForm({
     <div className="flex items-center gap-4">
       <button
         onClick={() => {
-          const isValid = validateDiagnosisForm();
+          const isValid = buttonText === "Update" ? true : validateDiagnosisForm();
           console.log("Validation Result:", isValid); // Debugging output
 
           if (!isValid) {
@@ -3283,8 +3212,15 @@ export function ViewDiagnosis({ diagnosis, isOpen, onClose }) {
       pending: "bg-yellow-50 text-yellow-700 border-yellow-200",
       default: "bg-gray-50 text-gray-700 border-gray-200",
     };
-    return statusColors[status?.toLowerCase()] || statusColors.default;
+  
+    if (!status || typeof status !== "string") {
+      return statusColors.default;
+    }
+  
+    return statusColors[status.toLowerCase()] || statusColors.default;
   };
+  
+
   const InfoItem = ({ label, value, icon, highlight }) => (
     <div className="space-y-1">
       <div className="flex items-center gap-2">
@@ -3302,11 +3238,16 @@ export function ViewDiagnosis({ diagnosis, isOpen, onClose }) {
       </p>
     </div>
   );
+
+  function capitalizeFirstLetter(str) {
+    if (!str) return ""; // Handle empty or undefined strings
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}  //
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto bg-[#F7F7F7] p-0">
-        <DialogHeader className="rounded-t-lg bg-[#007664] p-6 text-white">
-          <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
+  <DialogContent className="max-h-[90vh] w-[90%] overflow-y-auto bg-[#F7F7F7] p-0 sm:max-w-4xl">
+        <DialogHeader className="bg-gradient-to-r from-teal-800 to-teal-500 p-6 text-white">
+  <DialogTitle className="flex w-full items-center justify-center gap-3 text-2xl font-bold">
             <Stethoscope className="size-6" />
             Diagnosis Details
           </DialogTitle>
@@ -3320,7 +3261,7 @@ export function ViewDiagnosis({ diagnosis, isOpen, onClose }) {
           >
             <Activity className="size-5" />
             <span className="font-medium">
-              Current Status: {diagnosis.status}
+              Current Status: {capitalizeFirstLetter(diagnosis.status)}
             </span>
           </motion.div>
 
@@ -3335,7 +3276,7 @@ export function ViewDiagnosis({ diagnosis, isOpen, onClose }) {
             <Card className="border-none bg-white shadow-lg">
               <CardContent className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
                 <InfoItem label="Diagnosis ID" value={diagnosis.diagnosisId} />
-                <InfoItem label="Category" value={diagnosis.primaryDiagnosis.categoryDescription} />
+                <InfoItem label="Category" value={diagnosis.primaryDiagnosis?.categoryDescription} />
                 <InfoItem
                   label="Diagnosed By"
                   value={
@@ -3345,25 +3286,19 @@ export function ViewDiagnosis({ diagnosis, isOpen, onClose }) {
                   }
                 />
                 <InfoItem label="Diagnosed At" value={diagnosis.diagnosedAt} />
-                <InfoItem label="Severity" value={diagnosis.severity} />
-                <InfoItem label="Priority" value={diagnosis.priority} />
+                <InfoItem label="Severity" value={capitalizeFirstLetter(diagnosis.severity)} />
+                <InfoItem label="Priority" value={capitalizeFirstLetter(diagnosis.priority)} />
                 <InfoItem
                   label="Chronicity Status"
-                  value={diagnosis.chronicityStatus}
+                  value={capitalizeFirstLetter(diagnosis.chronicityStatus)}
                 />
-                <InfoItem
-                  label="Progression Stage"
-                  value={diagnosis.progressionStage}
-                />
-                <InfoItem
-                  label="Verification Status"
-                  value={diagnosis.verificationStatus}
-                />
+  
+               
                 <InfoItem
                   label="Diagnosis Additional Notes"
-                  value={diagnosis.diagnosesisadditionalNotes}
+                  value={capitalizeFirstLetter(diagnosis.diagnosesisadditionalNotes)}
                 />
-                <InfoItem label="Patient ID" value={diagnosis.patient} />
+          
               </CardContent>
             </Card>
           </motion.div>
@@ -3420,20 +3355,17 @@ export function ViewDiagnosis({ diagnosis, isOpen, onClose }) {
                 <CardContent className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
                   <InfoItem
                     label="Expected Outcome"
-                    value={diagnosis.expectedOutcome}
+                    value={capitalizeFirstLetter(diagnosis.expectedOutcome)}
                   />
-                  <InfoItem
-                    label="Other Outcome"
-                    value={diagnosis.otherOutcome}
-                  />
+                 
                   <InfoItem label="Timeframe" value={diagnosis.timeframe} />
                   <InfoItem
                     label="Recovery Potential"
-                    value={diagnosis.recoveryPotential}
+                    value={capitalizeFirstLetter(diagnosis.recoveryPotential)}
                   />
                   <InfoItem
                     label="Prognosis Additional Notes"
-                    value={diagnosis.prognosisAdditionalNotes}
+                    value={capitalizeFirstLetter(diagnosis.prognosisAdditionalNotes)}
                   />
                 </CardContent>
               </Card>
@@ -3472,7 +3404,7 @@ export function ViewDiagnosis({ diagnosis, isOpen, onClose }) {
                 />
                 <InfoItem
                   label="Follow-Up Appointment Type"
-                  value={diagnosis.appointmentType}
+                  value={capitalizeFirstLetter(diagnosis.appointmentType)}
                   icon={<Clock className="size-4 text-[#007664]" />}
                 />
               </CardContent>

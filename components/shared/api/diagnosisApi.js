@@ -1,29 +1,27 @@
-import axios from "axios";
+import { api, ENDPOINTS } from './api'; 
 import { handleAddVisitHistory } from "../";
-import {createAuditLogEntry} from "./"
+import { createAuditLogEntry } from "./";
 
 //const API_URL = "http://localhost:4000/api/v2/diagnosis";
-const API_URL = 'https://elikitawebservices-crdpgafxekayhkbe.southafricanorth-01.azurewebsites.net/api/v2/diagnosis'
+
+//const API_URL = 'https://elikitawebservices-crdpgafxekayhkbe.southafricanorth-01.azurewebsites.net/api/v2/diagnosis'
+
+//const API_URL = process.env.NEXT_PUBLIC_API_URL + "/diagnosis";
 
 export const updateDiagnosisData = async (
   mergedData,
   resetForm,
   onTabChange,
+  onClose,
   onSubmit,
 ) => {
   try {
-    const response = await axios.put(
-      `${API_URL}/${mergedData._id}`,
-      mergedData,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
+    const response = await api.put(
+      `${ENDPOINTS.diagnosis}/${mergedData._id}`,
+      mergedData
     );
 
-    console.log("Data successfully updated:", response.data);
-
+     console.log("Data successfully updated:", response.data);
 
     const auditData = {
       userId: mergedData?.diagnosedBy,
@@ -40,10 +38,9 @@ export const updateDiagnosisData = async (
       console.error("Audit log failed:", auditError);
     }
 
-
     resetForm();
-    //onTabChange("medications");
-
+    onTabChange("diagnoses");
+    onClose();
     onSubmit("success", "Diagnosis updated successfully");
   } catch (error) {
     console.error(
@@ -73,26 +70,23 @@ export const createDiagnosis = async (
   mergedData,
   resetForm,
   onTabChange,
+  onClose,
   onSubmit,
   patient,
 ) => {
   try {
-    console.log("Sending diagnosis data:", mergedData);
+    //console.log("Sending diagnosis data:", mergedData);
 
-    const response = await axios.post(`${API_URL}`, mergedData, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await api.post(`${ENDPOINTS.diagnosis}`, mergedData);
 
-    console.log("Data successfully sent. Response:", response.data);
+   // console.log("Data successfully sent. Response:", response.data);
 
     const objectId = response.data?._id || response.data?.id;
 
     if (objectId) {
-      console.log("Object ID found:", objectId);
+     // console.log("Object ID found:", objectId);
 
-      console.log("Patient data before updating history:", patient);
+      //console.log("Patient data before updating history:", patient);
 
       if (!patient) {
         console.error(
@@ -122,11 +116,11 @@ export const createDiagnosis = async (
     }
 
     resetForm();
-    console.log("Form reset successful.");
+    //console.log("Form reset successful.");
 
     onTabChange("medications");
-    console.log("Tab changed to 'medications'.");
-
+   // console.log("Tab changed to 'medications'.");
+    onClose();
     onSubmit("success", "Diagnosis added successfully");
     console.log("Success message sent.");
   } catch (error) {
@@ -138,7 +132,7 @@ export const createDiagnosis = async (
     const auditData = {
       userId: mergedData?.diagnosedBy,
       activityType: "Daignosis Creation Failed",
-      entityId: '123456789000000',
+      entityId: "123456789000000",
       entityModel: "Diagnosis",
       details: `Failed to Add Diagnosis`,
     };
@@ -159,9 +153,7 @@ export const deleteDiagnosis = async (diagnosisId) => {
   }
 
   try {
-    const response = await axios.delete(`${API_URL}/${diagnosisId}`, {
-      headers: { "Content-Type": "application/json" },
-    });
+    const response = await api.delete(`${ENDPOINTS.diagnosis}/${diagnosisId}`);
 
     return response.data; // Return success response
   } catch (error) {

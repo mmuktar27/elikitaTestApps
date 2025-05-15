@@ -1,24 +1,21 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { signOut, useSession } from "next-auth/react";
+import { StatusDialog } from "@/components/shared";
+import { updateStaff } from "@/components/shared/api";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { updateStaff } from "@/components/shared/api";
-import { StatusDialog } from "@/components/shared";
 import { Skeleton } from "@/components/ui/skeleton"; // Assuming you have a Skeleton component
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
 
 import {
-  Mail,
-  Phone,
-  MapPin,
-  Briefcase,
   BadgeIcon as IdCard,
   Loader2,
+  Mail,
+  MapPin
 } from "lucide-react";
 
 
@@ -275,7 +272,7 @@ setIsSaving(true);
               <p className="text-[#007664]">{user?.jobTitle}</p>
               <p className="text-sm text-gray-600">{user?.department}</p>
               <div className="mt-2 flex flex-wrap justify-center gap-2 md:justify-start">
-                {user?.roles.map((role, index) => (
+                {user?.roles?.map((role, index) => (
                   <Badge key={index} variant="secondary">
                     {role}
                   </Badge>

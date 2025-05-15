@@ -1,22 +1,11 @@
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-    DialogFooter,
-    DialogDescription,
-  } from "@/components/ui/dialog";
-  import {
- 
-   
-    Check,
-  
-    Filter,X as CloseIcon ,
-  
-    Check as CheckIcon,AlertCircle,
- 
-  } from "lucide-react";
+  Dialog,
+  DialogContent
+} from "@/components/ui/dialog";
+import {
+  AlertCircle,
+  Check
+} from "lucide-react";
 
 const StatusDialog = ({ isOpen, onClose, status, message }) => {
     const isSuccess = status === "success";

@@ -1,6 +1,5 @@
-export { default as Dashboard } from "./dashboard";
+export { default as RemoteDoctorDashboard } from "./dashboard";
 
-export { default as SettingsPage } from "./SettingsComponent";
 export { default as EventsPage } from "./events";
 
 

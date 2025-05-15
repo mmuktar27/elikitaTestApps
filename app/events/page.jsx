@@ -10,7 +10,7 @@ import {
   useDeleteEvent,
 } from "../../hooks/publicevents.hook";
 import Image from "next/image";
-import { CalendarDays, Video, Tag, Plus, Edit, Trash2 } from "lucide-react";
+import { CalendarDays, Video, Tag, Plus, Edit,X,ArrowRight ,Pencil, Trash2,CalendarCheck,XCircle } from "lucide-react";
 import { format, isSameDay } from "date-fns";
 import { useSession } from "next-auth/react";
 import {
@@ -21,6 +21,8 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { StatusDialog } from "@/components/shared";
+
 import { BsTwitterX } from "react-icons/bs";
 import SkeletonCard from "../../components/ui/skeletoncard";
 
@@ -35,6 +37,23 @@ import VolunteerModal from "@/components/events/volunteer";
 export default function EventsPage() {
   const { toast } = useToast();
 
+  const [statusDialog, setStatusDialog] = useState({
+    isOpen: false,
+    status: null,
+    message: "",
+  });
+  const callStatusDialog = (status, message) => {
+    setStatusDialog({
+      isOpen: true,
+      status: status === "success" ? "success" : "error",
+      message:
+        message ||
+        (status === "success"
+          ? "Action completed successfully"
+          : "Action failed"),
+    });
+    handlemodalClose(status);
+  };
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [eventToEdit, setEventToEdit] = useState(null);
   const [eventToDelete, setEventToDelete] = useState(null);
@@ -61,6 +80,12 @@ export default function EventsPage() {
     setIsEditModalOpen(true);
   };
 
+  const handlemodalClose = (status) => {
+if (status==='success'){
+  setIsAddModalOpen(false)
+}
+  };
+
   const sortedEvents = [...events].sort(
     (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime(),
   );
@@ -78,12 +103,14 @@ export default function EventsPage() {
 
     try {
       await deleteEvent(eventToDelete._id);
-      toast({ title: "Event deleted successfully" });
+     //toast({ title: "Event deleted successfully" });
+     callStatusDialog('success','Event deleted successfully')
       setIsDeleteModalOpen(false);
       setEventToDelete(null);
       setSelectedEvent(null);
     } catch (error) {
-      toast({ title: "Failed to delete event" });
+     //toast({ title: "Failed to delete event" });
+     callStatusDialog('error',"Failed to delete event" )
       console.error("Error deleting event:", error);
     }
   };
@@ -93,12 +120,14 @@ export default function EventsPage() {
 
     try {
       await updateEvent({ id: eventToEdit._id, ...formData });
-      toast({ title: "Event updated successfully" });
+      //toast({ title: "Event updated successfully" });
+      callStatusDialog('success','Event updated successfully')
       setIsEditModalOpen(false);
       setEventToEdit(null);
       setSelectedEvent(null);
     } catch (error) {
-      toast({ title: "Failed to update event" });
+ 
+      callStatusDialog('error',"Failed to update event")
       console.error("Error updating event:", error);
     }
   };
@@ -147,43 +176,43 @@ export default function EventsPage() {
   );
 
   const AddEventModal = () => (
-    <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-      <DialogContent className="max-h-[90vh] w-11/12 max-w-md overflow-y-auto bg-[#f5f5f5]">
-        <DialogHeader>
-          <DialogTitle>Create New Event</DialogTitle>
-        </DialogHeader>
-        <CreateEventForm
-          onSubmit={handleAddSubmit}
-          onClose={() => setIsAddModalOpen(false)}
-        />
-      </DialogContent>
-    </Dialog>
+
+
+<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+<div className="relative h-[600px] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-4 pb-0 sm:p-6">
+  <button
+    className="absolute right-4 top-4 rounded-full bg-red-100 p-2 text-red-700 hover:text-gray-800"
+    onClick={() => setIsAddModalOpen(false)}
+  >
+     <XCircle className="size-6" />
+  </button>
+  <CreateEventForm onClose={() => setIsAddModalOpen(false)} onSubmit={callStatusDialog} />;
+  </div>
+</div>
   );
 
+
+
+
   const EditEventModal = () => (
-    <Dialog
-      open={isEditModalOpen}
-      onOpenChange={(open) => {
-        if (!open) setEventToEdit(null);
-        setIsEditModalOpen(open);
-      }}
-    >
-      <DialogContent className="max-h-[90vh] w-11/12 max-w-md overflow-y-auto bg-[#f5f5f5]">
-        <DialogHeader>
-          <DialogTitle>Edit Event: {eventToEdit?.title}</DialogTitle>
-        </DialogHeader>
-        <CreateEventForm
-          onSubmit={handleEditSubmit}
-          onClose={() => {
-            setIsEditModalOpen(false);
-            setEventToEdit(null);
-          }}
-          initialData={eventToEdit}
-          isEditing={true}
-        />
-      </DialogContent>
-    </Dialog>
-  );
+
+
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className="relative h-[600px] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-4 pb-0 sm:p-6">
+      <button
+        className="absolute right-4 top-4 rounded-full bg-red-100 p-2 text-red-700 hover:text-gray-800"
+        onClick={() => setIsEditModalOpen(false)}
+      >
+         <XCircle className="size-6" />
+      </button>
+      <CreateEventForm 
+  onClose={() => setIsEditModalOpen(false)} 
+  onSubmit={callStatusDialog} 
+  initialData={eventToEdit} // Pass existing event data for editing
+
+/>      </div>
+    </div>
+      );
 
   const EventModal = ({ event, onClose }) => {
     if (!event) return null;
@@ -192,108 +221,159 @@ export default function EventsPage() {
     const endDate = new Date(event.end);
     const isSingleDay = isSameDay(startDate, endDate);
 
-    const dateTimeString = isSingleDay
-      ? `${format(startDate, "MMM d, yyyy")} • ${format(startDate, "HH:mm")} - ${format(endDate, "HH:mm")}`
-      : `${format(startDate, "MMM d, HH:mm")} - ${format(endDate, "MMM d, HH:mm")}`;
-
-    return (
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-        onClick={onClose}
-      >
+    const formatDateTime = (dateString) => {
+      return format(new Date(dateString), "EEEE, MMMM do yyyy, h:mm a z");
+    };
+    //  console.log(event)
+      return (
         <div
-          className="mx-4 w-full max-w-2xl rounded-lg bg-white p-6"
-          onClick={(e) => e.stopPropagation()}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={onClose}
         >
-          <div className="mb-4 flex items-start justify-between">
-            <h2 className="text-2xl font-bold capitalize text-gray-900">
-              {event.title}
-            </h2>
-            <button
-              onClick={onClose}
-              className="text-2xl text-gray-500 hover:text-gray-700"
-            >
-              &times;
-            </button>
-          </div>
+          <div
+            className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg bg-white shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="relative flex items-center justify-between bg-gradient-to-r from-teal-800 to-teal-500 p-5 text-white">
+            <div className="flex w-full justify-center">
+  <div className="flex items-center text-center">
+    <CalendarCheck className="mr-2 size-6 text-teal-300" />
+    <h2 className="text-2xl font-semibold tracking-tight">Event Details</h2>
+  </div>
+</div>
 
-          {event.image && (
-            <div className="relative mb-4 h-48 w-full">
-              <Image
-                src={event.image}
-                alt={event.title}
-                fill
-                className="rounded-lg object-cover"
-                sizes="(max-width: 768px) 100vw, 50vw"
-              />
+
+              <button
+                onClick={onClose}
+                className="rounded-full bg-white/10 p-1 text-white hover:bg-white/20"
+              >
+                <X className="size-5" />
+              </button>
             </div>
-          )}
-
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <CalendarDays className="size-5 text-gray-600" />
-              <span>{dateTimeString}</span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Tag className="size-5 text-gray-600" />
-              Type:<span className="capitalize"> {event.type}</span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Video className="size-5 text-gray-600" />
-              <span>{event.platform}</span>
-            </div>
-
-            {event.description && (
-              <div className="mt-3">
-                <p className="text-gray-700">{event.description}</p>
+      
+            {/* Scrollable Content */}
+            <div className="grow overflow-y-auto p-6">
+              {/* Full-Width Event Title */}
+              <div className="mb-6 text-left">
+                <label className="block text-lg font-medium text-gray-600">Event Title</label>
+                <h2 className="mt-1 text-2xl font-bold capitalize text-gray-900">
+                  {event.title}
+                </h2>
               </div>
-            )}
+      
+              {/* Full-Width Event Image */}
+              {event.image && (
+                <div className="relative mb-6 h-64 w-full overflow-hidden rounded-lg">
+                  <Image
+                    src={event.image}
+                    alt={event.title}
+                    fill
+                   // className="object-cover"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    priority
+                  />
+                </div>
+              )}
+      
+              {/* Grid Layout for Event Details */}
+              <div className="grid grid-cols-2 gap-4 text-center">
+                {/* Start Date & Time */}
+                <div className="flex flex-col items-center">
 
-            {event.meetingUrl && (
-              <div className="mt-4">
-                <a
-                  href={event.meetingUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-[#007664] hover:underline"
-                >
-                  Click here to register &rarr;
-                </a>
-              </div>
-            )}
+                  <label className="font-medium text-gray-600">Start Date & Time</label>
+                  <div className="flex items-center gap-2 text-gray-700">
+                  <CalendarDays className="size-5 text-teal-600" />
+                  <span>{formatDateTime(event.start)}</span>
+                  </div>
+                </div>
+      
+                {/* End Date & Time */}
+                <div className="flex flex-col items-center">
+                  <label className="font-medium text-gray-600">End Date & Time</label>
+                  <div className="flex items-center gap-2 text-gray-700">
+                  <CalendarDays className="size-5 text-teal-600" />
 
-            {isSystemAdmin && (
-              <div className="mt-4 flex space-x-2">
-                {/*      <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onClose();
-                    handleEditClick(event);
-                  }}
-                  className="flex items-center rounded bg-yellow-500 px-3 py-2 text-white hover:bg-yellow-600"
-                >
-                  <Edit className="mr-2 size-4" /> Edit
-                </button> */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onClose();
-                    setEventToDelete(event);
-                    setIsDeleteModalOpen(true);
-                  }}
-                  disabled={isPending}
-                  className="flex items-center rounded bg-red-500 px-3 py-2 text-white hover:bg-red-600"
-                >
-                  <Trash2 className="mr-2 size-4" /> Delete
-                </button>
+                    <span>{formatDateTime(event.end)}</span>
+                  </div>
+                </div>
+      
+                {/* Event Type */}
+                <div className="flex flex-col items-center">
+                  <label className="font-medium text-gray-600">Event Type</label>
+                  <div className="flex items-center gap-2 text-gray-700">
+                    <Tag className="size-5 text-teal-600" />
+                    <span className="capitalize">{event.type}</span>
+                  </div>
+                </div>
+      
+                {/* Platform */}
+                <div className="flex flex-col items-center">
+                  <label className="font-medium text-gray-600">Platform</label>
+                  <div className="flex items-center gap-2 text-gray-700">
+                    <Video className="size-5 text-teal-600" />
+                    <span>{event.platform}</span>
+                  </div>
+                </div>
               </div>
-            )}
+      
+              {/* Full-Width Event Description */}
+              {event.description && (
+                <div className="mt-6 border-t border-gray-200 pt-4">
+                  <label className="mb-1 block font-medium text-gray-600">Description</label>
+                  <p className="whitespace-pre-wrap text-gray-700">{event.description}</p>
+                </div>
+              )}
+      
+              {/* Full-Width Registration Link */}
+          {/* Registration Link & Admin Controls in Grid */}
+<div className="mt-6 grid grid-cols-2 gap-4">
+  {/* Registration Button */}
+  {event.meetingUrl && (
+    <a
+      href={event.meetingUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center justify-center gap-2 rounded-md bg-teal-600 px-5 py-2 text-center text-lg font-medium text-white transition-colors hover:bg-teal-700"
+    >
+      Click here to register <ArrowRight className="size-4" />
+    </a>
+  )}
+
+  {/* Admin Controls */}
+  {isSystemAdmin && (
+<>
+<button
+onClick={(e) => {
+  e.stopPropagation();
+  onClose();
+  setEventToEdit(event); // Set the event being edited
+  setIsEditModalOpen(true); // Open the edit modal
+}}
+className="flex items-center justify-center rounded bg-blue-500 px-5 py-2 text-lg text-white transition-colors hover:bg-blue-600"
+>
+<Pencil className="mr-2 size-5" /> Edit Event
+</button>
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        onClose();
+        setEventToDelete(event);
+        setIsDeleteModalOpen(true);
+      }}
+      disabled={isPending}
+      className="flex items-center justify-center rounded bg-red-500 px-5 py-2 text-lg text-white transition-colors hover:bg-red-600 disabled:opacity-50"
+    >
+      <Trash2 className="mr-2 size-5" /> Delete Event
+    </button>
+    </>
+  )}
+</div>
+
+            </div>
           </div>
         </div>
-      </div>
-    );
+      );  
   };
 
   if (isLoading) {
@@ -446,9 +526,21 @@ export default function EventsPage() {
               onClose={() => setSelectedEvent(null)}
             />
           )}
+{isAddModalOpen &&(
+  <>
+  <AddEventModal />
+  </>
+)
 
-          <AddEventModal />
-          <EditEventModal />
+}
+
+{isEditModalOpen  &&(
+  <>
+  <EditEventModal />
+  </>
+)
+
+}
           <DeleteConfirmationModal />
 
           <EventDivider text="UPCOMING" />
@@ -586,6 +678,16 @@ export default function EventsPage() {
               </div>
             </div>
           </div>
+
+          <StatusDialog
+                                  isOpen={statusDialog.isOpen}
+                                  onClose={() => {
+                                    setStatusDialog((prev) => ({ ...prev, isOpen: false }));
+                                   
+                                  }}
+                                  status={statusDialog.status}
+                                  message={statusDialog.message}
+                                />
         </div>
       </footer>
 

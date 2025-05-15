@@ -12,16 +12,25 @@ import {
   UserRoundPen,
   Users,
   ClockIcon,
-  X,CalendarCheck
+  X,
+  CalendarCheck,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
-import { useState,useEffect  } from "react";
+import { useState, useEffect } from "react";
 import { getSystemSettings } from "@/components/shared/api";
-import {SessionManager} from '@/components/shared'
+import { SessionManager } from "@/components/shared";
 
 import TeamSwitcher from "../../components/ui/team-switcher";
 import { LogoutConfirmation } from "../components/shared";
-import {getCurrentBookingUrlConfig} from "../../components/shared/api"
+import { getCurrentBookingUrlConfig } from "../../components/shared/api";
+import {
+  PageProvider,
+  usePatientsPage,
+  useReferralsPage,
+  useAppointmentPage,
+} from "../../components/shared";
+
+import { HeartbeatManager } from "@/components/shared";
 
 import { useDateTime } from "@/hooks/useDateTime";
 import { Separator } from "@radix-ui/react-select";
@@ -29,30 +38,36 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Logout } from "@/components/shared";
-import { PageProvider, usePage } from "../../components/shared";
+import { createAuditLogEntry } from "@/components/shared/api";
 
 const NavItem = ({ icon: Icon, label, active, url, onClick }) => {
   const router = useRouter();
-  const { setIsactivepage } = usePage();
+  //const { setIsactivepage } = usePage();
+  const { setActiveAppointmentPage } = useAppointmentPage();
+
+  const { setActivePatientsPage } = usePatientsPage();
+
   return (
-  <Link
-    href={url}
-    className={`flex w-full items-center space-x-2 rounded p-2 text-sm font-bold ${
-      active
-        ? "bg-[#75C05B]/20 text-white"
-        : "text-white hover:bg-[#75C05B]/20 hover:text-white"
-    }`}
-    onClick={() => {
-      if (url === "/healthadmin/patients") {
-        setIsactivepage("patient"); // Reset inner page globally
-      }
-      router.push(url); // Navigate to the main page
-    }}
-  >
-    <Icon size={18} />
-    <span>{label}</span>
-  </Link>
-);}
+    <Link
+      href={url}
+      className={`flex w-full items-center gap-2 rounded p-2 text-sm font-bold transition duration-200 
+        ${active ? "bg-[#75C05B]/20 text-white" : "text-white hover:bg-[#75C05B]/20 hover:text-white"} 
+        focus:ring focus:ring-teal-300/50`}
+      onClick={(e) => {
+        if (url === "/healthadmin/patients") setActivePatientsPage("patient");
+        if (url === "/healthadmin/appointments")
+          setActiveAppointmentPage("appointment");
+
+        if (onClick) onClick(e); // Preserve existing onClick behavior
+        router.push(url);
+      }}
+      aria-current={active ? "page" : undefined}
+    >
+      <Icon size={18} />
+      <span>{label}</span>
+    </Link>
+  );
+};
 
 const Avatar = ({ src, alt, fallback }) => (
   <div className="relative flex size-10 items-center justify-center overflow-hidden rounded-full bg-gray-300">
@@ -99,6 +114,11 @@ function LayoutPage({ children }) {
       redirect: true,
     });
   };
+
+  const { setActiveReferralsPage } = useReferralsPage();
+  const { setActivePatientsPage } = usePatientsPage();
+  const { setActiveAppointmentPage } = useAppointmentPage();
+
   const session = useSession();
   const router = useRouter();
 
@@ -118,26 +138,23 @@ function LayoutPage({ children }) {
       try {
         const settings = await getSystemSettings();
         const isMaintenanceMode = settings?.data?.maintenanceMode || false;
-    
+
         // Allow access if the user has the "system admin" rolesMaintenanceMode){
-setisMaintenanceMode(isMaintenanceMode)
-setOrganizationName(settings?.data?.organizationName )
-setSessionTimeOut(settings?.data?.sessionTimeout)
+        setisMaintenanceMode(isMaintenanceMode);
+        setOrganizationName(settings?.data?.organizationName);
+        setSessionTimeOut(settings?.data?.sessionTimeout);
 
+        setIsLoading(false); // Ensure loading stops even on error
 
-setIsLoading(false); // Ensure loading stops even on error
-
-if (session.data.user.roles.includes("system admin")) {
- return;
-}
-if (isMaintenanceMode)
- 
- {router.push("/maintenance");
-}
+        if (session.data.user.roles.includes("system admin")) {
+          return;
+        }
+        if (isMaintenanceMode) {
+          router.push("/maintenance");
+        }
       } catch (error) {
         console.error("Error fetching system settings:", error);
         setIsLoading(false); // Ensure loading stops even on error
-
       }
     };
 
@@ -149,7 +166,7 @@ if (isMaintenanceMode)
       try {
         const data = await getCurrentBookingUrlConfig();
         let url = data?.internalBookingUrl;
-  
+
         if (url) {
           // Ensure it has a proper scheme (http/https)
           if (!url.startsWith("http")) {
@@ -158,13 +175,13 @@ if (isMaintenanceMode)
         } else {
           url = "https://e-likita.com"; // Fallback URL
         }
-  
+
         setBookingUrl(url);
       } catch (error) {
         console.error("Failed to fetch booking URL", error);
       }
     };
-  
+
     fetchBookingUrl();
   }, []);
 
@@ -194,17 +211,29 @@ if (isMaintenanceMode)
   };
 
   return (
-    <PageProvider>
-
     <div className="flex h-screen bg-[#007664]">
-    {!isLoading && <SessionManager timeout={sessionTimeOut || 10} warningTime={1} />}
-
+      <HeartbeatManager />
+      {!isLoading && (
+        <SessionManager
+          timeout={sessionTimeOut || 10}
+          warningTime={1}
+          createAuditLogEntry={createAuditLogEntry}
+          session={session}
+        />
+      )}
       <aside
         className={`${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} fixed inset-y-0 left-0 z-50 w-64 bg-[#007664] p-4 text-white transition-transform duration-300 ease-in-out md:relative md:translate-x-0`}
       >
         <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-2xl font-bold"> {!isLoading && (organizationName || "e-Likita")} </h1>
-        <button onClick={toggleSidebar} className="md:hidden">
+          <div className="flex flex-col">
+            <h1 className="mb-1 text-3xl font-bold text-white">e-Likita</h1>
+            {!isLoading && organizationName && (
+              <h2 className="text-lg font-medium text-gray-200">
+                {organizationName}
+              </h2>
+            )}
+          </div>{" "}
+          <button onClick={toggleSidebar} className="md:hidden">
             <X size={24} />
           </button>
         </div>
@@ -214,38 +243,52 @@ if (isMaintenanceMode)
             label="Dashboard"
             active={routes === "/healthadmin"}
             url={"/healthadmin"}
+            onClick={() => isSidebarOpen && toggleSidebar()}
           />
           <NavItem
             icon={Users}
             label="Patients"
-            active={routes === "/healthadmin/patients"}
+            active={routes.includes("/healthadmin/patients")}
             url={"/healthadmin/patients"}
-            onClick={() => setIsactivepage("patient")} // Reset inner page when clicked
-
+            onClick={() => {
+              setActivePatientsPage("patient"); // Keep existing function
+              if (isSidebarOpen) toggleSidebar(); // Close sidebar
+            }} // Reset inner page when clicked
           />
           <NavItem
             icon={ClockIcon}
             label="Appointments"
             active={routes === "/healthadmin/appointments"}
             url={"/healthadmin/appointments"}
+            onClick={() => {
+              setActiveAppointmentPage("appointment"); // Keep existing function
+              if (isSidebarOpen) toggleSidebar(); // Close sidebar
+            }}
           />
           <NavItem
             icon={Activity}
             label="Events"
             active={routes === "/healthadmin/events"}
             url={"/healthadmin/events"}
+            onClick={() => isSidebarOpen && toggleSidebar()}
           />
-             <NavItem 
-              icon={CalendarCheck} 
-              label="Bookings" 
-              active={routes === bookingUrl} 
-              url={bookingUrl} 
-            />
+          <Link
+            href={bookingUrl}
+            className="flex w-full items-center gap-2 p-2 text-sm font-bold text-white hover:bg-[#75C05B]/20 hover:text-white"
+            target="_blank" // Opens in a new tab
+            rel="noopener noreferrer" // Security best practice
+            onClick={() => {
+              if (isSidebarOpen) toggleSidebar();
+            }}
+          >
+            <CalendarCheck size={18} /> <span>Bookings</span>
+          </Link>
           <NavItem
             icon={UserRoundPen}
             label="Profile"
             active={routes === "/healthadmin/profile"}
             url={"/healthadmin/profile"}
+            onClick={() => isSidebarOpen && toggleSidebar()}
           />
           <button
             className={`flex w-full items-center gap-2 space-x-2 rounded   p-2 text-sm font-bold text-white hover:bg-[#75C05B]/20 hover:text-white`}
@@ -255,61 +298,64 @@ if (isMaintenanceMode)
           </button>
         </nav>
 
-        {!isSidebarOpen && (
-          <div className="fixed bottom-0 my-4 flex flex-col items-center justify-center gap-4">
-            <TeamSwitcher roles={session?.data?.user?.roles} />
-            <Separator />
-            {session?.data && (
-              <div className="text-2xl font-bold">
-                <p>{formattedDate}</p>
-                <p>{formattedTime}</p>
-              </div>
-            )}
-          </div>
-        )}
+        <div
+          className={`fixed bottom-0 my-4 flex flex-col items-center justify-center gap-4 
+          ${isSidebarOpen ? "flex" : "hidden"} md:flex`}
+        >
+          <TeamSwitcher roles={session?.data?.user?.roles} />
+          <Separator />
+          {session?.data && (
+            <div className="text-2xl font-bold">
+              <p>{formattedDate}</p>
+              <p>{formattedTime}</p>
+            </div>
+          )}
+        </div>
       </aside>
       <main className="flex-1 overflow-auto bg-gray-100">
-      <div className="fixed left-64 right-0 top-0 z-40 h-20 bg-gray-100 p-8">
-  <div className="flex h-full items-center justify-between"> 
-    <div className="flex items-center">
-      <button onClick={toggleSidebar} className="mr-4 md:hidden">
-        <Menu size={24} />
-      </button>
-      <h1 className="text-3xl font-bold text-[#007664]">Healthcare Admin</h1>
-    </div>
-    <div className="flex items-center space-x-4">
-      <div className="flex cursor-pointer items-center space-x-2">
-        <Link href="/healthadmin/profile" className="flex items-center gap-2">
-          <Avatar
-            src={session?.data?.user?.image}
-            alt={session?.data?.user?.name}
-            fallback={"currUser?.displayName.charAt(0)"}
-          />
-          <div>
-            <p className="font-semibold">{session?.data?.user?.name}</p>
-            <p className="text-sm text-gray-500">
-              {session?.data?.user?.workEmail}
-            </p>
+        <div className="fixed inset-x-0 top-0 z-40 h-auto min-h-20 bg-gray-100 p-8 md:left-64">
+          <div className="flex h-full items-center justify-between">
+            <div className="flex items-center">
+              <button onClick={toggleSidebar} className="mr-4 md:hidden">
+                <Menu size={24} />
+              </button>
+              <h1 className="text-2xl font-bold text-[#007664] md:text-3xl">
+                Healthcare Admin
+              </h1>
+            </div>
+            <div className="flex items-center">
+              <div className="flex cursor-pointer items-center">
+                <Link
+                  href="/healthadmin/profile"
+                  className="flex items-center gap-2"
+                >
+                  <Avatar
+                    src={session?.data?.user?.image}
+                    alt={session?.data?.user?.name}
+                    fallback={session?.data?.user?.name?.charAt(0) || "U"}
+                  />
+                  <div className="hidden sm:block">
+                    <p className="font-semibold">{session?.data?.user?.name}</p>
+                    <p className="text-sm text-gray-500">
+                      {session?.data?.user?.workEmail}
+                    </p>
+                  </div>
+                </Link>
+              </div>
+            </div>
           </div>
-        </Link>
-      </div>
-    </div>
-  </div>
-</div>
+        </div>
 
-        <div className="p-8 pt-20">{children}</div>
+        <div className="mt-8 p-8 pt-20">{children}</div>
 
         <Logout
           isOpen={isLogoutConfirmationOpen}
           onClose={() => setIsLogoutConfirmationOpen(false)}
-          onConfirm={async () => await signOut}
+          onConfirm={async () => await signOut()}
           currentUser={session?.data?.user?.id}
-
         />
       </main>
     </div>
-    </PageProvider>
-
   );
 }
 

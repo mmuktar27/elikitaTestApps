@@ -1,4 +1,5 @@
 "use client";
+import { createAuditLogEntry } from "@/components/shared/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,12 +22,12 @@ import {
 } from "@/components/ui/select";
 import SkeletonCard from "@/components/ui/skeletoncard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useGetAStaff, useUpdateAStaff } from "@/hooks/admin";
+import { useUpdateAStaff } from "@/hooks/admin";
 import { ROLES } from "@/utils/roles";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
-import {createAuditLogEntry} from "@/components/shared/api";
+import { useUserPageNav } from "@/components/shared";
 
 const roleSpecificFields = {
   DOCTOR: [
@@ -62,7 +63,7 @@ const roleSpecificFields = {
   ],
 };
 
-export default function StaffDetail({ id }) {
+export default function StaffDetail({ selectedUser,id,setActiveUserPage }) {
   const [staff, setStaff] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [customFields, setCustomFields] = useState([]);
@@ -70,13 +71,14 @@ export default function StaffDetail({ id }) {
   const session = useSession();
     const [currentUser, setcurrentUser] = useState("");
   
-  const { data, isLoading, isFetched } = useGetAStaff(id);
-  console.log("id", id);
+ // const { data, isLoading, isFetched } = useGetAStaff(id);
+  //console.log("id", data);
 
   const { mutate, isSuccess } = useUpdateAStaff(id);
     useEffect(() => {
       setcurrentUser(session?.data?.user?.id)
     }, [session?.data?.user?.id]);
+    /*
   useEffect(() => {
     if (data?.data && isFetched) {
       setStaff(data.data[0]);
@@ -99,6 +101,30 @@ export default function StaffDetail({ id }) {
       setCustomFields(existingCustomFields);
     }
   }, [isLoading, data, isFetched]);
+*/
+useEffect(() => {
+  if (selectedUser) {
+    setStaff(selectedUser);
+
+    const existingCustomFields = Object.keys(selectedUser)
+      .filter(
+        (key) =>
+          !Object.keys(roleSpecificFields).some((role) =>
+            roleSpecificFields[role].some((field) => field.name === key),
+          ),
+      )
+      .map((key) => ({
+        name: key,
+        label:
+          key.charAt(0).toUpperCase() +
+          key.slice(1).replace(/([A-Z])/g, " $1"),
+        type: Array.isArray(selectedUser[key]) ? "array" : typeof selectedUser[key],
+        value: selectedUser[key],
+      }));
+
+    setCustomFields(existingCustomFields);
+  }
+}, [selectedUser]); // Removed data dependencies, only listening to selectedUser
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -226,23 +252,27 @@ export default function StaffDetail({ id }) {
   if (!staff) {
     return (
       <div>
-        hellp
+      
         <SkeletonCard />;
       </div>
     );
   }
 
+
+ // console.log('selectedUser')
+ // console.log(selectedUser)
+
   return (
     <div className="container mx-auto py-10">
       <Button
-        className="mt-2 rounded bg-[#007664] px-4 py-2 text-white hover:bg-[#007664]/80"
-        onClick={() => router.push("/admin/users")}
+        className="mt-4 rounded bg-[#007664] px-4 py-2 text-white hover:bg-[#007664]/80"
+        onClick={() => setActiveUserPage('users')}
       >
         Back to Staff List
       </Button>
       <Tabs defaultValue="personal" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="personal">Personal Info</TabsTrigger>
+      <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 mb-2">
+      <TabsTrigger value="personal">Personal Info</TabsTrigger>
           <TabsTrigger value="employment">Employment</TabsTrigger>
           <TabsTrigger value="contact">Contact</TabsTrigger>
           <TabsTrigger value="professional">Professional</TabsTrigger>

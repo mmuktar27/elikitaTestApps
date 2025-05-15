@@ -1,20 +1,20 @@
 "use client";
-import React, { useState } from 'react';
-import { 
-    Filter, 
-    Calendar, 
-    Stethoscope, 
-    CheckCircle2, 
-    RefreshCw 
-  } from "lucide-react";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription 
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import {
+  Calendar,
+  CheckCircle2,
+  Filter,
+  RefreshCw,
+  Stethoscope
+} from "lucide-react";
+import { useState } from 'react';
 
 export const PatientFilter = ({ 
   isOpen, 

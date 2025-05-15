@@ -1,10 +1,10 @@
 import React from "react";
-import { Calendar } from "../../../components/events/calendar";
+import { Event } from  "@/components/shared";
 
 const Events = () => {
   const currentDashboard="healthcare assistant"
 
-  return <Calendar currentDashboard={currentDashboard}/>;
+  return <Event currentDashboard={currentDashboard}/>;
 };
 
 export default Events;

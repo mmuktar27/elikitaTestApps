@@ -1,6 +1,4 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
-import { ChevronDown, ChevronLeft, ChevronRight, Plus,Link as LinkIcon  } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,27 +7,28 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { CreateEventForm } from "./create-event-form";
+import {
+  useGetEventsByParticipant
+} from "@/hooks/publicevents.hook";
 import { cn } from "@/lib/utils";
 import {
-  format,
   addDays,
-  startOfWeek,
-  subWeeks,
   addWeeks,
+  differenceInMinutes,
+  endOfDay,
+  format,
   isSameDay,
   isWithinInterval,
   startOfDay,
-  endOfDay,
-  differenceInMinutes,
+  startOfWeek,
+  subWeeks,
 } from "date-fns";
-import {
-  useGetEventsByParticipant,
-  useGetEventsByParticipants,
-} from "@/hooks/publicevents.hook";
-import { platform } from "os";
-import { useSession, signOut } from "next-auth/react";
+import { ChevronLeft, ChevronRight, Link as LinkIcon, Plus,XCircle } from "lucide-react";
+import { useSession } from "next-auth/react";
+import React, { useEffect, useRef, useState } from "react";
 import BookingsURLManagement from "../admin/BookingUrl";
+import { CreateEventForm } from "./create-event-form";
+import { StatusDialog } from "../shared";
 
 const hours = Array.from({ length: 13 }, (_, i) => i + 8);
 const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri"];
@@ -45,7 +44,28 @@ export function Calendar({currentDashboard}) {
   const { data: eventsData, isLoading, error } = useGetEventsByParticipant();
   const canCreate = roles.includes("system admin");
   console.log("eventsData", eventsData);
+
+  //console.log("dashboard", currentDashboard);
+
+  const [statusDialog, setStatusDialog] = useState({
+    isOpen: false,
+    status: null,
+    message: "",
+  });
+  const callStatusDialog = (status, message) => {
+    setStatusDialog({
+      isOpen: true,
+      status: status === "success" ? "success" : "error",
+      message:
+        message ||
+        (status === "success"
+          ? "Action completed successfully"
+          : "Action failed"),
+    });
+  };
+
   const [openDialog, setOpenDialog] = useState(false);
+  /*
   const events =
     eventsData?.data?.data.map((event) => ({
       id: event._id,
@@ -59,6 +79,44 @@ export function Calendar({currentDashboard}) {
       type: event.type,
       platform: event.platform,
     })) || [];
+*/
+
+const events =
+eventsData?.data?.data
+  ?.filter((event) => {
+    // Public events are visible to everyone
+    if (event.participants.includes("public")) {
+      return true;
+    }
+
+    // Role-based filtering
+    const allowedRoles = [
+      "system admin",
+      "doctor",
+      "healthcare admin",
+      "remote doctor",
+      "healthcare assistant",
+    ];
+
+    if (allowedRoles.includes(currentDashboard)) {
+      return event.participants.includes(currentDashboard);
+    }
+
+    return false; // Hide events if the role is unknown
+  })
+  .map((event) => ({
+    id: event._id,
+    title: event.title,
+    start: new Date(event.start),
+    end: new Date(event.end),
+    color: event.color,
+    description: event.description,
+    organizer: event.host,
+    eventLink: event.meetingUrl,
+    type: event.type,
+    platform: event.platform,
+  })) || [];
+
 
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -88,7 +146,12 @@ export function Calendar({currentDashboard}) {
       end: endOfDay(event.end),
     });
   };
+  
+ 
 
+  const handleDialogClose = () => {
+    setOpenDialog(false)
+  };
   const getEventPosition = (event, date) => {
     const isMultiDay = isMultiDayEvent(event);
     const isStartDay = isSameDay(event.start, date);
@@ -222,24 +285,42 @@ export function Calendar({currentDashboard}) {
       </DialogContent>
     </Dialog>
           )}
+          {currentDashboard === "system admin" && session?.data?.user?.roles?.includes("system admin") && ( 
+<>
 
-          {canCreate && (
-            <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-              <DialogTrigger asChild>
-                <Button className="bg-[#007664] text-white hover:bg-[#005a4d]">
-                  <Plus className="mr-2 size-4" />
-                  Create Event
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-h-[90vh] w-11/12 max-w-md overflow-y-auto bg-[#f5f5f5]">
-                <DialogHeader>
-                  <DialogTitle>Create New Event</DialogTitle>
-                </DialogHeader>
-                <CreateEventForm onClose={setOpenDialog} />
-              </DialogContent>
-            </Dialog>
-          )}
-        </div>
+  <div>
+    {canCreate && (
+  <button
+  className="flex items-center space-x-2 rounded-lg bg-teal-600 px-3 py-2 text-white hover:bg-teal-700"
+  onClick={() => setOpenDialog(true)}
+>
+  <Plus className="size-4" />
+  <span>Create Event</span>
+</button>
+
+    )}
+
+    {canCreate && openDialog && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div className="relative h-[600px] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-4 pb-0 sm:p-6">
+          <button
+            className="absolute right-4 top-4 rounded-full bg-red-100 p-2 text-red-700 hover:text-gray-800"
+            onClick={() => setOpenDialog(false)}
+          >
+             <XCircle className="size-6" />
+          </button>
+          <CreateEventForm onClose={() => setOpenDialog(false)} onSubmit={callStatusDialog} />;
+          </div>
+      </div>
+    )}
+  </div>
+
+
+        </>
+       
+       )}  
+       
+        </div> 
       </header>
 
       {/* Calendar grid */}
@@ -408,6 +489,16 @@ export function Calendar({currentDashboard}) {
           </div>
         </div>
       )}
+
+<StatusDialog
+                        isOpen={statusDialog.isOpen}
+                        onClose={() => {
+                          setStatusDialog((prev) => ({ ...prev, isOpen: false }));
+                         
+                        }}
+                        status={statusDialog.status}
+                        message={statusDialog.message}
+                      />
     </div>
   );
 }

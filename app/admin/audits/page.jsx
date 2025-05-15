@@ -1,8 +1,8 @@
 import React from "react";
 import AuditLog from "../../../components/admin/AuditLog";
 
-const UserManagement = () => {
+const Audit = () => {
   return <AuditLog />;
 };
 
-export default UserManagement;
+export default Audit;

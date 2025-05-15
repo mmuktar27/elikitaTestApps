@@ -1,10 +1,12 @@
-import axios from "axios";
+import { api, ENDPOINTS } from './api'; 
 import { handleAddVisitHistory } from "../";
-import {createAuditLogEntry} from "./"
+import { createAuditLogEntry } from "./";
 
 //const API_URL = "http://localhost:4000/api/v2/medication";
 
-const API_URL = 'https://elikitawebservices-crdpgafxekayhkbe.southafricanorth-01.azurewebsites.net/api/v2/medication';
+//const API_URL = 'https://elikitawebservices-crdpgafxekayhkbe.southafricanorth-01.azurewebsites.net/api/v2/medication';
+
+//const API_URL = process.env.NEXT_PUBLIC_API_URL + "/medication";
 
 export const submitMedication = async ({
   medformData,
@@ -25,8 +27,6 @@ export const submitMedication = async ({
     patient: patient,
   };
 
- 
-
   if (isEditMode) {
     const auditData = {
       userId: requestedBy,
@@ -42,14 +42,11 @@ export const submitMedication = async ({
     } catch (auditError) {
       console.error("Audit log failed:", auditError);
     }
-    
   } else {
     try {
-      const response = await axios.post(`${API_URL}`, updatedMedFormData, {
-        headers: { "Content-Type": "application/json" },
-      });
+      const response = await api.post(`${ENDPOINTS.medication}`, updatedMedFormData);
 
-      console.log("Medication submitted successfully:", response.data);
+      //console.log("Medication submitted successfully:", response.data);
       const objectId = response.data?._id || response.data?.id; // Adjust based on API response structure
 
       if (objectId) {
@@ -67,7 +64,6 @@ export const submitMedication = async ({
         } catch (auditError) {
           console.error("Audit log failed:", auditError);
         }
-
       } else {
         console.warn(
           "No ObjectId found in response. Using medicationId instead.",
@@ -109,12 +105,9 @@ export const submitMedication = async ({
 
 export const editMedication = async (medformData, onClose, onSubmit) => {
   try {
-    const response = await axios.put(
-      `${API_URL}/${medformData._id}`,
-      medformData,
-      {
-        headers: { "Content-Type": "application/json" },
-      },
+    const response = await api.put(
+      `${ENDPOINTS.medication}/${medformData._id}`,
+      medformData
     );
 
     console.log("Medication updated successfully:", response.data);
@@ -133,7 +126,7 @@ export const deleteMedication = async (medicationId) => {
   }
 
   try {
-    const response = await axios.delete(`${API_URL}/${medicationId}`);
+    const response = await api.delete(`${ENDPOINTS.medication}/${medicationId}`);
     return response.data; // Return success response
   } catch (error) {
     console.error("API error:", error);

@@ -42,12 +42,13 @@
   };
   
   export const handlePrintReport = ({ 
-    setIsModalOpen, diagnoses, medications, labTests, examinations, SelectedPatient,reportType
+    setIsModalOpen, diagnoses, medications, labTests, examinations, SelectedPatient,reportType,settings,currentUser,currentDashboard
   }) => {
     
     const printWindow = window.open('', '_blank');
     const birthDate = new Date(SelectedPatient.birthDate).toISOString().split('T')[0];
     const capitalize = (str) => str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : "";
+
 
     const formatSectionName = (name) => name.replace(/([A-Z])/g, ' $1').trim();
     const getVisitDateAndTime = () => {
@@ -69,15 +70,20 @@
     };
     
     const { date, time } = getVisitDateAndTime();
-    
+    const isDoctor = currentDashboard?.toLowerCase().includes("doctor"); // Check if "doctor" is in the dashboard name
+const userFullName = `${isDoctor ? "Dr. " : ""}${currentUser.firstName} ${currentUser.lastName}`;
+
+const reportGeneratedOn = `Report Generated On ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })} By ${userFullName}`;
+
+
     if (printWindow) {
       printWindow.document.write(`
         <html>
           <head>
            <title>
           ${reportType === 'details'
-            ? 'Detailed Medical Report - E-Likita'
-            : 'Patient Information Report - E-Likita'}
+            ? 'Detailed Medical Report - e-Likita'
+            : 'Patient Information Report - e-Likita'}
         </title>
             <style>
               body { 
@@ -189,8 +195,8 @@
           <body>
             <div class="header">
               <h1>${data.clinic.name}</h1>
-              <p>${data.clinic.address}</p>
-              <p>Phone: ${data.clinic.phone} | Email: ${data.clinic.email}</p>
+              <p>${settings.data.organizationName}</p>
+              <p>Phone: N/A | Email: ${data.clinic.email}</p>
             </div>
 
          <div class="section"> 
@@ -480,44 +486,59 @@ ${diagnoses && diagnoses.length > 0 ? `
   </table>
 </div>
 ` : ''}
+
 ${labTests && labTests.length > 0 ? `
-           <div class="section"> 
-  <h2>Latest Laboratory Tests</h2>
+             <div class="section"> 
+  <h2>Laboratory Tests</h2>
   <table>
     <tr>
-      <th>Lab Test ID</th>
-      <th>Test Name</th>
-      <th>Result</th>
+       <th>Labtest ID</th>
+      <th>Priority</th>
+    
+      <th>Test Requested</th>
+      <th>Additional Notes</th>
     </tr>
-    ${labTests.length > 0 ? (() => {
-      const latestTestEntry = labTests[labTests.length - 1]; // Get the most recent entry
-      const allTests = latestTestEntry.testSelections.flatMap(testCategory => 
-        testCategory.tests.map(test => ({
-          name: test,
-          result: latestTestEntry?.result || 'Pending'
-        }))
-      );
+    ${labTests?.length > 0 ? (() => {
+      const latestlabTests = labTests[labTests?.length - 1]; // Get the most recent entry
 
-      // Add "otherTest" if it exists
-      latestTestEntry.testSelections.forEach(testCategory => {
-        if (testCategory.otherTest) {
-          allTests.push({ name: testCategory.otherTest, result: latestTestEntry?.result || 'Pending' });
-        }
-      });
+function generateTestSelectionsHTML(latestLabTests) {
+  if (!latestLabTests || !latestLabTests.testSelections) {
+    return "<p>No test selections available.</p>";
+  }
 
-      return allTests.map((test, index) => `
+  let html = `<div class="row">`;
+
+  latestLabTests.testSelections.forEach((selection, index) => {
+    html += `
+      <div class="col-md-6">
+        <div class="card mb-3 shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title text-success">${selection.category || "Unknown Category"}</h5>
+            <p><strong>Tests:</strong> ${selection.tests.length ? selection.tests.join(", ") : "No tests selected"}</p>
+            <p><strong>Other Test:</strong> ${selection.otherTest || "N/A"}</p>
+          </div>
+        </div>
+      </div>`;
+  });
+
+  html += `</div>`; // Closing row and container divs
+  return html;
+}
+
+
+
+      return `
         <tr>
-          ${index === 0 ? `<td rowspan="${allTests.length}">${latestTestEntry.labtestID}</td>` : ''}
-          <td>${capitalize(test.name)}</td>
-          <td>${capitalize(test.result)}</td>
+          <td>${latestlabTests.labtestID}</td>
+          <td>${capitalize(latestlabTests?.priority)}</td>
+          <td>${generateTestSelectionsHTML(latestlabTests)}</td>
+          <td>${capitalize(latestlabTests?.additionalNotes )|| 'N/A'}</td>
         </tr>
-      `).join('');
-
-    })() : `<tr><td colspan="3">No laboratory tests recorded</td></tr>`}
+      `;
+    })() : `<tr><td colspan="5">No medications recorded</td></tr>`}
   </table>
 </div>
 ` : ''}
-
 ${medications && medications.length > 0 ? `
              <div class="section"> 
   <h2>Current Medication</h2>
@@ -548,8 +569,8 @@ ${medications && medications.length > 0 ? `
             ` : ''}
 
             <div class="footer">
-              <p>Report generated on ${new Date().toLocaleDateString()}</p>
-                <p>Copyright &copy; E-likita.com</p>
+              <p> ${reportGeneratedOn}</p>
+                <p>Copyright &copy; e-likita.com</p>
             </div>
           </body>
         </html>

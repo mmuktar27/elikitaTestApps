@@ -1,11 +1,11 @@
 "use client";
 
-import DashboardPage from "@/components/healthcareadmin/Dashboard";
+import HealthcareAdminDashboard from "@/components/healthcareadmin/Dashboard";
 
 function Dashboard() {
-  const currentDashboard="health admin"
+  const currentDashboard="healthcare admin";
 
-  return <DashboardPage currentDashboard={currentDashboard} />;
+  return <HealthcareAdminDashboard currentDashboard={currentDashboard} />;
 }
 
 export default Dashboard;

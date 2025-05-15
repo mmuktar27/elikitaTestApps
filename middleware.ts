@@ -1,24 +1,24 @@
 import { withAuth, NextRequestWithAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 
+
+
 const ROUTE_ACCESS = {
-  "/admin": ["staff", "system admin"],
-  "/receptionist": ["receptionist", "system admin", "healthcare admin"],
-  "/healthcare": [
-    "healthcare assistant",
-    "doctor",
-    "system admin",
-    "healthcare admin",
-  ],
-  "/doctor": ["doctor", "remote doctor", "system admin", "healthcare admin"],
-  "/remote-doctor": ["remote doctor", "system admin", "healthcare admin"],
+  "/admin": ["system admin"],
+  "/healthadmin": ["healthcare admin"],
+  "/healthassistant": ["healthcare assistant"],
+  "/doctor": ["doctor"],
+  "/remotedoctor": ["remote doctor"],
 };
 
 export default withAuth(
-  function middleware(request: NextRequestWithAuth) {
+ async function middleware(request: NextRequestWithAuth) {
     const pathname = request.nextUrl.pathname;
     const userRoles = request.nextauth.token?.roles as string[] | undefined;
     console.log("userRoles", userRoles);
+  
+ 
+  
 
     for (const [route, allowedRoles] of Object.entries(ROUTE_ACCESS)) {
       if (pathname.startsWith(route)) {
@@ -33,6 +33,7 @@ export default withAuth(
         break;
       }
     }
+ 
   },
   {
     callbacks: {
@@ -44,15 +45,15 @@ export default withAuth(
 export const config = {
   matcher: [
     "/admin",
-    "/admin/events",
+   "/admin/events",
     "/admin/users",
     "/admin/settings",
-    "/admin/audits",
-    "/admin/utilities",
-    "/receptionist",
-    "/healthcare",
-   
-    "/remote-doctor",
+   "/admin/audits",
+   //"/admin/utilities",
+    "/healthadmin",
+  "/doctor",
+   "/remotedoctor",
+   "/healthassistant",
+   // "/doctor",
   ],
 };
-//"/doctor",

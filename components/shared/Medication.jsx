@@ -1,127 +1,30 @@
 "use client";
-import React, { useState, useEffect } from "react";
 import {
-  ChevronLeft,
-  RefreshCw,
-  AlertCircle,
-  RotateCcw,
-  Check,
-  Loader2,
-  Bot,
-  Lock,
-  OxygenIcon,
-  LungsIcon,
-  ChevronRight,
-  VolumeIcon,
-  Beaker,
   Activity,
-  Heart,
-  FlaskConical,
-  Camera,
-  LightbulbOff,
-  Brain,
-  Sparkles,
-  Lightbulb,
-  MinusCircle,
-  PlusCircle,
-  Plus,
-  Clock,
-  Video,
-  UserRound,
-  Share2,
-  ArrowRight,
-  ArrowLeft,
-  Volume2,
-  VolumeX,
-  AlertTriangle,
-  Bed,
-  Bell,
-  Briefcase,
-  Building,
-  Building2,
-  Calculator,
-  Calendar,
-  CalendarCheck,
-  CameraOff,
-  CheckCircle,
   ChevronDown,
-  Clipboard,
-  ClockIcon,
-  Database,
-  Edit,
-  Edit2,
-  Eye,
-  FileBarChart,
-  FileText,
-  Filter,
-  Home,
-  Info,
-  Layers,
-  LogOut,
-  Mail,
-  MapPin,
-  Mic,
-  MicOff,
-  Phone,
-  Pill,
-  QrCode,
-  Search,
-  Settings,
-  Speaker,
-  Stethoscope,
-  TestTube,
-  Thermometer,
-  Trash2,
-  User,
-  UserCog,
-  UserPlus,
-  Users,
-  Printer,
+  ChevronLeft,
+  ChevronRight,
   ChevronUp,
-  X,
+  Edit2,
+  Lightbulb,
+  Loader2,
+  Pill
 } from "lucide-react";
+import React, { useState } from "react";
 
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { motion } from "framer-motion";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSession } from "next-auth/react";
 
 import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogDescription,
+  DialogTitle
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Card,
   CardContent,
@@ -130,8 +33,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-import { editMedication, submitMedication } from "../shared/api";
-import { handleAddVisitHistory } from "../shared";
+import { submitMedication } from "../shared/api";
 
 export function NewMedicationForm({
   medications,
@@ -140,6 +42,7 @@ export function NewMedicationForm({
   onSubmit,
   initialMedication,
   currentDashboard,
+  buttonText
 }) {
 
 
@@ -177,8 +80,6 @@ export function NewMedicationForm({
     }
   });
 
-  const [expandedVisit, setExpandedVisit] = useState(null);
-  const [expandedLabTest, setExpandedLabTest] = React.useState(null);
   const [modal, setModal] = useState({ isOpen: false, type: "", message: "" });
   const [isEditMode, setIsEditMode] = useState(!!initialMedication);
   console.log("initialMedication");
@@ -297,108 +198,118 @@ export function NewMedicationForm({
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       .slice(0, 4);
 
-    console.log(recentMedications);
+   // console.log(recentMedications);
+   function capitalizeFirstLetter(str) {
+    if (!str) return ""; // Handle empty or undefined strings
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
     return (
-      <div
-        className="mx-auto max-w-4xl space-y-8 p-6"
-        style={{ width: "65vw" }}
-      >
+      <div className="mx-auto mt-0 w-full max-w-5xl p-2">
+
         <Card className="grid grid-cols-1 gap-4 bg-white shadow-lg md:grid-cols-1">
           <CardHeader className="rounded-t-lg bg-teal-700 text-white">
             <CardTitle className="text-2xl">Medication History</CardTitle>
             <CardDescription className="text-gray-200">
-              Comprehensive medication tracking and outcomes
+              Previous medication tracking and outcomes
             </CardDescription>
           </CardHeader>
           <CardContent className="p-6">
             <div className="space-y-4">
-              {recentMedications.map((medication) => (
-                <div
-                  key={medication.medicationId}
-                  className="overflow-hidden rounded-lg border shadow-sm"
-                >
-                  <button
-                    onClick={() => toggleMedication(medication.medicationId)}
-                    className="flex w-full items-center justify-between p-4 transition-colors hover:bg-gray-50"
-                  >
-                    <div className="flex items-center space-x-4">
-                      <Activity className="text-teal-800" size={20} />
-                      <div className="text-left">
-                        <div className="font-medium text-teal-800">
-                          {medication.medicationName}
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          Requested by:
-                          <p className="text-sm opacity-80">
-                            <span>
-                              {`${medication.requestedBy?.firstName || ""} ${medication.requestedBy?.lastName || ""}`.trim() ||
-                                "Not specified"}
-                            </span>
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-4">
-                      <span className="text-sm text-gray-500">
-                        {new Date(medication.createdAt).toLocaleDateString()}
-                      </span>
-                      {expandedMedication === medication.medicationId ? (
-                        <ChevronUp className="text-teal-800" size={20} />
-                      ) : (
-                        <ChevronDown className="text-teal-800" size={20} />
-                      )}
-                    </div>
-                  </button>
 
-                  {expandedMedication === medication.medicationId && (
-                    <div className="border-t bg-gray-50 p-4">
-                      <div className="grid gap-4">
-                        {/* Medication Dosage */}
-                        <div className="space-y-2">
-                          <h4 className="font-medium text-teal-800">Dosage</h4>
-                          <p className="rounded bg-white p-2 text-sm text-gray-700">
-                            {medication.dosage}
-                          </p>
-                        </div>
+            {recentMedications && recentMedications.length > 0 ? (
+  recentMedications.map((medication) => (
+    <div
+      key={medication.medicationId}
+      className="overflow-hidden rounded-lg border shadow-sm"
+    >
+      <button
+        onClick={() => toggleMedication(medication.medicationId)}
+        className="flex w-full items-center justify-between p-4 transition-colors hover:bg-gray-50"
+      >
+        <div className="flex items-center space-x-4">
+          <Activity className="text-teal-800" size={20} />
+          <div className="text-left">
+            <div className="font-medium text-teal-800">
+              {capitalizeFirstLetter(medication.medicationName)}
+            </div>
+            <div className="text-sm text-gray-600">
+              Requested by:
+              <p className="text-sm opacity-80">
+                <span>
+                  {`${medication.requestedBy?.firstName || ""} ${medication.requestedBy?.lastName || ""}`.trim() ||
+                    "Not specified"}
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center space-x-4">
+          <span className="text-sm text-gray-500">
+            {new Date(medication.createdAt).toLocaleDateString()}
+          </span>
+          {expandedMedication === medication.medicationId ? (
+            <ChevronUp className="text-teal-800" size={20} />
+          ) : (
+            <ChevronDown className="text-teal-800" size={20} />
+          )}
+        </div>
+      </button>
 
-                        {/* Treatment Duration */}
-                        <div className="space-y-2">
-                          <h4 className="font-medium text-teal-800">
-                            Treatment Duration(In days)
-                          </h4>
-                          <p className="rounded bg-white p-2 text-sm text-gray-700">
-                            {medication.treatmentDuration}
-                          </p>
-                        </div>
+      {expandedMedication === medication.medicationId && (
+        <div className="border-t bg-gray-50 p-4">
+          <div className="grid gap-4">
+            {/* Medication Dosage */}
+            <div className="space-y-2">
+              <h4 className="font-medium text-teal-800">Dosage</h4>
+              <p className="rounded bg-white p-2 text-sm text-gray-700">
+                {medication.dosage}
+              </p>
+            </div>
 
-                        {/* Follow-Up Protocol */}
-                        {medication.followUpProtocol && (
-                          <div className="space-y-2">
-                            <h4 className="font-medium text-teal-800">
-                              Follow-Up Protocol
-                            </h4>
-                            <p className="rounded bg-white p-2 text-sm text-gray-700">
-                              {medication.followUpProtocol}
-                            </p>
-                          </div>
-                        )}
+            {/* Treatment Duration */}
+            <div className="space-y-2">
+              <h4 className="font-medium text-teal-800">
+                Treatment Duration (In days)
+              </h4>
+              <p className="rounded bg-white p-2 text-sm text-gray-700">
+                {medication.treatmentDuration}
+              </p>
+            </div>
 
-                        {/* Additional Notes */}
-                        {medication.additionalNotes && (
-                          <div className="space-y-2">
-                            <h4 className="font-medium text-teal-800">
-                              Additional Notes
-                            </h4>
-                            <p className="rounded bg-white p-2 text-sm text-gray-700">
-                              {medication.additionalNotes}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
+            {/* Follow-Up Protocol */}
+            {medication.followUpProtocol && (
+              <div className="space-y-2">
+                <h4 className="font-medium text-teal-800">
+                  Follow-Up Protocol
+                </h4>
+                <p className="rounded bg-white p-2 text-sm text-gray-700">
+                  {medication.followUpProtocol}
+                </p>
+              </div>
+            )}
+
+            {/* Additional Notes */}
+            {medication.additionalNotes && (
+              <div className="space-y-2">
+                <h4 className="font-medium text-teal-800">
+                  Additional Notes
+                </h4>
+                <p className="rounded bg-white p-2 text-sm text-gray-700">
+                  {medication.additionalNotes}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  ))
+) : (
+<p className="flex w-full justify-center text-center text-sm text-gray-500">
+  No record found.
+</p>)}
+
+              
             </div>
           </CardContent>
         </Card>
@@ -432,11 +343,7 @@ export function NewMedicationForm({
         "Treatment Duration must be a valid positive number.";
     }
 
-    // Validate Follow-Up Protocol
-    if (!medformData?.followUpProtocol?.trim()) {
-      newErrors.followUpProtocol = "Follow-up Protocol is required.";
-    }
-
+ 
     // Debugging log to check errors
     console.log("Validation Errors:", newErrors);
 
@@ -572,16 +479,19 @@ export function NewMedicationForm({
     };
 
     return (
-      <div className="mx-auto mt-0 max-w-4xl p-6" style={{ width: "65vw" }}>
-        <Card className="grid grid-cols-1 gap-4 bg-white shadow-lg md:grid-cols-1">
+<div className="mx-auto mt-0 w-full max-w-5xl p-2">
+<Card className="grid grid-cols-1 gap-4 bg-white shadow-lg md:grid-cols-1">
           <CardHeader className="flex flex-row items-center justify-between rounded-t-lg bg-teal-700 text-white">
-            <CardTitle className="text-2xl">New Medication Entry</CardTitle>
-          </CardHeader>
+          <div className="w-full text-center">
+  <CardTitle className="text-2xl">
+    {buttonText === "Update" ? "Update Medication Entry" : "New Medication Entry"}
+  </CardTitle>
+</div>         </CardHeader>
           <CardContent className="p-6">
             <div className="flex justify-end space-x-2">
               {!isAICompleted ? (
                 <button
-                  onClick={handleAIComplete}
+                  //onClick={handleAIComplete}
                   className="flex justify-end bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d]"
                 >
                   <Lightbulb className="size-5" />
@@ -616,7 +526,7 @@ export function NewMedicationForm({
 
               <div className=" relative">
                 <label className="block text-sm font-medium text-teal-700">
-                  Medication Name
+                  Medication Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -655,7 +565,7 @@ export function NewMedicationForm({
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <label className="flex items-center text-sm font-medium text-teal-700">
-                    Dosage
+                    Dosage <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
@@ -672,7 +582,7 @@ export function NewMedicationForm({
 
                 <div className="space-y-2">
                   <label className="flex items-center text-sm font-medium text-teal-700">
-                    Treatment Duration (Days)
+                    Treatment Duration (Days) <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
@@ -702,11 +612,7 @@ export function NewMedicationForm({
                   rows="3"
                   required
                 />
-                {errors.followUpProtocol && (
-                  <p className="text-sm text-red-500">
-                    {errors.followUpProtocol}
-                  </p>
-                )}
+                
               </div>
 
               <div className="space-y-2">
@@ -723,21 +629,22 @@ export function NewMedicationForm({
               </div>
               <div className="space-y-4">
                 {/* Buttons for checking interactions and contraindications */}
-                <div className="flex space-x-4">
-                  <button
-                    onClick={checkInteractions}
-                    className="rounded-md bg-yellow-500 px-4 py-2 text-white transition hover:bg-yellow-600"
-                  >
-                    Check Drug Interactions
-                  </button>
+                <div className="flex flex-col space-y-2 sm:flex-row sm:space-x-4 sm:space-y-0">
+  <button
+    onClick={checkInteractions}
+    className="rounded-md bg-yellow-500 px-4 py-2 text-white transition hover:bg-yellow-600"
+  >
+    Check Drug Interactions
+  </button>
 
-                  <button
-                    onClick={handleContradictionCheck}
-                    className="rounded-md bg-red-500 px-4 py-2 text-white transition hover:bg-red-600"
-                  >
-                    Check Contraindications
-                  </button>
-                </div>
+  <button
+    onClick={handleContradictionCheck}
+    className="rounded-md bg-red-500 px-4 py-2 text-white transition hover:bg-red-600"
+  >
+    Check Contraindications
+  </button>
+</div>
+
 
                 {/* Display alert for interactions or contraindications */}
                 {interactionAlert && (
@@ -807,92 +714,85 @@ const  requestedBy=session?.data?.user?.id
   };
   return (
     <>
-      <div className="mx-auto !mt-0 flex !min-h-0 max-w-6xl flex-col  p-6">
-        <div className="mb-0 text-center">
-         
-        </div>
-        <div className="my-0 flex justify-center gap-2">
-          {Array.from({ length: pages.length }, (_, i) => i + 1).map(
-            (pageNum) => (
-              <button
-                key={pageNum}
-                // onClick={() => setCurrentPage(pageNum)}
-                className={`
-          flex size-10 items-center justify-center rounded-full
-          border-2 border-teal-500 text-sm font-medium
-          ${
-            currentPage === pageNum
-              ? "bg-teal-500 text-white"
-              : "bg-white text-teal-500 hover:bg-teal-50"
-          }
-          transition-colors duration-200
-        `}
-              >
-                {pageNum}
-              </button>
-            ),
-          )}
-        </div>
-
-        {/* Content area */}
-        <div className="mb-0 flex-1 overflow-auto">
-          {" "}
-          {/* This makes the content take the available space */}
-          {pages[currentPage - 1]()}
-        </div>
-
-        {/* Navigation footer */}
-        <div className="border-t bg-white shadow-lg">
-          <div className="mx-auto max-w-6xl px-6 py-4">
-            <div className="flex items-center justify-between">
-              <button
-                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-                className="flex items-center rounded-lg bg-[#007664] px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#007664]/80 hover:bg-teal-600 disabled:opacity-50 disabled:hover:bg-teal-500"
-              >
-                <ChevronLeft className="mr-2 size-5" />
-                Previous
-              </button>
-
-              <span className="text-sm font-medium text-gray-500">
-                Page {currentPage} of {pages.length}
-              </span>
-
-              {currentPage === 2 ? (
-                <div className="flex items-center gap-4">
-                  <button
-                    disabled={isLoading}
-                    onClick={handleSubmitClick}
-                    className="flex items-center gap-2 rounded-lg bg-[#007664] px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#007664]/80 disabled:bg-[#007664]/50"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="size-4 animate-spin" />
-                        {isEditMode ? "Updating..." : "Submitting..."}
-                      </>
-                    ) : isEditMode ? (
-                      "Update Medication"
-                    ) : (
-                      "Submit Medication"
-                    )}
-                  </button>
-                </div>
-              ) : (
+    <div className="mx-auto !mt-0 flex size-full min-h-[500px] max-w-full flex-col justify-between px-4 sm:px-6 md:px-8">
+      {/* Top pagination buttons */}
+      <div className="my-0 flex justify-center gap-2">
+        {Array.from({ length: pages.length }, (_, i) => i + 1).map((pageNum) => (
+          <button
+            key={pageNum}
+            className={`
+              flex size-10 items-center justify-center rounded-full
+              border-2 border-teal-500 text-sm font-medium
+              ${
+                currentPage === pageNum
+                  ? "bg-teal-500 text-white"
+                  : "bg-white text-teal-500 hover:bg-teal-50"
+              }
+              transition-colors duration-200
+            `}
+          >
+            {pageNum}
+          </button>
+        ))}
+      </div>
+    
+      {/* Content area - will grow to take available space */}
+      <div className="w-full grow">{pages[currentPage - 1]()}</div>
+  
+      {/* Navigation footer - will stay at bottom */}
+      <div className="mt-auto w-full border-t bg-white">
+        <div className="mx-auto w-full max-w-full p-4 sm:px-6 md:px-8">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="flex items-center rounded-lg bg-[#007664] px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#007664]/80 disabled:opacity-50"
+            >
+              <ChevronLeft className="mr-2 size-5" />
+              Previous
+            </button>
+  
+            <span className="text-sm font-medium text-gray-500">
+              Page {currentPage} of {pages.length}
+            </span>
+  
+            {currentPage === 2 ? (
+              <div className="flex items-center gap-4">
                 <button
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.min(pages.length, prev + 1))
-                  }
-                  className="flex items-center rounded-lg bg-[#007664] px-6 py-3 text-sm font-medium text-white transition-colors  duration-200 hover:bg-[#007664]/80"
+                  disabled={isLoading}
+                  onClick={handleSubmitClick}
+                  className="flex items-center gap-2 rounded-lg bg-[#007664] px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#007664]/80 disabled:bg-[#007664]/50"
                 >
-                  Next
-                  <ChevronRight className="ml-2 size-5" />
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin" />
+                      {isEditMode ? "Updating..." : "Submitting..."}
+                    </>
+                  ) : isEditMode ? (
+                    "Update"
+                  ) : (
+                    "Submit"
+                  )}
                 </button>
-              )}
-            </div>
+              </div>
+            ) : (
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(pages.length, prev + 1))
+                }
+                className="flex items-center rounded-lg bg-[#007664] px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#007664]/80"
+              >
+                Next
+                <ChevronRight className="ml-2 size-5" />
+              </button>
+            )}
           </div>
         </div>
       </div>
-    </>
+    </div>
+  </>
+  
+  
   );
 }
 
@@ -923,12 +823,13 @@ export function ViewMedication({ medic, isOpen, onClose }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto bg-[#F7F7F7] p-0">
-        <DialogHeader className="rounded-t-lg bg-[#007664] p-6 text-white">
-          <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
-            <Pill className="size-6" />
-            Medication Details
-          </DialogTitle>
+  <DialogContent className="max-h-[90vh] w-[90%] overflow-y-auto bg-[#F7F7F7] p-0 sm:max-w-4xl">
+  <DialogHeader className="bg-gradient-to-r from-teal-800 to-teal-500 p-6 text-white">
+  <DialogTitle className="flex w-full items-center justify-center gap-3 text-2xl font-bold">
+  <Pill className="size-6" />
+  Medication Details
+</DialogTitle>
+
         </DialogHeader>
 
         <div className="space-y-8 p-6">

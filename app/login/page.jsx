@@ -24,20 +24,38 @@ import { LiaCheckSquareSolid } from "react-icons/lia";
 import { MdOutlineDevices } from "react-icons/md";
 import { PiLightbulbThin } from "react-icons/pi";
 import AppLogo from "../../public/assets/Logo.svg";
-import {createAuditLogEntry} from "@/components/shared/api";
+import {createAuditLogEntry,createSession} from "@/components/shared/api";
+
+import { Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (status === "authenticated") {
       router.push("/admin");
     }
   }, [status, router]);
+  const startUserSession = async (userId) => {
+    const sessionData = {
+      userId,
+      lastHeartbeat: new Date(),
+      isActive: true,
+    };
   
+    try {
+      const response = await createSession(sessionData);
+      console.log("Session created successfully:", response);
+      return response;
+    } catch (error) {
+      console.error("Failed to create session:", error);
+      throw error;
+    }
+  };
   const auditData = {
     userId: session?.data?.user?.id,
     activityType: "Login",
@@ -48,15 +66,20 @@ export default function LoginPage() {
 
 
   const handleLogin = async () => {
+    setLoading(true);
+
     try {
       await signIn("azure-ad", {
         callbackUrl: "/admin",
       });
      
-      await createAuditLogEntry(auditData);
+     // await createAuditLogEntry(auditData);
+     // startUserSession(session?.data?.user?.id)
       
     } catch (error) {
       console.error("Login failed:", error);
+    }finally {
+      setLoading(false);
     }
   };
 
@@ -137,12 +160,15 @@ export default function LoginPage() {
           </div>
 
           <div className="hidden items-center space-x-4 md:flex">
-            <Button
-              className="rounded-lg border border-white bg-[#3A4F39] px-4 py-2 text-white"
-              onClick={handleLogin}
-            >
-              Sign In
-            </Button>
+          <Button
+  className="flex items-center justify-center rounded-lg border border-white bg-[#3A4F39] px-4 py-2 text-white disabled:opacity-50"
+  onClick={handleLogin}
+  disabled={loading}
+>
+{loading ? "Signing in..." : "Sign In"}
+</Button>
+
+
             <VolunteerModal />
           </div>
 
@@ -187,25 +213,17 @@ export default function LoginPage() {
               Contact Us
             </Link>
             <div className="mt-4 space-y-2">
-              <button className="w-full rounded-lg border border-white bg-[#3A4F39] px-4 py-2 text-white">
-                Sign In
-              </button>
-              <button className="flex w-full items-center justify-center rounded-lg border border-[#3A4F39] bg-white px-4 py-2 text-[#2B5845]">
-                Volunteer
-                <svg
-                  className="ml-2 size-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 8l4 4m0 0l-4 4m4-4H3"
-                  />
-                </svg>
-              </button>
+            <button
+  className="flex w-full items-center justify-center rounded-lg border border-white bg-[#3A4F39] px-4 py-2 text-white disabled:opacity-50"
+  onClick={handleLogin}
+  disabled={loading}
+>
+{loading ? "Signing in..." : "Sign In"}
+
+</button>
+
+         
+              <VolunteerModal />
             </div>
           </div>
         )}

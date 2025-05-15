@@ -1,7 +1,6 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Check, Edit, Eye, Filter, Search } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import PatientDetailsView from "./PatientDetailsViewOnPractitionerPage";
 
 import { Button } from "@/components/ui/button";

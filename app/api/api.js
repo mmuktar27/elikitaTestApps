@@ -1,13 +1,19 @@
 import axios from "axios";
 import { getSession } from "next-auth/react";
 
-
 const API = axios.create({
-  baseURL:  process.env.NEXT_PUBLIC_API_URL,
+
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  headers: {
+    "Content-Type": "application/json",
+    "X-App-Secret": 'hello',
+  },
   timeout: 30000,
 });
 //baseURL: process.env.NEXT_PUBLIC_API_URL,
-//  baseURL: "http://localhost:4000/api/v2/"
+//  baseURL: "http://localhost:5009/api/v2/"
+//baseURL: "http://localhost:4000/api/v2/",
+// baseURL:"https://elikitawebservices-crdpgafxekayhkbe.southafricanorth-01.azurewebsites.net/api/v2",
 API.interceptors.request.use(
   async (config) => {
     try {
@@ -26,7 +32,6 @@ API.interceptors.request.use(
     return config;
   },
   (error) => {
-    // Handle errors before the request is sent
     return Promise.reject(error);
   },
 );

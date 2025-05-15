@@ -15,9 +15,14 @@ import {
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useState,useEffect  } from "react";
-import { PageProvider, usePage } from "../../components/shared";
+import { PageProvider, usePatientsPage ,useReferralsPage,useAppointmentPage  } from "../../components/shared";
 import { getSystemSettings } from "@/components/shared/api";
 import {SessionManager} from '@/components/shared'
+
+
+import { HeartbeatManager } from "@/components/shared";
+
+
 
 import { Logout } from "@/components/shared";
 import TeamSwitcher from "../../components/ui/team-switcher";
@@ -27,32 +32,37 @@ import { Separator } from "@radix-ui/react-select";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-
+import {createAuditLogEntry } from "@/components/shared/api"
 const NavItem = ({ icon: Icon, label, active, url, onClick }) => {
   const router = useRouter();
-  const { setIsactivepage } = usePage();
+ // const { setIsactivepage } = usePage();
+ const { setActiveReferralsPage } = useReferralsPage();
+ const { setActivePatientsPage } = usePatientsPage();
+ const { activeAppointmentPage, setActiveAppointmentPage } = useAppointmentPage();
+
+
   return (
-  <Link
-    href={url}
-    className={`flex w-full items-center space-x-2 rounded p-2 text-sm font-bold ${
-      active
-        ? "bg-[#75C05B]/20 text-white"
-        : "text-white hover:bg-[#75C05B]/20 hover:text-white"
-    }`}
-    onClick={() => {
-      if (url === "/doctor/patients") {
-        setIsactivepage("patient"); // Reset inner page globally
-      }
-      if (url === "/doctor/referrals") {
-        setIsactivepage("referral"); // Reset inner page globally
-      }
-      router.push(url); // Navigate to the main page
-    }}
-  >
-    <Icon size={18} />
-    <span>{label}</span>
-  </Link>
-);}
+    <Link
+      href={url}
+      className={`flex w-full items-center gap-2 rounded p-2 text-sm font-bold transition duration-200 
+        ${active ? "bg-[#75C05B]/20 text-white" : "text-white hover:bg-[#75C05B]/20 hover:text-white"} 
+        focus:ring focus:ring-teal-300/50`}
+      onClick={(e) => {
+        if (url === "/doctor/patients") setActivePatientsPage("patient");
+        if (url === "/doctor/referrals") setActiveReferralsPage("referral");
+        if (url === "/doctor/appointments") setActiveAppointmentPage("appointment");
+
+        if (onClick) onClick(e); // Preserve existing onClick behavior
+        router.push(url);
+      }}
+      aria-current={active ? "page" : undefined}
+    >
+      <Icon size={18} />
+      <span>{label}</span>
+    </Link>
+  );
+};
+
 
 const Avatar = ({ src, alt, fallback }) => (
   <div className="relative flex size-10 items-center justify-center overflow-hidden rounded-full bg-gray-300">
@@ -91,6 +101,11 @@ const Dialog = ({ isOpen, onClose, children }) => {
 };
 
 function LayoutPage({ children }) {
+
+  const { setActiveReferralsPage } = useReferralsPage();
+  const {  setActivePatientsPage } = usePatientsPage();
+  const { setActiveAppointmentPage } = useAppointmentPage();
+
 
   const { formattedDate, formattedTime } = useDateTime();
   const logout = async () => {
@@ -194,133 +209,159 @@ function LayoutPage({ children }) {
   };
 
   return (
-    <PageProvider>
-
     <div className="flex h-screen bg-[#007664]">
-    {!isLoading && <SessionManager timeout={sessionTimeOut || 10} warningTime={1} />}
+        <HeartbeatManager /> 
+    {!isLoading && <SessionManager timeout={sessionTimeOut || 10} warningTime={1}   createAuditLogEntry={createAuditLogEntry}
+  session={session} 
+    
+    />}
 
       <aside
         className={`${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} fixed inset-y-0 left-0 z-50 w-64 bg-[#007664] p-4 text-white transition-transform duration-300 ease-in-out md:relative md:translate-x-0`}
       >
-        <div className="mb-8 flex items-center justify-between">
-          <h1 className="text-2xl font-bold"> {!isLoading && (organizationName || "e-Likita")} </h1>
+        <div className="mb-4 flex items-center justify-between">
+        <div className="flex flex-col">
+  <h1 className="mb-1 text-3xl font-bold text-white">e-Likita</h1>
+  {!isLoading && organizationName && (
+    <h2 className="text-lg font-medium text-gray-200">{organizationName}</h2>
+  )}
+</div>
           <button onClick={toggleSidebar} className="md:hidden">
             <X size={24} />
           </button>
         </div>
         <nav className="space-y-2">
-          <NavItem
-            icon={Home}
-            label="Dashboard"
-            active={routes === "/doctor"}
-            url={"/doctor"}
-          />
-          <NavItem
-            icon={Users}
-            label="Patients"
-            active={router?.pathname?.startsWith("/doctor/patients")}
-            url={"/doctor/patients"}
-            onClick={() => setIsactivepage("patient")} // Reset inner page when clicked
-
-          />
-               <NavItem
-            icon={UserPlus}
-            label="Referrals"
-            active={router?.pathname?.startsWith("/doctor/referrals")}
-            url={"/doctor/referrals"}
-            onClick={() => setIsactivepage("referral")} // Reset inner page when clicked
-
-          />
-          <NavItem
-            icon={UserCheck}
-            label="Appointments"
-            active={routes === "/doctor/appointments"}
-            url={"/doctor/appointments"}
-          />
-     
-
-          <NavItem
-            icon={Activity}
-            label="Events"
-            active={routes === "/doctor/events"}
-            url={"/doctor/events"}
-          />
-            <NavItem 
-              icon={CalendarCheck} 
-              label="Bookings" 
-              active={routes === bookingUrl} 
-              url={bookingUrl} 
-            />
-      
-          <NavItem
-            icon={UserRoundPen}
-            label="Profile"
-            active={routes === "/doctor/profile"}
-            url={"/doctor/profile"}
-          />
-
-          <button
-            className={`flex w-full items-center gap-2 space-x-2 rounded   p-2 text-sm font-bold text-white hover:bg-[#75C05B]/20 hover:text-white`}
-            onClick={() => setIsLogoutConfirmationOpen(true)}
+  <NavItem
+    icon={Home}
+    label="Dashboard"
+    active={routes === "/doctor"}
+    url={"/doctor"}
+    onClick={() => isSidebarOpen && toggleSidebar()} // Close sidebar on mobile
+  />
+  <NavItem
+    icon={Users}
+    label="Patients"
+  active={routes.includes("/doctor/patients")} url="/doctor/patients"
+    onClick={() => {
+      setActivePatientsPage("patient"); // Keep existing function
+      if (isSidebarOpen) toggleSidebar(); // Close sidebar
+    }}
+  />
+  <NavItem
+    icon={UserPlus}
+    label="Referrals"
+    active={routes.includes("/doctor/referrals")}
+    url={"/doctor/referrals"}
+    onClick={() => {
+      setActiveReferralsPage("referral"); // Keep existing function
+      if (isSidebarOpen) toggleSidebar(); // Close sidebar
+    }}
+  />
+  <NavItem
+    icon={UserCheck}
+    label="Appointments"
+    active={routes === "/doctor/appointments"}
+    url={"/doctor/appointments"}
+    onClick={() => {
+      setActiveAppointmentPage("appointment"); // Keep existing function
+      if (isSidebarOpen) toggleSidebar(); // Close sidebar
+    }}
+  />
+  <NavItem
+    icon={Activity}
+    label="Events"
+    active={routes === "/doctor/events"}
+    url={"/doctor/events"}
+    onClick={() => isSidebarOpen && toggleSidebar()}
+  />
+  <Link
+            href={bookingUrl}
+            className="flex w-full items-center gap-2 p-2 text-sm font-bold text-white hover:bg-[#75C05B]/20 hover:text-white"
+            target="_blank" // Opens in a new tab
+            rel="noopener noreferrer" // Security best practice
+            onClick={() => {
+              if (isSidebarOpen) toggleSidebar();
+            }}
           >
-            <LogOut size={18} /> Logout
-          </button>
-        </nav>
+            <CalendarCheck size={18} /> <span>Bookings</span>
+          </Link>
+  <NavItem
+    icon={UserRoundPen}
+    label="Profile"
+    active={routes === "/doctor/profile"}
+    url={"/doctor/profile"}
+    onClick={() => isSidebarOpen && toggleSidebar()}
+  />
+  <button
+    className="flex w-full items-center gap-2 p-2 text-sm font-bold text-white hover:bg-[#75C05B]/20 hover:text-white focus:ring focus:ring-white/50"
+    onClick={() => {
+      setIsLogoutConfirmationOpen(true);
+      if (isSidebarOpen) toggleSidebar(); // Close sidebar when logging out
+    }}
+  >
+    <LogOut size={18} /> Logout
+  </button>
+</nav>
 
-        {!isSidebarOpen && (
-          <div className="fixed bottom-0 my-4 flex flex-col items-center justify-center gap-4">
-            <TeamSwitcher roles={session?.data?.user?.roles} />
-            <Separator />
-            {session?.data && (
-              <div className="text-2xl font-bold">
-                <p>{formattedDate}</p>
-                <p>{formattedTime}</p>
-              </div>
-            )}
-          </div>
-        )}
+
+<div
+  className={`fixed bottom-0 my-4 flex flex-col items-center justify-center gap-4 
+    ${isSidebarOpen ? "flex" : "hidden"} md:flex`}
+>
+  <TeamSwitcher roles={session?.data?.user?.roles} />
+  <Separator />
+  {session?.data && (
+    <div className="text-2xl font-bold">
+      <p>{formattedDate}</p>
+      <p>{formattedTime}</p>
+    </div>
+  )}
+</div>
+
+
       </aside>
       <main className="flex-1 overflow-auto bg-gray-100">
-      <div className="fixed left-64 right-0 top-0 z-40 h-20 bg-gray-100 p-8">
-  <div className="flex h-full items-center justify-between"> 
-    <div className="flex items-center">
-      <button onClick={toggleSidebar} className="mr-4 md:hidden">
-        <Menu size={24} />
-      </button>
-      <h1 className="text-3xl font-bold text-[#007664]">Doctor</h1>
-    </div>
-    <div className="flex items-center space-x-4">
-      <div className="flex cursor-pointer items-center space-x-2">
-        <Link href="/doctor/profile" className="flex items-center gap-2">
-          <Avatar
-            src={session?.data?.user?.image}
-            alt={session?.data?.user?.name}
-            fallback={"currUser?.displayName.charAt(0)"}
-          />
-          <div>
-            <p className="font-semibold">{session?.data?.user?.name}</p>
-            <p className="text-sm text-gray-500">
-              {session?.data?.user?.workEmail}
-            </p>
-          </div>
-        </Link>
+  <div className="fixed inset-x-0 top-0 z-40 h-auto min-h-20 bg-gray-100 p-8 md:left-64">
+    <div className="flex h-full items-center justify-between"> 
+      <div className="flex items-center">
+        <button onClick={toggleSidebar} className="mr-4 md:hidden">
+          <Menu size={24} />
+        </button>
+        <h1 className="text-2xl font-bold text-[#007664] md:text-3xl">Doctor</h1>
+      </div>
+      <div className="flex items-center">
+        <div className="flex cursor-pointer items-center">
+          <Link href="/doctor/profile" className="flex items-center gap-2">
+            <Avatar
+              src={session?.data?.user?.image}
+              alt={session?.data?.user?.name}
+              fallback={session?.data?.user?.name?.charAt(0) || "U"}
+            />
+            <div className="hidden sm:block">
+              <p className="font-semibold">{session?.data?.user?.name}</p>
+              <p className="text-sm text-gray-500">
+                {session?.data?.user?.workEmail}
+              </p>
+            </div>
+          </Link>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-        <div className="p-8 pt-20">{children}</div>
+  <div className="mt-8 p-8 pt-20">
+    {children}
+  </div>
 
-        <Logout
-          isOpen={isLogoutConfirmationOpen}
-          onClose={() => setIsLogoutConfirmationOpen(false)}
-          onConfirm={async () => await signOut}
-          currentUser={session?.data?.user?.id}
+  <Logout
+    isOpen={isLogoutConfirmationOpen}
+    onClose={() => setIsLogoutConfirmationOpen(false)}
+    onConfirm={async () => await signOut()}
+    currentUser={session?.data?.user?.id}
+  />
+</main>
 
-        />
-      </main>
     </div>
-    </PageProvider>
 
   );
 }

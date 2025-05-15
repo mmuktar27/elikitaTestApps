@@ -1,183 +1,92 @@
 "use client";
 
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Modal from "react-modal";
 // Lucide Icons
-
+import { getSystemSettings } from "./api"
 import {
-  ChevronLeft,
-  RefreshCw,
-  ScrollText,
-  TestTubes,
-  Stethoscope,
   AlertCircle,
-  RotateCcw,
-  Check,
-  Loader2,
-  Bot,
-  Lock,
-  OxygenIcon,
-  LungsIcon,
-  ChevronRight,
-  VolumeIcon,
-  Beaker,
-  Activity,
-  Heart,
-  FlaskConical,
-  Camera,
-  LightbulbOff,
-  Brain,
-  Sparkles,
-  Lightbulb,
-  MinusCircle,
-  PlusCircle,
-  Plus,
-  Clock,
-  Video,
-  UserRound,
-  Share2,
-  ArrowRight,
-  ArrowLeft,
-  Volume2,
-  VolumeX,
-  AlertTriangle,
-  Bed,
-  Bell,
-  Briefcase,
-  Building,
-  Building2,
-  Calculator,
   Calendar,
-  CalendarCheck,
-  CameraOff,
+  Check,
   CheckCircle,
-  ChevronDown,
-  Clipboard,
-  ClockIcon,
-  Database,
+  ChevronLeft,
+  ChevronRight,
   Edit,
-  Edit2,
   Eye,
-  FileBarChart,
   FileText,
-  Filter,
-  Home,
-  Info,
-  Layers,
-  LogOut,
-  Mail,
   MapPin,
-  Mic,
-  MicOff,
   Phone,
   Pill,
-  QrCode,
-  Search,
-  Settings,
-  Speaker,
-  TestTube,
+  Plus,
+  Printer,
+  ScrollText,
+  Share2,
+  Stethoscope,
+  TestTubes,
   Thermometer,
   Trash2,
   User,
-  UserCog,
-  UserPlus,
-  Users,
-  Printer,
-  ChevronUp,
-  TrendingUp,
-  XCircle,
-  X,
+  XCircle
 } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
 
 // UI Components
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogDescription,
+  DialogTrigger
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
-  CardTitle,
+  CardTitle
 } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import {
-  ViewMedication,
-  NewMedicationForm
+  NewDiagnosisForm,
+  NewExamination,
+  NewLabTestForm,
+  NewMedicationForm,
+  ViewDiagnosis,
+  ViewExamination,
+  ViewLabTest,
+  ViewMedication
 } from "../shared";
-import { NewDiagnosisForm, ViewDiagnosis } from "../shared";
-import { NewLabTestForm, ViewLabTest } from "../shared";
-import { NewExamination, ViewExamination } from "../shared";
 
-import { fetchVisitsByPatient, addVisitHistory } from "../shared/api";
+import { fetchVisitsByPatient } from "../shared/api";
 //loading and sening data to api
 
-import { deleteDiagnosis } from "../shared/api";
-import { deleteLabtest } from "../shared/api";
-import { deleteMedication } from "../shared/api";
-import { deleteExamination } from "../shared/api";
 import { VitalsChart } from "../shared";
-import {createAuditLogEntry} from "../shared/api"
+import { createAuditLogEntry, deleteDiagnosis, deleteExamination, deleteLabtest, deleteMedication } from "../shared/api";
 
 
 
-import { fetchPatientData
+import {
+  createReferral,
+  fetchPatientData,
+  getAllStaff
 } from "../shared/api";
-import {createReferral  } from "../shared/api";
-import {getAllStaff } from "../shared/api";
 
-import { getCurrentBookingUrlConfig } from "../shared/api"
+import { getCurrentBookingUrlConfig } from "../shared/api";
 
-import {handlePrintReport } from "../shared"
+import { handlePrintReport } from "../shared";
 
 
 //import {useSession } from "next-auth/react";
 
-import { motion } from "framer-motion";
 const examinationSteps = [
   { key: "chiefcomplaint", label: "Chief Complaint" },
   { key: "symptoms", label: "Symptoms" },
@@ -261,11 +170,29 @@ const PatientDetailsView = ({ patient, onClose, SelectedPatient,currentUser, cur
   const [isInCall, setIsInCall] = useState(false);
   const [isvisithistory, setIsvisithistory] = useState({});
   const [mergedVisitHistory, setmergedVisitHistory] = useState({});
- // const session = useSession();
+  //const session = useSession();
  const [bookingUrls, setBookingUrls] = useState({});
 
   const [allStaff, setAllStaff] = useState({});
 
+  const [settings, setSettings] = useState(null);
+
+
+
+
+  useEffect(() => {
+    const fetchAndHandleSystemSettings = async () => {
+      try {
+        const data = await getSystemSettings();
+        console.log("System Settings:", data);
+        setSettings(data); // Store settings in state
+      } catch (error) {
+        console.error("Failed to fetch system settings:", error);
+      }
+    };
+
+    fetchAndHandleSystemSettings(); // Call the function inside useEffect
+  }, []);
 
   useEffect(() => {
     const fetchallStaff = async () => {
@@ -319,7 +246,7 @@ useEffect(() => {
   };
 
   const [referralData, setReferralData] = useState({
-    patient:patient._id,
+    patient:patient?._id,
     referralID:generateReferralId(),
     referredBy: currentUser?._id,
     referralType: "",
@@ -368,33 +295,55 @@ useEffect(() => {
     if (!str) return ""; // Handle empty or undefined strings
     return str.charAt(0).toUpperCase() + str.slice(1);
 }  // Convert object values to string if needed
+let bmiValue = null;
+let bmiCategory = '';
+if (visit?.details?.vitals) {
+  const { height, weight } = visit?.details?.vitals;
+  
+  if (height && weight) {
+    const heightInMeters = height / 100; // convert cm to m
+    bmiValue = weight / (heightInMeters * heightInMeters);
+    bmiValue = bmiValue.toFixed(1);
 
+    if (bmiValue < 18.5) {
+      bmiCategory = 'Underweight';
+    } else if (bmiValue < 25) {
+      bmiCategory = 'Normal weight';
+    } else if (bmiValue < 30) {
+      bmiCategory = 'Overweight';
+    } else {
+      bmiCategory = 'Obese';
+    }
+  }
+}
+function checkForDuration(fieldName, fieldValue) {
+  if (typeof fieldName === 'string' && /duration/i.test(fieldName)) {
+    const trimmed = String(fieldValue).trim();
+    // Check if the value is only numbers (after trimming)
+    if (/^\d+$/.test(trimmed)) {
+      return 'days';
+    }
+  }
+  return null;
+}
     return (
-      <Dialog open={open} onOpenChange={onClose}>
-<DialogContent className="max-w-3xl rounded-2xl bg-white shadow-2xl transition-all duration-300 ease-in-out"  hideCloseButton>
 
-<div className="relative">
-            <div className="absolute -top-10 right-0 flex space-x-2">
-              <div className="rounded-full bg-green-100 p-2 text-green-700">
-                <CheckCircle className="size-5" />
-              </div>
-              <div 
-                  className="cursor-pointer rounded-full bg-red-100 p-2 text-red-700" 
-                  onClick={onClose}
-                >
-                  <XCircle className="size-5" />
-                </div>
+      <div 
+      className="w-full max-w-full bg-white transition-all duration-300 ease-in-out sm:w-full md:w-full lg:w-full"
+    >
+      <div className="relative w-full">
+        
+        <div className="max-h-[80vh] w-full  p-4">
+          {/* Content remains the same, but ensure all container divs have w-full */}
+          <div className="mb-4 w-full border-b pb-4">
+            <div className="flex w-full items-center gap-3 text-2xl font-bold text-[#007664]">
+              <Calendar className="size-7 text-[#009882]" />
+              Visit Details - {formatDate(visit.date)}
             </div>
-            <div className="max-h-[80vh] overflow-y-auto p-2">
-            <DialogHeader className="mb-4 border-b pb-4">
-              <DialogTitle className="flex items-center gap-3 text-2xl font-bold text-[#007664]">
-                <Calendar className="size-7 text-[#009882]" />
-                Visit Details - {formatDate(visit.date)}
-              </DialogTitle>
-            </DialogHeader>
-
-            <div className="mb-6 grid grid-cols-3 gap-4">
-              <div className="rounded-xl bg-gradient-to-br from-[#00a98e] to-[#007664] p-4 text-white shadow-md">
+          </div>
+  
+          <div className="mb-6 grid w-full grid-cols-1 gap-4 sm:grid-cols-3 ">
+            <div className="rounded-xl bg-gradient-to-br from-[#00a98e] to-[#007664] p-4 text-white shadow-md">
                 <User className="mb-2 size-6" />
                 <h3 className="text-lg font-semibold">Attended By</h3>
                 <p className="text-sm opacity-80">  <p className="text-sm opacity-80">
@@ -437,11 +386,10 @@ useEffect(() => {
               <div className="rounded-xl bg-gradient-to-br from-purple-500 to-purple-700 p-4 text-white shadow-md">
                 <Calendar className="mb-2 size-6" />
                 <h3 className="text-lg font-semibold">Status</h3>
-                <p className="text-sm opacity-80">{visit.details.status}</p>
+                <p className="text-sm opacity-80">{capitalizeFirstLetter(visit.details.status) || 'N/A'}</p>
               </div>
             </div>
-
-            <div className="space-y-6">
+            <div className="space-y-6 ">
             {visit.type === "examination" && (
                 <div className="rounded-xl border border-gray-200 bg-gray-50 p-6">
                   <h3 className="mb-4 flex items-center gap-3 text-xl font-semibold text-[#009882]">
@@ -465,6 +413,14 @@ useEffect(() => {
                           </div>
                         ),
                       )}
+
+{bmiValue && (
+        <div className="mt-6 rounded-lg bg-teal-50 p-4 shadow">
+          <p className="text-lg font-semibold text-teal-900">BMI</p>
+          <p className="text-2xl font-bold text-teal-800">{bmiValue}</p>
+          <p className="text-md text-teal-700">{bmiCategory}</p>
+        </div>
+      )}
                     </div>
                   )}
 
@@ -551,7 +507,7 @@ useEffect(() => {
                                                 {capitalize(key)}:
                                               </span>
                                               <span className="text-gray-700">
-                                                {capitalize(String(value))}
+                                                {capitalize(String(value))} {checkForDuration(key, value)}
                                               </span>
                                             </li>
                                           ))}
@@ -574,7 +530,7 @@ useEffect(() => {
                                           {capitalize(symptomKey)}
                                         </div>
                                         <div className="text-gray-700">
-                                          {capitalize(String(symptomValue))}
+                                          {capitalize(String(symptomValue))} 
                                         </div>
                                       </li>,
                                     );
@@ -588,7 +544,7 @@ useEffect(() => {
                                           {capitalize(symptomKey)}:
                                         </span>
                                         <span className="text-gray-700">
-                                          {capitalize(String(symptomValue))}
+                                          {capitalize(String(symptomValue))} 
                                         </span>
                                       </div>,
                                     );
@@ -626,7 +582,7 @@ useEffect(() => {
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-500">Category</p>
-                          <p className="text-gray-700">{visit.details.category}</p>
+                          <p className="text-gray-700">{capitalizeFirstLetter(visit.details.category)}</p>
                         </div>
                       </div>
                     </div>
@@ -637,19 +593,19 @@ useEffect(() => {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <p className="text-sm font-medium text-gray-500">Severity</p>
-                          <p className="text-gray-700">{visit.details.severity}</p>
+                          <p className="text-gray-700">{capitalizeFirstLetter(visit.details.severity)}</p>
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-500">Priority</p>
-                          <p className="text-gray-700">{visit.details.priority}</p>
+                          <p className="text-gray-700">{capitalizeFirstLetter(visit.details.priority)}</p>
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-500">Status</p>
-                          <p className="text-gray-700">{visit.details.status}</p>
+                          <p className="text-gray-700">{capitalizeFirstLetter(visit.details.status)}</p>
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-500">Chronicity</p>
-                          <p className="text-gray-700">{visit.details.chronicityStatus}</p>
+                          <p className="text-gray-700">{capitalizeFirstLetter(visit.details.chronicityStatus)}</p>
                         </div>
                       </div>
                     </div>
@@ -660,7 +616,7 @@ useEffect(() => {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <p className="text-sm font-medium text-gray-500">Diagnosed By</p>
-                          <p className="text-gray-700">{visit.details.diagnosedBy}</p>
+                          <p className="text-gray-700">{capitalizeFirstLetter(visit.details.diagnosedBy.firstName)} {capitalizeFirstLetter(visit.details.diagnosedBy.lastName)}</p>
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-500">Facility</p>
@@ -681,7 +637,7 @@ useEffect(() => {
                     {visit.details.diagnosesisadditionalNotes && (
                       <div className="rounded-lg bg-white p-4 shadow-md">
                         <h4 className="mb-3 font-medium text-gray-700">Additional Notes</h4>
-                        <p className="text-gray-700">{visit.details.diagnosesisadditionalNotes}</p>
+                        <p className="text-gray-700">{capitalizeFirstLetter(visit.details.diagnosesisadditionalNotes)}</p>
                       </div>
                     )}
             
@@ -691,11 +647,11 @@ useEffect(() => {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <p className="text-sm font-medium text-gray-500">Expected Outcome</p>
-                          <p className="text-gray-700">{visit.details.expectedOutcome}</p>
+                          <p className="text-gray-700">{capitalizeFirstLetter(visit.details.expectedOutcome)}</p>
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-500">Timeframe</p>
-                          <p className="text-gray-700">{visit.details.timeframe}</p>
+                          <p className="text-gray-700">{capitalizeFirstLetter(visit.details.timeframe)}</p>
                         </div>
                       </div>
                     </div>
@@ -738,7 +694,7 @@ useEffect(() => {
       </div>
       <div>
         <p className="text-sm font-medium text-gray-500">Requested By</p>
-        <p className="text-gray-700">{visit.details.requestedBy}</p>
+        <p className="text-gray-700">{capitalizeFirstLetter( visit.details.requestedBy.firstName)} {capitalizeFirstLetter( visit.details.requestedBy.lastName)}</p>
       </div>
     </div>
   </div>
@@ -753,7 +709,7 @@ useEffect(() => {
   {visit.details.additionalNotes && (
     <div className="rounded-lg bg-white p-4 shadow-md">
       <h4 className="mb-3 font-medium text-gray-700">Additional Notes</h4>
-      <p className="text-gray-700">{visit.details.additionalNotes}</p>
+      <p className="text-gray-700">{capitalizeFirstLetter(visit.details.additionalNotes)}</p>
     </div>
   )}
 
@@ -790,7 +746,7 @@ useEffect(() => {
                          </div>
                          <div>
                            <p className="text-sm font-medium text-gray-500">Test Priority</p>
-                           <p className="text-gray-700">{visit.details.priority}</p>
+                           <p className="text-gray-700">{capitalizeFirstLetter(visit.details.priority)}</p>
                          </div>
                        </div>
                      </div>
@@ -831,7 +787,7 @@ useEffect(() => {
                          </div>
                          <div>
                            <p className="text-sm font-medium text-gray-500">Priority</p>
-                           <p className="text-gray-700">{visit.details.priority}</p>
+                           <p className="text-gray-700">{capitalizeFirstLetter(visit.details.priority)}</p>
                          </div>
                        </div>
                      </div>
@@ -863,8 +819,8 @@ useEffect(() => {
               )}
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+   
     );
   };
   const [selectedVisit, setSelectedVisit] = useState(null);
@@ -915,9 +871,12 @@ return (
       {currentItems.length === 0 ? (
         <div className="p-6 text-center text-gray-500">No records found</div>
       ) : (
-        currentItems.map((visit) => (
+        currentItems.map((visit,index) => {
+
+          const key = visit._id || `visit-${index}`;
+          return(
           <div
-            key={visit._id}
+            key={key}
             onClick={() => openVisitDetails(visit)}
             className="group flex cursor-pointer items-center justify-between border-b border-gray-200 p-4 transition-all duration-300 hover:bg-gray-50"
           >
@@ -937,7 +896,7 @@ return (
             </div>
             <ChevronRight className="text-[#007664] transition-transform group-hover:translate-x-1" />
           </div>
-        ))
+        )})
       )}
 
       {/* Pagination Controls */}
@@ -991,12 +950,31 @@ return (
         </div>
       )}
     </div>
+    {modalOpen && (
 
+<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+  <div className="relative max-h-screen min-h-min w-[95vw] max-w-4xl overflow-y-auto rounded-lg bg-white p-4 sm:p-6">
+  
+
+  <button
+  className="pointer-events-auto absolute right-4 top-4 z-50 rounded-full bg-red-100 p-2 text-red-700"
+  onClick={() => setModalOpen(false)}
+>
+  <XCircle className="size-6" />
+</button>
+
+
+    
+                      
     <PVisitHistoryModal
       visit={selectedVisit}
       open={modalOpen}
       onClose={() => setModalOpen(false)}
     />
+
+  
+    </div>
+    </div>  )}
   </div>
 );
 
@@ -1333,7 +1311,7 @@ return (
   const [exam, setExam] = useState(null);
   const [diagnosis, setDiagnosis] = useState(null);
   const [med, setMed] = useState(null);
-
+  const [isAddExamOpen, setIsAddExamOpen] = useState(false);
   const [isViewExamOpen, setIsViewExamOpen] = useState(false);
   const [isViewDiagOpen, setIsViewDiagOpen] = useState(false);
   const [isViewMedOpen, setIsViewMedOpen] = useState(false);
@@ -1890,438 +1868,6 @@ return (
     },
   });
 
-  const MedicationForm = ({
-    buttonText,
-    onSubmit,
-    initialMedicationData = [],
-  }) => {
-    const [medications, setMedications] = useState([
-      {
-        id: 1,
-        isAICompleted: false,
-        isDisabled: false,
-        data: {
-          medicationDescription: "",
-          medicationNote: "",
-          medicationCode: [],
-          medicationStatus: "active",
-          medicationStartDate: "",
-          medicationStartTime: "",
-          medicationEndDate: "",
-          medicationFrequency: {
-            type: "daily",
-            value: 1,
-          },
-          dosage: "",
-          name: "",
-          administrationRoute: "",
-          treatmentDuration: "",
-          sideEffects: "",
-          contraindications: "",
-          precautions: "",
-          interactions: "",
-          specialInstructions: "",
-          followUpProtocol: "",
-        },
-      },
-    ]);
-
-    useEffect(() => {
-      if (initialMedicationData.length > 0) {
-        setMedications(
-          initialMedicationData.map((med, index) => ({
-            id: index + 1,
-            isAICompleted: false,
-            isDisabled: false,
-            data: {
-              ...med,
-              medicationFrequency: med.medicationFrequency || {
-                type: "daily",
-                value: 1,
-              },
-            },
-          })),
-        );
-      }
-    }, [initialMedicationData]);
-
-    const handleAIComplete = (medicationId) => {
-      setMedications((prev) =>
-        prev.map((med) => {
-          if (med.id === medicationId) {
-            const demoData = {
-              medicationStatus: "active",
-              medicationStartDate: "2025-01-13",
-              medicationEndDate: "2025-02-13",
-              medicationStartTime: "09:00",
-              medicationFrequency: {
-                type: "daily",
-                value: 2,
-              },
-              medicationNote:
-                "Take with food. Monitor blood pressure regularly.",
-              dosage: "20mg twice daily",
-              medicationDescription:
-                "Anti-hypertensive medication used to control blood pressure.",
-              name: "Amlodipine",
-              administrationRoute: "Oral",
-              treatmentDuration: "4 weeks",
-              sideEffects:
-                "May cause dizziness, headache, or mild nausea. Report severe side effects immediately.",
-              contraindications:
-                "Not recommended for patients with severe kidney disease or those taking MAO inhibitors.",
-              precautions:
-                "Monitor blood pressure regularly. Avoid sudden discontinuation.",
-              interactions:
-                "May interact with beta blockers, NSAIDs, and certain antidepressants.",
-              specialInstructions:
-                "Take on an empty stomach, 30 minutes before meals.",
-              followUpProtocol: "Schedule follow-up appointment in 2 weeks.",
-            };
-
-            return {
-              ...med,
-              isAICompleted: true,
-              isDisabled: true,
-              data: { ...med.data, ...demoData },
-            };
-          }
-          return med;
-        }),
-      );
-    };
-
-    const regenerateAI = (medicationId) => {
-      // This would typically call an API to get new AI suggestions
-      handleAIComplete(medicationId);
-    };
-
-    const toggleManualEdit = (medicationId) => {
-      setMedications((prev) =>
-        prev.map((med) => {
-          if (med.id === medicationId) {
-            return {
-              ...med,
-              isDisabled: !med.isDisabled,
-            };
-          }
-          return med;
-        }),
-      );
-    };
-
-    const addNewMedication = () => {
-      setMedications((prev) => [
-        ...prev,
-        {
-          id: Math.max(...prev.map((m) => m.id)) + 1,
-          isAICompleted: false,
-          isDisabled: false,
-          data: {
-            medicationDescription: "",
-            medicationNote: "",
-            medicationCode: [],
-            medicationStatus: "active",
-            medicationStartDate: "",
-            medicationStartTime: "",
-            medicationEndDate: "",
-            medicationFrequency: {
-              type: "daily",
-              value: 1,
-            },
-            dosage: "",
-            name: "",
-            administrationRoute: "",
-            treatmentDuration: "",
-            sideEffects: "",
-            contraindications: "",
-            precautions: "",
-            interactions: "",
-            specialInstructions: "",
-            followUpProtocol: "",
-          },
-        },
-      ]);
-    };
-
-    const removeMedication = (medicationId) => {
-      if (medications.length > 1) {
-        setMedications((prev) => prev.filter((med) => med.id !== medicationId));
-      }
-    };
-
-    const handleFieldChange = (medicationId, field, value) => {
-      setMedications((prev) =>
-        prev.map((med) => {
-          if (med.id === medicationId) {
-            return {
-              ...med,
-              data: {
-                ...med.data,
-                [field]: value,
-              },
-            };
-          }
-          return med;
-        }),
-      );
-    };
-
-    const TextArea = ({
-      id,
-      label,
-      value,
-      onChange,
-      placeholder,
-      disabled,
-    }) => (
-      <div className="space-y-2">
-        <Label htmlFor={id}>{label}</Label>
-        <textarea
-          id={id}
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          disabled={disabled}
-          rows={4}
-          className="block w-full resize-none rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-gray-100 disabled:text-gray-500 sm:text-sm"
-        />
-      </div>
-    );
-
-    return (
-      <div className="space-y-8">
-        {medications.map((medication, index) => (
-          <Card key={medication.id} className="p-6">
-            <div className="mb-6 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Medication {index + 1}
-              </h3>
-              <div className="flex gap-2">
-                {medication.isAICompleted ? (
-                  <>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => regenerateAI(medication.id)}
-                      className="inline-flex items-center gap-2 bg-teal-100 hover:bg-teal-200"
-                    >
-                      <RefreshCw className="size-4" />
-                      Regenerate
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => toggleManualEdit(medication.id)}
-                      className="inline-flex items-center gap-2 bg-teal-100 hover:bg-teal-200"
-                    >
-                      <Edit className="size-4" />
-                      {medication.isDisabled ? "Edit Manually" : "Disable Edit"}
-                    </Button>
-                  </>
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleAIComplete(medication.id)}
-                    className="w-full bg-gradient-to-r from-[#007664] to-[#75C05B] text-white hover:from-[#006054] hover:to-[#63a34d] sm:w-auto"
-                  >
-                    <Lightbulb className="size-4" />
-                    Complete with AI
-                  </Button>
-                )}
-                {medications.length > 1 && (
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => removeMedication(medication.id)}
-                    className="inline-flex items-center gap-2"
-                  >
-                    <Trash2 className="size-4" />
-                    Remove
-                  </Button>
-                )}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {/* Basic Fields */}
-              <div className="space-y-2">
-                <Label htmlFor={`medication-${medication.id}`}>
-                  Medication ID
-                </Label>
-                <Input
-                  id={`medication-${medication.id}`}
-                  disabled
-                  value={`dg-${String(medication.id).padStart(3, "0")}`}
-                />
-              </div>
-
-              {/* Name Field */}
-              <div className="space-y-2">
-                <Label htmlFor={`name-${medication.id}`}>Medication Name</Label>
-                <Input
-                  id={`name-${medication.id}`}
-                  value={medication.data.name}
-                  onChange={(e) =>
-                    handleFieldChange(medication.id, "name", e.target.value)
-                  }
-                  disabled={medication.isDisabled}
-                />
-              </div>
-
-              {/* Status Select */}
-              <div className="space-y-2">
-                <Label htmlFor={`status-${medication.id}`}>Status</Label>
-                <Select
-                  value={medication.data.medicationStatus}
-                  onValueChange={(value) =>
-                    handleFieldChange(medication.id, "medicationStatus", value)
-                  }
-                  disabled={medication.isDisabled}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                    <SelectItem value="resolved">Resolved</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Other Fields */}
-              {Object.entries(medication.data).map(([field, value]) => {
-                if (
-                  [
-                    "medicationCode",
-                    "medicationFrequency",
-                    "medicationStatus",
-                    "name",
-                  ].includes(field)
-                )
-                  return null;
-                return (
-                  <TextArea
-                    key={`${field}-${medication.id}`}
-                    id={`${field}-${medication.id}`}
-                    label={
-                      field.charAt(0).toUpperCase() +
-                      field.slice(1).replace(/([A-Z])/g, " $1")
-                    }
-                    value={value}
-                    onChange={(e) =>
-                      handleFieldChange(medication.id, field, e.target.value)
-                    }
-                    placeholder={`Enter ${field.toLowerCase().replace(/([A-Z])/g, " $1")}`}
-                    disabled={medication.isDisabled}
-                  />
-                );
-              })}
-            </div>
-          </Card>
-        ))}
-
-        <div className="flex items-center justify-between">
-          <Button
-            variant="outline"
-            onClick={addNewMedication}
-            className="inline-flex items-center gap-2"
-          >
-            <Plus className="size-4" />
-            Add Another Medication
-          </Button>
-
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setIsEditOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={() => onSubmit(medications.map((med) => med.data))}
-              disabled={isLoading}
-              className="bg-teal-700 text-white hover:bg-teal-800"
-            >
-              {isLoading ? "Submitting..." : buttonText}
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const testCategories = [
-    {
-      category: "General Health Screening",
-      tests: [
-        "Complete Blood Count (CBC)",
-        "Basic Metabolic Panel (BMP)",
-        "Comprehensive Metabolic Panel (CMP)",
-        "Lipid Panel",
-        "Urinalysis",
-      ],
-    },
-    {
-      category: "Diabetes and Endocrine Function",
-      tests: [
-        "Fasting Blood Glucose",
-        "Hemoglobin A1c (HbA1c)",
-        "Thyroid Function Tests (TSH, T3, T4)",
-      ],
-    },
-    {
-      category: "Cardiovascular Health",
-      tests: ["Electrocardiogram (ECG)", "Troponin Test"],
-    },
-    {
-      category: "Advanced Diagnostics",
-      tests: ["Chest X-ray", "MRI Scan", "CT Scan", "Ultrasound"],
-    },
-    {
-      category: "Infectious Diseases",
-      tests: [
-        "Rapid Strep Test",
-        "Influenza Test",
-        "HIV Test",
-        "Hepatitis Panel",
-        "Tuberculosis (TB) Test",
-      ],
-    },
-    {
-      category: "Kidney Function",
-      tests: ["Serum Creatinine", "Blood Urea Nitrogen (BUN)"],
-    },
-    {
-      category: "Liver Function",
-      tests: ["Liver Function Tests (LFTs)"],
-    },
-    {
-      category: "Reproductive Health",
-      tests: [
-        "Sexually Transmitted Infection (STI) Tests",
-        "Pap Smear",
-        "Pregnancy Test",
-      ],
-    },
-    {
-      category: "Respiratory Health",
-      tests: ["Chest X-ray", "Sputum Culture"],
-    },
-    {
-      category: "Gastrointestinal Health",
-      tests: ["Stool Culture", "Helicobacter pylori Test"],
-    },
-    {
-      category: "Nutritional Status",
-      tests: ["Iron Studies", "Vitamin B12 and Folate Levels"],
-    },
-    {
-      category: "Inflammatory and Autoimmune Conditions",
-      tests: ["Erythrocyte Sedimentation Rate (ESR)", "Reactive Protein (CRP)"],
-    },
-  ];
-
-  const specimenOptions = ["Blood", "Urine", "Stool", "Saliva"];
 
   const handleCheckboxChange = (category, test) => {
     setlabtestFormData((prevData) => {
@@ -2507,19 +2053,19 @@ return (
               <div className="flex-1 text-center sm:text-left">
                 <p className="text-sm font-medium text-gray-500">Patient</p>
                 <p className="max-w-full break-words text-lg font-semibold text-[#007664]">
-                  {`${capitalize(SelectedPatient.firstName)} ${capitalize(SelectedPatient.lastName)}`}
+                  {`${capitalize(SelectedPatient?.firstName)} ${capitalize(SelectedPatient?.lastName)}`}
                 </p>
                 <p id="patient-id" className="text-sm text-gray-500">
-                  ID: {SelectedPatient.patientReference}
+                  ID: {SelectedPatient?.patientReference}
                 </p>
                 <div className="mt-1 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
                   <span className="text-sm text-gray-600">
-                    {calculateAge(SelectedPatient.birthDate)} years,{" "}
-                    {SelectedPatient.gender}
+                    {calculateAge(SelectedPatient?.birthDate)} years,{" "}
+                    {SelectedPatient?.gender}
                   </span>
                   <div className="rounded-full bg-[#75C05B]/10 px-2 py-0.5">
                     <span className="text-xs font-medium text-[#75C05B]">
-                      {SelectedPatient.medicalCondition}
+                      {SelectedPatient?.medicalCondition}
                     </span>
                   </div>
                 </div>
@@ -2536,15 +2082,15 @@ return (
         <div className="flex-1 text-center sm:text-left">
           <p className="text-sm font-medium text-gray-500">Contact</p>
           <div className="w-full break-words text-lg font-semibold text-[#007664]">
-            <p className="mb-1">{SelectedPatient.phone}</p>
+            <p className="mb-1">{SelectedPatient?.phone}</p>
            
           </div>
           <p className="text-base text-[#007664]">
-              {SelectedPatient.email}
+              {SelectedPatient?.email}
             </p>
           <p className="mt-2 text-sm text-gray-600">
             <span className="inline-block rounded-full bg-[#B24531]/10 px-2 py-0.5 text-xs text-[#B24531]">
-              {SelectedPatient.emergencyContact}
+              {SelectedPatient?.emergencyContact}
             </span>
           </p>
         </div>
@@ -2560,14 +2106,14 @@ return (
     <div className="flex-1 text-center sm:text-left">
       <p className="text-sm font-medium text-gray-500">Address</p>
       <p className="max-w-full break-words text-sm font-semibold text-[#007664]">
-        {SelectedPatient.address}
+        {SelectedPatient?.address}
       </p>
-      {SelectedPatient.preferredLanguage && (  
+      {SelectedPatient?.preferredLanguage && (  
         <p className="mt-2 text-sm font-medium text-gray-500">Preferred Language</p>
       )}
-      {SelectedPatient.preferredLanguage && (
+      {SelectedPatient?.preferredLanguage && (
         <p className="text-sm font-semibold text-[#007664]">
-          {capitalize(SelectedPatient.preferredLanguage)}
+          {capitalize(SelectedPatient?.preferredLanguage)}
         </p>
       )}
     </div>
@@ -2823,9 +2369,21 @@ const patientvisitHistory = (filterByVisitHistory(mergedVisitHistory,isvisithist
     }));
   };
 
+  const [loadingReferalSubmit, setLoadingReferalSubmit] = useState(false);
+
   const submitReferral = async () => {
+    setLoadingReferalSubmit(true); // Start loading
+    const fallbackReferredBy = currentUser?._id;
+    const referralPayload = {
+      ...referralData,
+      referredBy: referralData.referredBy || fallbackReferredBy
+    };
+
+   // console.log('fallbackReferredBy')
+   // console.log(referralPayload)
+
     try {
-        const result = await createReferral(referralData);
+        const result = await createReferral(referralPayload);
         if (result.error) {
             console.error("Referral creation failed:", result.error);
             return;
@@ -2856,6 +2414,8 @@ const patientvisitHistory = (filterByVisitHistory(mergedVisitHistory,isvisithist
           status:  "error",
           message:"Failed to Refer Patient"
         });
+    } finally {
+      setLoadingReferalSubmit(false); // Stop loading
     }
 };
 
@@ -2929,11 +2489,13 @@ const BookingButton = ({ externalUrl }) => {
 
   return (
     <Button 
+
       onClick={() => openUrl(externalUrl)}
-      className="flex w-full items-center justify-center gap-2 bg-[#007664] text-white transition-all duration-300 hover:bg-[#007664]/90 sm:w-40"
-    >
+      title="Use this when you need to escalate the patient to a senior doctor or specialist"
+      className="flex items-center justify-center gap-2 bg-[#007664] px-4 py-2 text-white transition-all duration-300 hover:bg-[#007664]/90"
+      >
       <Calendar className="size-4" />
-      <span>Book Now</span>
+      <span>Book Expert Consultation</span>
     </Button>
   );
 };
@@ -3531,6 +3093,7 @@ const [isModalOpen, setIsModalOpen] = useState(false);
 
 
 const handleReportPrint = () => {
+  
   handlePrintReport({
     setIsModalOpen,
     diagnoses,
@@ -3538,7 +3101,10 @@ const handleReportPrint = () => {
     labTests,
     examinations,
     SelectedPatient,
-    reportType
+    reportType,
+    settings,
+    currentUser,
+    currentDashboard
   });
 };
 
@@ -3558,98 +3124,96 @@ const handleReportPrint = () => {
 
             <CardHeader className="mb-4 flex flex-row items-center justify-between bg-gradient-to-r from-[#007664] to-[#75C05B]">
               {/* Patient Info */}
-              <div className="grow">
-                <CardTitle className="text-white">
-                {`${capitalize(SelectedPatient.firstName)} ${capitalize(SelectedPatient.lastName)} (${SelectedPatient.patientReference}) Profile`}
-                </CardTitle>
-              </div>
+           {/* Wrapper for proper responsive layout */}
+<div className="flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+  
+  {/* Patient Name Section */}
+  <div className="grow">
+    <CardTitle className="text-white">
+      {`${capitalize(SelectedPatient?.firstName)} ${capitalize(SelectedPatient?.lastName)} (${SelectedPatient?.patientReference}) Profile`}
+    </CardTitle>
+  </div>
 
-              {/* Action Buttons Group */}
-              <div className="flex flex-col items-center gap-3 sm:flex-row sm:gap-4">
-      {!isInCall && (
-        <>
-        
-        <BookingButton 
+  {/* Action Buttons Group */}
+  <div className="mt-8 flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:gap-4">
+    {!isInCall && (
+      <>
+        <BookingButton externalUrl={bookingUrls.external} />
+      </>
+    )}
 
-        externalUrl ={bookingUrls.external}
-        /></>
-      )}
-      <Button
-         onClick={() => setIsModalOpen(true)} 
-        className="flex w-full items-center justify-center gap-2 border border-[#007664] bg-white text-[#007664] hover:bg-[#F7F7F7] sm:w-40"
+    <Button
+      onClick={() => setIsModalOpen(true)} 
+      className="flex w-full items-center justify-center gap-2 border border-[#007664] bg-white text-[#007664] hover:bg-[#F7F7F7] sm:w-40"
+    >
+      <Printer className="size-4" />
+      <span>Print Report</span>
+    </Button>
+
+    <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+  <DialogContent className="w-full max-w-sm sm:max-w-md">
+    <DialogHeader>
+      <DialogTitle>Select Report Type</DialogTitle>
+    </DialogHeader>
+
+    <div className="py-6">
+      <RadioGroup 
+        value={reportType} 
+        onValueChange={setReportType}
+        className="flex flex-col gap-4"
       >
-        <Printer className="size-4" />
-        <span>Print Report</span>
-      </Button>
-
-
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Select Report Type</DialogTitle>
-        </DialogHeader>
-        
-        <div className="py-6">
-          <RadioGroup 
-            value={reportType} 
-            onValueChange={setReportType}
-            className="flex flex-col gap-4"
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem 
-                value="basic" 
-                id="basic"
-                className="border-teal-800 text-teal-800 focus:ring-teal-800"
-              />
-              <Label htmlFor="basic" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                Basic Report
-                <p className="text-sm text-gray-500">
-                  Includes patient information only
-                </p>
-              </Label>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem 
-                value="detailed" 
-                id="detailed"
-                className="border-teal-800 text-teal-800 focus:ring-teal-800"
-              />
-              <Label htmlFor="detailed" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                Detailed Report
-                <p className="text-sm text-gray-500">
-                  Includes current visit details and findings
-                </p>
-              </Label>
-            </div>
-          </RadioGroup>
+        <div className="flex items-center space-x-2">
+          <RadioGroupItem 
+            value="basic" 
+            id="basic"
+            className="border-teal-800 text-teal-800 focus:ring-teal-800"
+          />
+          <Label htmlFor="basic" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            Basic Report
+            <p className="text-sm text-gray-500">Includes patient information only</p>
+          </Label>
         </div>
 
-        <DialogFooter className="flex justify-end space-x-2">
-          <Button variant="outline" onClick={() => setIsModalOpen(false)}>
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleReportPrint}
-            className="bg-teal-800 text-white hover:bg-teal-900"
-          >
-            Proceed
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-
-
-
-
-      <Button
-        onClick={openrefModal}
-        className="flex w-full items-center justify-center gap-2 bg-[#007664] text-white hover:bg-[#007664]/80 sm:w-40"
-      >
-        <Share2 className="size-4" />
-        <span>Refer Patient</span>
-      </Button>
+        <div className="flex items-center space-x-2">
+          <RadioGroupItem 
+            value="detailed" 
+            id="detailed"
+            className="border-teal-800 text-teal-800 focus:ring-teal-800"
+          />
+          <Label htmlFor="detailed" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            Detailed Report
+            <p className="text-sm text-gray-500">Includes current visit details and findings</p>
+          </Label>
+        </div>
+      </RadioGroup>
     </div>
+
+    <DialogFooter className="flex justify-end space-x-2">
+      <Button variant="outline" onClick={() => setIsModalOpen(false)}>
+        Cancel
+      </Button>
+      <Button 
+        onClick={handleReportPrint}
+        className="bg-teal-800 text-white hover:bg-teal-900"
+      >
+        Proceed
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+
+
+    <Button
+      onClick={openrefModal}
+      className="flex w-full items-center justify-center gap-2 bg-[#007664] text-white hover:bg-[#007664]/80 sm:w-40"
+    >
+      <Share2 className="size-4" />
+      <span>Refer Patient</span>
+    </Button>
+  </div>
+</div>
+
+
             </CardHeader>
             {/* Modal for selection */}
             <Modal
@@ -3657,7 +3221,7 @@ const handleReportPrint = () => {
   onRequestClose={closerefModal}
   className="fixed inset-0 flex items-center justify-center bg-black/50"
 >
-  <div className="mx-auto w-full rounded-lg bg-white p-6 shadow-md sm:w-[90%] md:max-w-lg">
+  <div className="mx-auto w-[90%] max-w-sm rounded-lg bg-white p-6 shadow-md md:max-w-lg">
     <h2 className="mb-4 text-2xl font-bold text-[#007664]">Select Referral Type</h2>
 
     <select
@@ -3732,13 +3296,16 @@ const handleReportPrint = () => {
       </button>
       <button
         onClick={handleSubmitReferral}
-        className="rounded-md bg-[#007664] px-4 py-2 text-white hover:bg-[#00654f]"
+        className={`rounded-md px-4 py-2 text-white transition-colors ${
+          loadingReferalSubmit ? "cursor-not-allowed bg-gray-400" : "bg-[#007664] hover:bg-[#00654f]"
+        }`}
       >
-        Submit
+        {loadingReferalSubmit ? "Submitting..." : "Submit"}
       </button>
     </div>
   </div>
 </Modal>
+
 <StatusDialog
                         isOpen={statusDialog.isOpen}
                         onClose={() => {
@@ -3879,34 +3446,31 @@ const handleReportPrint = () => {
                 <TabsContent value="examination" className="mt-32 sm:mt-6">
                   <div className="mb-4 flex flex-col justify-between sm:flex-row">
                     <h3 className="mb-4 text-lg font-semibold text-[#007664] sm:mb-0">
-                      Recent Examinations
+                       Examinations History
                     </h3>
                     <div className="flex flex-col gap-4 sm:flex-row sm:gap-x-4">
-                      <Dialog
-                        open={isAddOpen}
-                        onOpenChange={(isOpen) =>
-                          handleDialogChange(isOpen, "add")
-                        }
-                      >
-                        <DialogTrigger asChild>
-                          <Button className="w-full bg-[#007664] hover:bg-[#007664]/80 sm:w-auto">
+                     
+                    <Button className="w-full bg-[#007664] hover:bg-[#007664]/80 sm:w-auto"
+                     onClick={() =>  handleDialogChange ('true', "add")}
+                    >
                             <Plus className="size-4" />
                             New Examination
                           </Button>
-                        </DialogTrigger>
-
-                        <DialogContent className="max-h-[90vh] max-w-full overflow-y-auto sm:max-w-5xl">
-                          <DialogHeader>
-                            <div className="flex items-center justify-center ">
-                              <DialogTitle className="text-teal-800">
-                                <div className=" text-center">
-                                  <h2 className="bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-3xl font-bold text-transparent">
-                                    New Examination
-                                  </h2>
-                                </div>
-                              </DialogTitle>
-                            </div>
-                          </DialogHeader>
+                     
+                   
+                    {isAddOpen && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className="relative h-[600px] w-full max-w-5xl overflow-y-auto rounded-lg bg-white p-4 pb-0 sm:p-6">
+      <button
+        className="absolute right-4 top-4 text-gray-600 hover:text-gray-800"
+        onClick={() =>  handleDialogClose()}
+      >
+        ✕
+      </button>
+                      
+                     
+                     
+                     
 
                           <NewExamination
                             onTabChange={handleTabtriggerChange}
@@ -3920,8 +3484,13 @@ const handleReportPrint = () => {
                              currentDashboard={currentDashboard}
 
                           />
-                        </DialogContent>
-                      </Dialog>
+                      </div></div>)}
+                      
+
+
+
+
+
                       <StatusDialog
                         isOpen={statusDialog.isOpen}
                         onClose={() => {
@@ -3951,7 +3520,10 @@ const handleReportPrint = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y">
-  {examCurrentRecords?.map((examination) => {
+                      {examCurrentRecords.length > 0 ? (
+    examCurrentRecords?.slice()
+    .reverse() 
+    .map((examination) => {
     const formatDateTime = (dateTimeString) => {
       const dateObj = new Date(dateTimeString);
       const date = dateObj.toISOString().split("T")[0];
@@ -3974,7 +3546,7 @@ const handleReportPrint = () => {
       
         <td className="px-4 py-2">
   {["doctor", "remote doctor"].includes(examination.examinedByAccType) ? "Dr. " : ""}
-  {examination.examinedBy.firstName} {examination.examinedBy.lastName}
+  {examination?.examinedBy?.firstName} {examination?.examinedBy?.lastName}
 </td>
         <td className="px-4 py-2">{examination.examinedAt}</td>
         <td className="px-4 py-2">
@@ -4012,14 +3584,7 @@ const handleReportPrint = () => {
                                     </DialogContent>
                                   </Dialog>
 
-                                  <Dialog
-                                    open={editExamState.isOpen}
-                                    onOpenChange={(isOpen) =>
-                                      !isOpen && handleDialogClose()
-                                    }
-                                  >
-                                    <DialogTrigger asChild>
-                                      <Button
+                                  <Button
                                         variant="ghost"
                                         size="icon"
                                         className="text-[#007664] hover:text-[#007664]/80"
@@ -4029,20 +3594,18 @@ const handleReportPrint = () => {
                                       >
                                         <Edit className="size-4" />
                                       </Button>
-                                    </DialogTrigger>
 
-                                    <DialogContent className="max-h-[90vh] max-w-full overflow-y-auto sm:max-w-5xl">
-                                      <DialogHeader>
-                                        <div className="flex items-center justify-center ">
-                                          <DialogTitle className="text-teal-800">
-                                            <div className="mb-0 text-center">
-                                              <h2 className="bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-3xl font-bold text-transparent">
-                                                Edit Examination
-                                              </h2>
-                                            </div>
-                                          </DialogTitle>
-                                        </div>
-                                      </DialogHeader>
+
+                                  {editExamState.isOpen && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className="relative h-[600px] w-full max-w-5xl overflow-y-auto rounded-lg bg-white p-4 pb-0 sm:p-6">
+      <button
+        className="absolute right-4 top-4 text-gray-600 hover:text-gray-800"
+        onClick={() =>  handleDialogClose()}
+      >
+        ✕
+      </button>
+                                 
 
                                       <NewExamination
                                         onTabChange={handleTabtriggerChange}
@@ -4056,10 +3619,11 @@ const handleReportPrint = () => {
                                         }
                                          buttonText="Update"
                                          currentDashboard={currentDashboard}
+                                         examinations={examinations}
+
 
                                       />
-                                    </DialogContent>
-                                  </Dialog>
+                             </div></div>)}
 
 
             <Button
@@ -4074,7 +3638,13 @@ const handleReportPrint = () => {
         </td>
       </tr>
     );
-  })}
+  })): (
+    <tr>
+      <td colSpan="6" className="p-4 text-center text-gray-500">
+        No records found
+      </td>
+    </tr>
+  )}
 </tbody>
 
 {/* Pagination Controls */}
@@ -4108,33 +3678,29 @@ const handleReportPrint = () => {
                     <h3 className="text-lg font-semibold text-[#007664]">
                       Diagnoses History
                     </h3>
-                    <Dialog
-                      open={isAddDOpen}
-                      onOpenChange={(isOpen) =>
-                        handleDialogDChange(isOpen, "add")
-                      }
+                    <Button className="bg-[#007664] hover:bg-[#007664]/80"
+                     onClick={() => handleDialogDChange(true, "add")}
                     >
-                      <DialogTrigger asChild>
-                        <Button className="bg-[#007664] hover:bg-[#007664]/80">
                           <Plus className="size-4" />
                           New Diagnosis
                         </Button>
-                      </DialogTrigger>
 
-                      <DialogContent className="max-h-[90vh] max-w-full overflow-y-auto sm:max-w-5xl">
-                        <DialogHeader>
-                          <DialogTitle>
-                            <div className="mb-0 text-center">
-                              <h2 className="bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-3xl font-bold text-transparent">
-                                New Diagnosis
-                              </h2>
-                            </div>
-                          </DialogTitle>
-                        </DialogHeader>
+                    {isAddDOpen && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className="relative h-[600px] w-full max-w-5xl overflow-y-auto rounded-lg bg-white p-4 pb-0 sm:p-6">
+      <button
+        className="absolute right-4 top-4 text-gray-600 hover:text-gray-800"
+        onClick={() =>  handleDialogDChange(isOpen, "add")}
+      >
+        ✕
+      </button>
+                   
 
                         <NewDiagnosisForm
                           onTabChange={handleTabtriggerChange}
                           diagnoses={diagnoses}
+                          onClose={handleDialogClose}
+
                           patient={patient._id}
                           onSubmit={(status, message) =>
                             handleDiagnosisSubmit(status, message)
@@ -4142,8 +3708,12 @@ const handleReportPrint = () => {
                           buttonText="Submit"
                           currentDashboard={currentDashboard}
                         />
-                      </DialogContent>
-                    </Dialog>
+                
+</div></div> )}
+
+
+
+
                     <StatusDialog
                       isOpen={statusDialog.isOpen}
                       onClose={() => {
@@ -4169,7 +3739,12 @@ const handleReportPrint = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y">
-  {currentRecords?.map((diagnosis) => {
+                      {currentRecords.length > 0 ? (
+
+currentRecords
+  ?.slice()
+  .reverse() 
+  .map((diagnosis) => {
     if (!diagnosis) return null;
 
     const formatDateTime = (dateTimeString) => {
@@ -4193,9 +3768,9 @@ const handleReportPrint = () => {
     return (
       <tr key={diagnosis.id}>
         <td className="px-4 py-2">{diagnosis.diagnosisId}</td>
-        <td className="px-4 py-2">{formatted.date}</td>
-        <td className="px-4 py-2">{diagnosis.status}</td>
-        <td className="px-4 py-2">{diagnosis.severity}</td>
+        <td className="px-4 py-2">{formatted.date} {formatted.time}</td>
+        <td className="px-4 py-2">{capitalize( diagnosis.status)}</td>
+        <td className="px-4 py-2">{capitalize( diagnosis.severity)}</td>
         <td className="px-4 py-2">
   {["doctor", "remote doctor"].includes(diagnosis.diagnosedByAccType) ? "Dr. " : ""}
   {diagnosis.diagnosedBy.firstName} {diagnosis.diagnosedBy.lastName}
@@ -4235,14 +3810,8 @@ const handleReportPrint = () => {
                                     </DialogContent>
                                   </Dialog>
 
-                                  <Dialog
-                                    open={editDiagState.isOpen}
-                                    onOpenChange={(isOpen) =>
-                                      !isOpen && handleDialogClose()
-                                    }
-                                  >
-                                    <DialogTrigger asChild>
-                                      <Button
+
+                                  <Button
                                         variant="ghost"
                                         size="icon"
                                         className="text-[#007664] hover:text-[#007664]/80"
@@ -4252,21 +3821,21 @@ const handleReportPrint = () => {
                                       >
                                         <Edit className="size-4" />
                                       </Button>
-                                    </DialogTrigger>
+                                  {editDiagState.isOpen && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className="relative h-[600px] w-full max-w-5xl overflow-y-auto rounded-lg bg-white p-4 pb-0 sm:p-6">
+      <button
+        className="absolute right-4 top-4 text-gray-600 hover:text-gray-800"
+        onClick={() =>  handleDialogClose()}
+      >
+        ✕
+      </button>
 
-                                    <DialogContent className="max-h-[90vh] max-w-full overflow-y-auto sm:max-w-5xl">
-                                      <DialogHeader>
-                                        <DialogTitle>
-                                          <div className="mb-0 text-center">
-                                            <h2 className="bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-3xl font-bold text-transparent">
-                                              Edit Diagnosis
-                                            </h2>
-                                          </div>
-                                        </DialogTitle>
-                                      </DialogHeader>
 
                                       <NewDiagnosisForm
                                         onTabChange={handleTabtriggerChange}
+                                        onClose={handleDialogClose}
+
                                         diagnoses={diagnoses}
                                         patient={patient._id}
                                         onSubmit={(status, message) =>
@@ -4279,8 +3848,8 @@ const handleReportPrint = () => {
                                         currentDashboard={currentDashboard}
 
                                       />
-                                    </DialogContent>
-                                  </Dialog>
+                                </div>  </div>
+                              )}
             <Button
               variant="ghost"
               size="icon"
@@ -4292,8 +3861,13 @@ const handleReportPrint = () => {
           </div>
         </td>
       </tr>
-    );
-  })}
+    ) })): (
+      <tr>
+        <td colSpan="6" className="p-4 text-center text-gray-500">
+          No records found
+        </td>
+      </tr>
+    )}
 </tbody>
 
 {/* Pagination Controls */}
@@ -4326,32 +3900,24 @@ const handleReportPrint = () => {
                 <TabsContent value="labresult" className="mt-32 sm:mt-6">
                   <div className="mb-4 flex items-center justify-between">
                     <h3 className="text-lg font-semibold text-[#007664]">
-                      Lab Test
+                      Lab Test History
                     </h3>
-
-                    <Dialog
-                      open={isAddlabtestOpen}
-                      onOpenChange={(isOpen) =>
-                        handleDialogChangelabtest(isOpen, "add")
-                      }
+                    <Button className="w-full bg-[#007664] hover:bg-[#007664]/80 sm:w-auto"
+                    onClick={() => handleDialogChangelabtest (true, "add")}
                     >
-                      <DialogTrigger asChild>
-                        <Button className="w-full bg-[#007664] hover:bg-[#007664]/80 sm:w-auto">
                           <Plus className="size-4" />
                           New Lab Test
                         </Button>
-                      </DialogTrigger>
-
-                      <DialogContent className="max-h-[90vh] max-w-full overflow-y-auto sm:max-w-5xl">
-                        <DialogHeader>
-                          <DialogTitle>
-                            <div className="mb-0 text-center">
-                              <h2 className="bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-3xl font-bold text-transparent">
-                                New Lab Test
-                              </h2>
-                            </div>
-                          </DialogTitle>
-                        </DialogHeader>
+                    {isAddlabtestOpen && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className="relative h-[600px] w-full max-w-5xl overflow-y-auto rounded-lg bg-white p-4 pb-0 sm:p-6">
+      <button
+        className="absolute right-4 top-4 text-gray-600 hover:text-gray-800"
+        onClick={() => handleDialogChangelabtest(isOpen, "add")}
+      >
+        ✕
+      </button>
+                   
                         <NewLabTestForm
                           onTabChange={handleTabtriggerChange}
                           patient={patient._id}
@@ -4361,10 +3927,14 @@ const handleReportPrint = () => {
                           buttonText="Submit"
                           labTests={labTests}
                           currentDashboard={currentDashboard}
+                          onClose={handleDialogClose}
 
                         />
-                      </DialogContent>
-                    </Dialog>
+               </div> </div>)}
+
+
+
+
                     <StatusDialog
                       isOpen={statusDialog.isOpen}
                       onClose={() => {
@@ -4391,7 +3961,11 @@ const handleReportPrint = () => {
     </tr>
   </thead>
   <tbody className="divide-y">
-    {labTestCurrentRecords?.map((test) => {
+  {labTestCurrentRecords.length > 0 ? (
+
+    labTestCurrentRecords?.slice()
+    .reverse() 
+    .map((test) => {
       if (!test) return null;
 
       const formatDateTime = (dateTimeString) => {
@@ -4432,6 +4006,7 @@ const handleReportPrint = () => {
               >
                 <Eye className="size-4" />
               </Button>
+
               <Dialog
                                     open={viewLabState.isOpen}
                                     onOpenChange={(isOpen) =>
@@ -4452,15 +4027,7 @@ const handleReportPrint = () => {
                                       />
                                     </DialogContent>
                                   </Dialog>
-
-                                  <Dialog
-                                    open={editLabState.isOpen}
-                                    onOpenChange={(isOpen) =>
-                                      !isOpen && handleDialogClose()
-                                    }
-                                  >
-                                    <DialogTrigger asChild>
-                                      <Button
+                                  <Button
                                         variant="ghost"
                                         size="icon"
                                         className="text-[#007664] hover:text-[#007664]/80"
@@ -4468,18 +4035,20 @@ const handleReportPrint = () => {
                                       >
                                         <Edit className="size-4" />
                                       </Button>
-                                    </DialogTrigger>
 
-                                    <DialogContent className="max-h-[90vh] max-w-full overflow-y-auto sm:max-w-5xl">
-                                      <DialogHeader>
-                                        <DialogTitle>
-                                          <div className="mb-0 text-center">
-                                            <h2 className="bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-3xl font-bold text-transparent">
-                                              Edit Lab Test
-                                            </h2>
-                                          </div>
-                                        </DialogTitle>
-                                      </DialogHeader>
+
+                                  {editLabState.isOpen && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className="relative h-[600px] w-full max-w-5xl overflow-y-auto rounded-lg bg-white p-4 pb-0 sm:p-6">
+      <button
+        className="absolute right-4 top-4 text-gray-600 hover:text-gray-800"
+        onClick={() => handleDialogClose()}
+      >
+        ✕
+      </button>
+
+
+                                   
                                       <NewLabTestForm
                                         onTabChange={handleTabtriggerChange}
                                         patient={patient._id}
@@ -4492,10 +4061,10 @@ const handleReportPrint = () => {
                                         buttonText="Update"
                                         labTests={labTests}
                                         currentDashboard={currentDashboard}
+                                        onClose={handleDialogClose}
 
                                       />
-                                    </DialogContent>
-                                  </Dialog>
+                               </div>  </div>)}
               <Button
                 variant="ghost"
                 size="icon"
@@ -4507,8 +4076,13 @@ const handleReportPrint = () => {
             </div>
           </td>
         </tr>
-      );
-    })}
+      ) })): (
+        <tr>
+          <td colSpan="6" className="p-4 text-center text-gray-500">
+            No records found
+          </td>
+        </tr>
+      )}
   </tbody>
 </table>
 
@@ -4541,34 +4115,39 @@ const handleReportPrint = () => {
                     <h3 className="text-lg font-semibold text-[#007664]">
                       Recent Medications
                     </h3>
-                    <Dialog
-                      open={isAddmOpen}
-                      onOpenChange={(isOpen) =>
-                        handleDialogmChange(isOpen, "add")
-                      }
-                    >
-                      <DialogTrigger asChild>
-                        <Button className="bg-[#007664] hover:bg-[#007664]/80">
-                          <Plus className="size-4" />
-                          Add Medication
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="!mb-0 max-h-[90vh] max-w-full overflow-y-auto pb-0 sm:max-w-5xl">
-                
-                                              
-                        <NewMedicationForm
-                          medications={medications}
-                          patient={patient._id}
-                          onClose={handleDialogClose}
-                          onSubmit={(status, message) =>
-                            handleMedSubmit(status, message)
-                            
-                          }
-                          currentDashboard={currentDashboard}
+                    <>
+  <Button
+    className="bg-[#007664] hover:bg-[#007664]/80"
+    onClick={() => handleDialogmChange(true, "add")}
+  >
+    <Plus className="size-4" />
+    Add Medication
+  </Button>
 
-                        />
-                      </DialogContent>
-                    </Dialog>
+  {isAddmOpen && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className="relative h-[600px] w-full max-w-5xl overflow-y-auto rounded-lg bg-white p-4 pb-0 sm:p-6">
+      <button
+        className="absolute right-4 top-4 text-gray-600 hover:text-gray-800"
+        onClick={() => handleDialogmChange(false, "add")}
+      >
+        ✕
+      </button>
+
+      <NewMedicationForm
+        medications={medications}
+        patient={patient._id}
+        onClose={handleDialogClose}
+        onSubmit={(status, message) => handleMedSubmit(status, message)}
+        currentDashboard={currentDashboard}
+        buttonText="Submit"
+      />
+    </div>
+  </div>
+)}
+
+</>
+
                     <StatusDialog
                       isOpen={statusDialog.isOpen}
                       onClose={() => {
@@ -4590,14 +4169,18 @@ const handleReportPrint = () => {
                           <th className="px-4 py-2 text-left">
                             Medication Name
                           </th>
-                          <th className="px-4 py-2 text-left">Duration</th>
+                          <th className="px-4 py-2 text-left">Duration (Days)</th>
                           <th className="px-4 py-2 text-left">Requested By</th>
 
                           <th className="px-4 py-2 text-left">Action</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y">
-  {medCurrentRecords?.map((medication) => {
+                      {medCurrentRecords.length > 0 ? (
+
+  medCurrentRecords?.slice()
+  .reverse() 
+  .map((medication) => {
     if (!medication) return null;
 
     const formatDateTime = (dateTimeString) => {
@@ -4618,15 +4201,18 @@ const handleReportPrint = () => {
 
     const formatted = formatDateTime(medication?.createdAt || "");
  //console.log(medication?.createdAt )
+ const key = medication.id || medication._id || medication.medicationId || index;
+
     return (
-      <tr key={medication.id}>
+      <tr key={key}>
         <td className="px-4 py-2">{medication.medicationId}</td>
-        <td className="px-4 py-2">{formatted.date}</td>
-        <td className="px-4 py-2">{medication.medicationName}</td>
+        <td className="px-4 py-2">{formatted.date} {formatted.time}</td>
+        <td className="px-4 py-2">{capitalize(medication.medicationName)}</td>
         <td className="px-4 py-2">{medication.treatmentDuration}</td>
         <td className="px-4 py-2">
   {["doctor", "remote doctor"].includes(medication.requestedByAccType) ? "Dr. " : ""}
-  {medication.requestedBy.firstName} {medication.requestedBy.lastName}
+  {medication?.requestedBy?.firstName || "N/A"} {medication?.requestedBy?.lastName || "N/A"}
+
 </td>
         <td>
           <div className="flex space-x-2">
@@ -4660,14 +4246,8 @@ const handleReportPrint = () => {
                                       />
                                     </DialogContent>
                                   </Dialog>
-                                  <Dialog
-                                    open={editMedState.isOpen}
-                                    onOpenChange={(isOpen) =>
-                                      !isOpen && handleDialogClose()
-                                    }
-                                  >
-                                    <DialogTrigger asChild>
-                                      <Button
+
+                                  <Button
                                         variant="ghost"
                                         size="icon"
                                         className="text-[#007664] hover:text-[#007664]/80"
@@ -4677,19 +4257,17 @@ const handleReportPrint = () => {
                                       >
                                         <Edit className="size-4" />
                                       </Button>
-                                    </DialogTrigger>
 
-                                    <DialogContent className="max-h-[90vh] max-w-full overflow-y-auto sm:max-w-5xl">
-                                      <DialogHeader>
-                                        <DialogTitle>
-                                          <div className="mb-0 text-center">
-                                            <h2 className="bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-3xl font-bold text-transparent">
-                                              Edit Medication
-                                            </h2>
-                                          </div>
-                                        </DialogTitle>
-                                      </DialogHeader>
-
+                                      {editMedState.isOpen && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className="relative h-[600px] w-full max-w-5xl overflow-y-auto rounded-lg bg-white p-4 pb-0 sm:p-6">
+      <button
+        className="absolute right-4 top-4 text-gray-600 hover:text-gray-800"
+        onClick={() => handleDialogClose()}
+      >
+        ✕
+      </button>
+                                  
                                       <NewMedicationForm
                                         medications={medications}
                                         patient={patient._id}
@@ -4701,10 +4279,13 @@ const handleReportPrint = () => {
                                           editMedState.selectedMedication
                                         }
                                         currentDashboard={currentDashboard}
+                                        buttonText="Update"
 
                                       />
-                                    </DialogContent>
-                                  </Dialog>
+                                      </div>  </div>
+                                    )}
+
+                                  
             <Button
               variant="ghost"
               size="icon"
@@ -4716,8 +4297,13 @@ const handleReportPrint = () => {
           </div>
         </td>
       </tr>
-    );
-  })}
+    ) })): (
+      <tr>
+        <td colSpan="6" className="p-4 text-center text-gray-500">
+          No records found
+        </td>
+      </tr>
+    )}
 </tbody>
 
 {/* Pagination Controls */}

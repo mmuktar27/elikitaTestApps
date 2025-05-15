@@ -11,11 +11,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Lock } from "lucide-react";
+import { DivideIcon, Lock } from "lucide-react";
 
 export default function AccessDeniedPage() {
   const session = useSession();
   const { data } = useGetStaff();
+
+    const handleSignOut = async () => {
+      await fetch("@/components/shared/api/clear-user-cache", { method: "POST" });
+      await signOut();
+    };
 
   console.log("session", session);
   console.log("data", data);
@@ -39,9 +44,15 @@ export default function AccessDeniedPage() {
             administrator or try logging in again.
           </p>
           <div className="flex flex-col space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0">
-            <Button asChild className="flex-1">
-              <Link href="/login">Go to Login</Link>
-            </Button>
+            <div  className="flex-1">
+            <button
+  onClick={handleSignOut}
+  className="text-red-500 border border-red-500 px-4 py-2 rounded hover:bg-red-50"
+>
+  Go to Login
+</button>
+
+            </div>
             <Button variant="outline" className="flex-1">
               <Link href="/contact-support">Contact Support</Link>
             </Button>

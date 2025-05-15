@@ -1,6 +1,9 @@
+
 import { Inter, Urbanist, Poppins } from "next/font/google";
 import "./globals.css";
 import ClientProviders from "@/providers/ClientProvider";
+import { PageProvider } from "@/components/shared";
+
 
 const inter = Inter({
   subsets: ["latin"],
@@ -38,8 +41,12 @@ export default async  function RootLayout({
     <html lang="en">
       <body
         className={`${urbanist.variable} ${inter.variable} ${poppins.variable}`}
+        suppressHydrationWarning={true}
       >
+        <PageProvider>
+    
         <ClientProviders>{children}</ClientProviders>
+        </PageProvider>
       </body>
     </html>
   );
